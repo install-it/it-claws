@@ -3,6 +3,7 @@
         "ms-python.autopep8",
         "ms-python.isort",
         "ms-python.vscode-pylance",
-        "njpwerner.autodocstring"
+        "njpwerner.autodocstring",
+        "ms-python.python"
     ]
 }
