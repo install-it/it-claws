@@ -1,4 +1,4 @@
-# driver-claw
+# it-claws
 <a id="readme-top"></a>
 
 
@@ -18,14 +18,14 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <h3 align="center">driver-claw</h3>
+  <h3 align="center">it-claws</h3>
 
   <p align="center">
     A common-line tool that automates the process of find and download the latest common hardware drivers, and diagnostic tool.
     <br />
-    <a href="https://github.com/markmybytes/driver-claw/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
+    <a href="https://github.com/install-it/it-claws/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
     ·
-    <a href="https://github.com/markmybytes/driver-claw/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
+    <a href="https://github.com/install-it/it-claws/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
   </p>
 </div>
 
@@ -33,9 +33,9 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-driver-claw is a Python-based command-line utility for downloading the latest PC hardware drivers and diagnostic tools. Leveraging Selenium, it automatically navigates official websites and motherboard manufacturers' pages to locate and retrieve the most up-to-date versions of essential drivers and utilities.
+it-claws is a Python-based command-line utility for downloading the latest PC hardware drivers and diagnostic tools. Leveraging Selenium, it automatically navigates official websites and motherboard manufacturers' pages to locate and retrieve the most up-to-date versions of essential drivers and utilities.
 
-This tool also serves as a companion to [driver-box](https://github.com/markmybytes/driver-box/). Refer to the [Usage](#including-extra-files-in-the-archive) section for more information.
+This tool also serves as a companion to [install-it](https://github.com/install-it/install-it/). Refer to the [Usage](#including-extra-files-in-the-archive) section for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -81,7 +81,7 @@ pip install -r requirements.txt
 
 ###  Specify 7-Zip Executable Location
 
-driver-claw uses 7-Zip to archive and extract files. If the 7-Zip executable is not available in the system's PATH, you can specify its location using the `PATH_LIB_7ZIP` environment variable.
+it-claws uses 7-Zip to archive and extract files. If the 7-Zip executable is not available in the system's PATH, you can specify its location using the `PATH_LIB_7ZIP` environment variable.
 
 If 7-Zip cannot be found, the tool will fall back to using `PowerShell`. Please note:
 
@@ -105,7 +105,7 @@ The module `src/url.py` provides helper methods to extract download URLs from we
 
 #### JSON file
 
-Refer to the [JSON Schema](https://raw.githubusercontent.com/markmybytes/driver-claw/main/claw-config-schema.json) for guidance on constructing a valid claw configuration.
+Refer to the [JSON Schema](https://raw.githubusercontent.com/install-it/it-claws/main/claw-config-schema.json) for guidance on constructing a valid claw configuration.
 
 ```sh
 python src/main.py -c ./custom-config.json
@@ -113,7 +113,7 @@ python src/main.py -c ./custom-config.json
 
 #### Python source file
 
-When using a Python file, driver-claw will look for a variable named `CLAW_CONFIG` defined in the specified source.
+When using a Python file, it-claws will look for a variable named `CLAW_CONFIG` defined in the specified source.
 Refer to the `DriverClaw` class for the expected structure and type details.
 
 ```sh
@@ -141,15 +141,15 @@ python src/main.py -i conf/
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[tag-url]: https://github.com/markmybytes/driver-claw/releases
-[tag-shield]: https://img.shields.io/github/v/tag/markmybytes/driver-claw?style=for-the-badge&label=LATEST&color=%23B1B1B1
-[contributors-shield]: https://img.shields.io/github/contributors/markmybytes/driver-claw.svg?style=for-the-badge
-[contributors-url]: https://github.com/markmybytes/driver-claw/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/markmybytes/driver-claw.svg?style=for-the-badge
-[forks-url]: https://github.com/markmybytes/driver-claw/network/members
-[stars-shield]: https://img.shields.io/github/stars/markmybytes/driver-claw.svg?style=for-the-badge
-[stars-url]: https://github.com/markmybytes/driver-claw/stargazers
-[issues-shield]: https://img.shields.io/github/issues/markmybytes/driver-claw.svg?style=for-the-badge
-[issues-url]: https://github.com/markmybytes/driver-claw/issues
-[license-shield]: https://img.shields.io/github/license/markmybytes/driver-claw.svg?style=for-the-badge
-[license-url]: https://github.com/markmybytes/driver-claw/blob/master/LICENSE.txt
+[tag-url]: https://github.com/install-it/it-claws/releases
+[tag-shield]: https://img.shields.io/github/v/tag/install-it/it-claws?style=for-the-badge&label=LATEST&color=%23B1B1B1
+[contributors-shield]: https://img.shields.io/github/contributors/install-it/it-claws.svg?style=for-the-badge
+[contributors-url]: https://github.com/install-it/it-claws/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/install-it/it-claws.svg?style=for-the-badge
+[forks-url]: https://github.com/install-it/it-claws/network/members
+[stars-shield]: https://img.shields.io/github/stars/install-it/it-claws.svg?style=for-the-badge
+[stars-url]: https://github.com/install-it/it-claws/stargazers
+[issues-shield]: https://img.shields.io/github/issues/install-it/it-claws.svg?style=for-the-badge
+[issues-url]: https://github.com/install-it/it-claws/issues
+[license-shield]: https://img.shields.io/github/license/install-it/it-claws.svg?style=for-the-badge
+[license-url]: https://github.com/install-it/it-claws/blob/master/LICENSE.txt
