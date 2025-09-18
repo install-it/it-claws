@@ -1,4 +1,3 @@
-
 """Configuration module for driver download targets.
 
 This module defines a structured dictionary `CLAW_PRIZES` that categorizes
@@ -13,6 +12,8 @@ FurMark, and HWInfo.
 
 
 import functools
+
+import inquirer
 
 import url
 from driver_claw import ClawPrize
@@ -286,3 +287,35 @@ CLAW_PRIZES: dict[str, list[ClawPrize]] = {
         }
     ]
 }
+
+
+def configurate():
+    """Interactive configuration to select desired drivers.
+    """
+    choices = [
+        (f"[{category.upper()}] {prize['path']}", prize)
+        for category, prizes in CLAW_PRIZES.items()
+        for prize in prizes
+    ]
+
+    questions = [
+        inquirer.Checkbox('config',
+                          message="Select the driver(s) you want to include",
+                          choices=choices,
+                          default=choices,
+                          validate=lambda _, x: len(x) > 0 or 'Please select at least one item.'),
+    ]
+
+    answers = inquirer.prompt(questions)
+    filtered_prizes = {}
+
+    for category, prizes in CLAW_PRIZES.items():
+        selected_in_category = [
+            prize for prize in answers['config']
+            if any(p['path'] == prize['path'] for p in prizes)
+        ]
+
+        if selected_in_category:
+            filtered_prizes[category] = selected_in_category
+
+    return filtered_prizes

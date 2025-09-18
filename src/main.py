@@ -1,5 +1,6 @@
 import argparse
 import os
+import pickle
 import shutil
 from contextlib import contextmanager, redirect_stdout
 from typing import Iterable
@@ -77,6 +78,10 @@ if __name__ == '__main__':
         '-c', '--claw-config', type=lambda s: file_ext(('py', 'json', 'pkl'), s),
         help='Path to configuration file (.json, .py, or .pkl)'
     )
+    parser.add_argument(
+        '--config', action='store_true',
+        help='Interactive configuration mode to select drivers'
+    )
 
     group_archive = parser.add_mutually_exclusive_group()
     group_archive.add_argument(
@@ -91,6 +96,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     with setup_print(args.silent):
+        if args.config:
+            config_file = args.claw_config or 'claw_config.pkl'
+
+            print('Starting interactive configuration...')
+            selections = config.configurate()
+            with open(config_file, 'wb') as f:
+                pickle.dump(selections, f)
+            print(f'Configuration saved to {config_file}')
+            exit(0)
+
         if archive.LIB7ZIP is None:
             print('Unable to locate 7zip, falling back to system\'s built-in tools.')
 
@@ -109,10 +124,11 @@ if __name__ == '__main__':
             elif args.claw_config:
                 if '.json' in args.claw_config:
                     targets = DriverClaw.load_json(args.claw_config)
+                elif '.py' in args.claw_config:
+                    targets = DriverClaw.load_py(args.claw_config)
                 elif '.pkl' in args.claw_config:
                     targets = DriverClaw.load_pickle(args.claw_config)
-                else:
-                    targets = DriverClaw.load_py(args.claw_config)
+                raise RuntimeError('unsupported config file format')
             else:
                 targets = config.CLAW_PRIZES
 
