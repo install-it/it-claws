@@ -13,7 +13,7 @@ import shutil
 import sys
 import tempfile
 from pathlib import Path
-from typing import Callable, Literal, TypedDict
+from typing import Callable, Iterable, Literal, TypedDict
 from urllib.parse import urlparse
 
 import requests
@@ -51,81 +51,59 @@ class ClawPrize(TypedDict):
 
 class DriverClaw:
 
-    dest: str
+    file_error_log = '.failedclaws.pkl'
+
+    dest: Path
     """Directory to save downloaded files.
     """
 
-    @property
-    def path_error_log(self) -> Path:
-        """Path to the error log file.
-        """
-        return self.dest.joinpath('.failscrapes.pkl')
+    @classmethod
+    def from_file(cls, prizes_path: Path, destination: Path) -> 'DriverClaw':
+        if '.json' == prizes_path.suffix:
+            with open(prizes_path) as f:
+                return cls(json.load(f), destination)
+        elif '.pkl' == prizes_path.suffix:
+            with open(prizes_path, 'rb') as f:
+                return cls(pickle.load(f), destination)
+        elif '.py' == prizes_path.suffix:
+            spec = importlib.util.spec_from_file_location(
+                'custom_config', prizes_path)
+            custom = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(custom)
+            return cls(custom.CLAW_PRIZES, destination)
+        raise ValueError(f'\'{prizes_path}\' is not a supported file format')
 
-    @staticmethod
-    def load_json(path: str | Path) -> dict[str, list[ClawPrize]]:
-        """Load driver configuration from a JSON file.
+    @classmethod
+    def from_failed(cls, destination: Path) -> 'DriverClaw':
+        return cls.from_file(Path(cls.file_error_log).joinpath(cls.file_error_log), destination)
 
-        Args:
-            path (str | Path): Path to the JSON file.
-        """
-        with open(path) as f:
-            return json.load(f)
-
-    @staticmethod
-    def load_py(path: str | Path) -> dict[str, list[ClawPrize]]:
-        """Load driver configuration from a Python module.
-
-        Args:
-            path (str | Path): Path to the Python module.
-        """
-        spec = importlib.util.spec_from_file_location('custom_config', path)
-        custom = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(custom)
-        return custom.CLAW_PRIZES
-
-    @staticmethod
-    def load_pickle(path: str | Path) -> dict[str, list[ClawPrize]]:
-        """Load driver configuration from a pickle file.
-
-        Args:
-            path (str | Path): Path to the pickle file.
-        """
-        with open(path, 'rb') as f:
-            return pickle.load(f)
-
-    def __init__(self, destination: str | Path):
+    def __init__(self, prizes: dict[str, Iterable[ClawPrize]], destination: str | Path):
+        self.prizes = prizes
         self.dest = Path(destination)
 
-    def load_failed(self):
-        """Load previously failed downloads from the error log.
-        """
-        with open(self.path_error_log, 'rb') as f:
-            return pickle.load(f)
-
-    def start(self, targets: dict[str, list[ClawPrize]], on_error: Literal['exit', 'log', 'ignore']) -> dict[str, list[ClawPrize]]:
+    def start(self, on_error: Literal['exit', 'log', 'ignore']) -> dict[str, list[ClawPrize]]:
         """Start downloading drivers based on provided targets.
 
         Args:
-            targets (dict[str, list[ClawPrize]]): Driver configurations by category.
             on_error (Literal['exit', 'log', 'ignore']): Error handling mode.
 
         Returns:
             dict[str, list[ClawPrize]]: Dictionary of failed downloads claw configurations by category.
         """
-        failed_downloads: dict[str, list[ClawPrize]] = {}
+        failed: dict[str, list[ClawPrize]] = {}
 
         with get_browser() as browser:
-            scrape_items = [{**item, 'category': category}
-                            for category, items in targets.items()
-                            for item in items]
+            claw_items = [{**item, 'category': category}
+                          for category, items in self.prizes.items()
+                          for item in items]
 
-            for i, item in enumerate(scrape_items):
+            for i, item in enumerate(claw_items):
                 category = item['category']
                 fullpath = self.dest.joinpath(category, item['path'])
                 fullpath.mkdir(parents=True, exist_ok=True)
 
                 try:
-                    print(f'Processing {i+1:>2}/{len(scrape_items)}: '
+                    print(f'Processing {i+1:>2}/{len(claw_items)}: '
                           f'[{category}] {item['path']}')
 
                     print('├ Locating download URL...')
@@ -142,19 +120,19 @@ class DriverClaw:
                     if on_error == 'exit':
                         sys.exit(1)
                     if on_error == 'log':
-                        failed_downloads.setdefault(category, [])
-                        failed_downloads[category].append(item)
+                        failed.setdefault(category, [])
+                        failed[category].append(item)
                     continue
 
                 print('┴ Completed.')
 
-        if on_error == 'log' and len(failed_downloads) > 0:
-            self._dump_failed(failed_downloads)
+        if on_error == 'log' and len(failed) > 0:
+            self._dump_failed(failed)
 
-        if len(failed_downloads) == 0:
-            self.path_error_log.unlink(True)
+        if len(failed) == 0:
+            self.dest.joinpath(self.file_error_log).unlink(True)
 
-        return failed_downloads
+        return failed
 
     def download_and_save(self, url: str, file_type: Literal['exe', 'zip', 'zip/exe', 'zip/folder'], rename_as: str | None,  path: str | Path) -> None:
         """Download and save a file from a URL, organizing it based on file type.
@@ -217,5 +195,5 @@ class DriverClaw:
     def _dump_failed(self, failed: dict[str, list[ClawPrize]]):
         """Save failed downloads to the error log.
         """
-        with open(self.path_error_log, 'wb') as f:
+        with open(self.dest.joinpath(self.file_error_log), 'wb') as f:
             return pickle.dump(failed, f)

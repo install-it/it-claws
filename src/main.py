@@ -3,6 +3,7 @@ import os
 import pickle
 import shutil
 from contextlib import contextmanager, redirect_stdout
+from pathlib import Path
 from typing import Iterable
 
 import archive
@@ -76,6 +77,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '-c', '--claw-config', type=lambda s: file_ext(('py', 'json', 'pkl'), s),
+        default='claw_prizes.pkl',
         help='Path to configuration file (.json, .py, or .pkl)'
     )
     parser.add_argument(
@@ -113,27 +115,13 @@ if __name__ == '__main__':
             if not args.retry_failed and os.path.exists(args.output_dir):
                 shutil.rmtree(args.output_dir)
 
-            claw = DriverClaw(args.output_dir)
-
             if args.retry_failed:
-                try:
-                    targets = claw.load_failed()
-                except FileNotFoundError:
-                    print('No failed downloads to retry.')
-                    exit(1)
-            elif args.claw_config:
-                if '.json' in args.claw_config:
-                    targets = DriverClaw.load_json(args.claw_config)
-                elif '.py' in args.claw_config:
-                    targets = DriverClaw.load_py(args.claw_config)
-                elif '.pkl' in args.claw_config:
-                    targets = DriverClaw.load_pickle(args.claw_config)
-                raise RuntimeError('unsupported config file format')
+                claw = DriverClaw.from_failed(Path(args.output_dir))
             else:
-                targets = config.CLAW_PRIZES
+                claw = DriverClaw.from_file(
+                    Path(args.claw_config), Path(args.output_dir))
 
-            failed = claw.start(targets, args.error_handling)
-
+            failed = claw.start(args.error_handling)
             if len(failed) > 0:
                 print(
                     f'Failed to download {len(failed)} file(s). Use --retry-failed to retry.')
