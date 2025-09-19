@@ -1,0 +1,74 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        architecture: [x86, x64]
+        include:
+          - architecture: x86
+            build-name: windows-x86
+          - architecture: x64
+            build-name: windows-x64
+
+    steps:
+      - name: Checkout updater repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/install-it-updater
+
+      - name: Setup Python environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          architecture: ${{ matrix.architecture }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r ./requirements.txt
+
+      - name: Install UPX
+        uses: crazy-max/ghaction-upx@v3
+        with:
+          install-only: true
+
+      - name: Build the executable
+        run: |
+          pyinstaller .\src\main.py -cDF -n it-claws.${{ matrix.build-name }} `
+            --collect-all selenium --collect-all inquirer --copy-metadata readchar -i .\assets\icon.ico
+
+      - name: Upload updater artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: it-claws.${{ matrix.architecture }}
+          path: dist/it-claws.${{ matrix.build-name }}.exe
+
+  draft-release:
+    needs: [build]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+          merge-multiple: true
+
+      - name: Create GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: dist/*
+          draft: true
