@@ -284,6 +284,12 @@ CLAW_PRIZES: dict[str, list[ClawPrize]] = {
             'url': url.y_cruncher,
             'file_type': 'zip/folder',
             'rename_as': None
+        },
+        {
+            'path': 'Steam',
+            'url': 'https://cdn.fastly.steamstatic.com/client/installer/SteamSetup.exe',
+            'file_type': 'exe',
+            'rename_as': None,
         }
     ]
 }
