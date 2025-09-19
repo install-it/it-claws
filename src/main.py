@@ -4,6 +4,7 @@ import pickle
 import shutil
 from contextlib import contextmanager, redirect_stdout
 from pathlib import Path
+import sys
 from typing import Iterable
 
 import archive
@@ -106,7 +107,7 @@ if __name__ == '__main__':
             with open(config_file, 'wb') as f:
                 pickle.dump(selections, f)
             print(f'Configuration saved to {config_file}')
-            exit(0)
+            sys.exit(0)
 
         if archive.LIB7ZIP is None:
             print('Unable to locate 7zip, falling back to system\'s built-in tools.')
@@ -125,17 +126,17 @@ if __name__ == '__main__':
             if len(failed) > 0:
                 print(
                     f'Failed to download {len(failed)} file(s). Use --retry-failed to retry.')
-                exit(1)
+                sys.exit(1)
             if args.no_archive:
-                exit(0)
+                sys.exit(0)
 
         if not os.path.exists(args.output_dir):
             print(
                 f'Error: Output directory "{args.output_dir}" does not exist.')
-            exit(1)
+            sys.exit(1)
         if not os.listdir(args.output_dir):
             print(f'Error: Output directory "{args.output_dir}" is empty.')
-            exit(1)
+            sys.exit(1)
 
         archive.zip(args.archive_name,
                     *(args.include_files or []),
