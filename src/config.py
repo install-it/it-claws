@@ -275,7 +275,7 @@ CLAW_PRIZES: dict[str, list[ClawPrize]] = {
         },
         {
             'path': 'OCCT',
-            'url': url.occt,
+            'url': 'https://www.ocbase.com/download/edition:Personal/os:Windows',
             'file_type': 'exe',
             'rename_as': None
         },

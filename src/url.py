@@ -216,12 +216,6 @@ def hwinfo(remote: webdriver.Remote) -> str:
             .get_attribute('href'))
 
 
-def occt(remote: webdriver.Remote) -> str:
-    """Fetch OCCT download URL.
-    """
-    return 'https://www.ocbase.com/download/edition:Personal/os:Windows'
-
-
 def y_cruncher(remote: webdriver.Remote) -> str:
     """Fetch y-cruncher download URL.
     """
