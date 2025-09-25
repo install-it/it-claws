@@ -137,7 +137,6 @@ if __name__ == '__main__':
             if args.retry_failed:
                 claw = DriverClaw.from_failed(archive, Path(args.output_dir))
             else:
-                print(Path(args.claw_config).absolute())
                 claw = DriverClaw.from_file(archive,
                                             Path(args.claw_config),
                                             Path(args.output_dir))
