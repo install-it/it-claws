@@ -2,14 +2,21 @@ import argparse
 import os
 import pickle
 import shutil
+import sys
 from contextlib import contextmanager, redirect_stdout
 from pathlib import Path
-import sys
 from typing import Iterable
 
-import archive
+import patoolib
+
 import config
+from archive import Archive7zip, ArchivePowershell
 from driver_claw import DriverClaw
+
+# set proper CWD
+os.chdir(Path(sys.executable).parent
+         if getattr(sys, 'frozen', False)
+         else Path(__file__).parents[1])
 
 
 @contextmanager
@@ -109,18 +116,30 @@ if __name__ == '__main__':
             print(f'Configuration saved to {config_file}')
             sys.exit(0)
 
-        if archive.LIB7ZIP is None:
-            print('Unable to locate 7zip, falling back to system\'s built-in tools.')
+        try:
+            path_7zip = Path('bin', '7zip', '7za.exe')
+            archive = Archive7zip(path_7zip
+                                  if path_7zip.exists()
+                                  else patoolib.find_archive_program("7z", "unzip"))
+
+            print(
+                f'Using "{archive.path_7zip.absolute()}" as the archive handler.')
+        except patoolib.util.PatoolError:
+            print(
+                'Unable to locate any 7zip executable, fell back to use Powershell as the archive handler.')
+            archive = ArchivePowershell()
 
         if not args.archive_only:
             if not args.retry_failed and os.path.exists(args.output_dir):
                 shutil.rmtree(args.output_dir)
 
             if args.retry_failed:
-                claw = DriverClaw.from_failed(Path(args.output_dir))
+                claw = DriverClaw.from_failed(archive, Path(args.output_dir))
             else:
-                claw = DriverClaw.from_file(
-                    Path(args.claw_config), Path(args.output_dir))
+                print(Path(args.claw_config).absolute())
+                claw = DriverClaw.from_file(archive,
+                                            Path(args.claw_config),
+                                            Path(args.output_dir))
 
             failed = claw.start(args.error_handling)
             if len(failed) > 0:

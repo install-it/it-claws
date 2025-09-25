@@ -21,7 +21,7 @@ from selenium import webdriver
 from selenium.webdriver import Remote
 from tqdm import tqdm
 
-import archive
+from archive import Archive
 
 
 @contextlib.contextmanager
@@ -57,27 +57,30 @@ class DriverClaw:
     """Directory to save downloaded files.
     """
 
+    archive: Archive
+
     @classmethod
-    def from_file(cls, prizes_path: Path, destination: Path) -> 'DriverClaw':
+    def from_file(cls, archive: Archive, prizes_path: Path, destination: Path) -> 'DriverClaw':
         if '.json' == prizes_path.suffix:
             with open(prizes_path) as f:
-                return cls(json.load(f), destination)
+                return cls(archive, json.load(f), destination)
         elif '.pkl' == prizes_path.suffix:
             with open(prizes_path, 'rb') as f:
-                return cls(pickle.load(f), destination)
+                return cls(archive, pickle.load(f), destination)
         elif '.py' == prizes_path.suffix:
             spec = importlib.util.spec_from_file_location(
                 'custom_config', prizes_path)
             custom = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(custom)
-            return cls(custom.CLAW_PRIZES, destination)
+            return cls(archive, custom.CLAW_PRIZES, destination)
         raise ValueError(f'\'{prizes_path}\' is not a supported file format')
 
     @classmethod
-    def from_failed(cls, destination: Path) -> 'DriverClaw':
-        return cls.from_file(Path(cls.file_error_log).joinpath(cls.file_error_log), destination)
+    def from_failed(cls, archive: Archive, destination: Path) -> 'DriverClaw':
+        return cls.from_file(archive, Path(cls.file_error_log).joinpath(cls.file_error_log), destination)
 
-    def __init__(self, prizes: dict[str, Iterable[ClawPrize]], destination: str | Path):
+    def __init__(self, archive: Archive, prizes: dict[str, Iterable[ClawPrize]], destination: str | Path):
+        self.archive = archive
         self.prizes = prizes
         self.dest = Path(destination)
 
@@ -169,7 +172,7 @@ class DriverClaw:
 
                 print('├ Organizing downloaded file...')
                 if 'zip' in file_type:
-                    if (archive.unzip(temp.name, path) != 0):
+                    if (self.archive.unzip(temp.name, path) != 0):
                         raise RuntimeError('Failed to extract zip file.')
 
                     if file_type == 'zip/folder':
