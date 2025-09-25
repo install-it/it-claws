@@ -27,7 +27,7 @@ from archive import Archive
 @contextlib.contextmanager
 def get_browser():
     options = webdriver.FirefoxOptions()
-    options.set_preference('intl.accept_languages', 'zh-Hant')
+    # options.set_preference('intl.accept_languages', 'zh-Hant')
     options.add_argument('--headless')
 
     driver = webdriver.Firefox(options=options)
