@@ -113,7 +113,8 @@ if __name__ == '__main__':
             selections = config.configurate()
             with open(config_file, 'wb') as f:
                 pickle.dump(selections, f)
-            print(f'Configuration saved to {config_file}')
+
+            print(f'Configuration saved to "{config_file}"')
             sys.exit(0)
 
         try:
