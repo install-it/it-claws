@@ -22,10 +22,8 @@ jobs:
             build-name: windows-x64
 
     steps:
-      - name: Checkout updater repository
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository_owner }}/install-it-updater
 
       - name: Setup Python environment
         uses: actions/setup-python@v5
@@ -47,8 +45,7 @@ jobs:
 
       - name: Build the executable
         run: |
-          pyinstaller .\src\main.py -cDF -n it-claws `
-            --collect-all selenium --collect-all inquirer --copy-metadata readchar -i .\assets\icon.ico `
+          pyinstaller .\src\main.py -cDF -n it-claws --collect-all selenium --collect-all inquirer  --copy-metadata readchar
 
       - name: Download and extract 7zip binaries
         run: |
