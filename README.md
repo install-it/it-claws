@@ -33,6 +33,10 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/83d46686-2893-41c1-9077-ef0fede26dcc" width="892" height="552">
+</p>
+
 it-claws is a Python-based command-line utility for downloading the latest PC hardware drivers and diagnostic tools. Leveraging Selenium, it automatically navigates official websites and motherboard manufacturers' pages to locate and retrieve the most up-to-date versions of essential drivers and utilities.
 
 This tool also serves as a companion to [install-it](https://github.com/install-it/install-it/). Refer to the [Usage](#including-extra-files-in-the-archive) section for more information.
