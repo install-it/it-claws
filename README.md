@@ -81,27 +81,38 @@ pip install -r requirements.txt
 
 ###  Specify 7-Zip Executable Location
 
-it-claws uses 7-Zip to archive and extract files. If the 7-Zip executable is not available in the system's PATH, you can specify its location using the `PATH_LIB_7ZIP` environment variable.
+it-claws uses 7-Zip to extract and compress files.
+By default, it-claws will look for the 7-Zip executable under `bin/7zip`, which will be included in release builds.
 
-If 7-Zip cannot be found, the tool will fall back to using `PowerShell`. Please note:
+If you are not comfortable with that, you can remove the `bin` folder. it-claws will then look for 7-Zip that is installed in the system. <br />
+If 7-Zip is not available, `PowerShell` will be used as a fall back. Please note that:
 
 - Compression level will be lower compared to 7-Zip.
 - There could be a higher chance of failure when extracting certain downloaded archives (only support `.zip`).
 
-```sh
-# CMD
-set "PATH_LIB_7ZIP=C:/<path-to-7zip>" && python src/main.py
-
-# Powershell
-$env:PATH_LIB_7ZIP="C:/<path-to-7zip>"; python src/main.py
-```
-
 ### Customise Crawl Configurations
 
-The default claw configuration is located in `src/config.py`, which includes a curated list of common hardware drivers and diagnostic tools.
+The default crawl configuration is located in `src/config.py`, which includes a curated list of common hardware drivers and diagnostic tools.
 To use a custom configuration file, specify it with the `-c` or `--claw-config` option. The tool accepts both JSON and Python source files.
 
 The module `src/url.py` provides helper methods to extract download URLs from well-known hardware manufacturers and vendors. You can leverage these utilities when drafting your own claw configuration.
+
+#### Python pickle file
+
+The expected type is ```dict[str, Iterable[ClawPrize]]```.
+
+```sh
+python src/main.py -c ./custom-config.pkl
+```
+
+#### Python source file
+
+When using a Python file, it-claws will look for a variable named `CLAW_CONFIG` defined in the specified source.
+The expected type is ```dict[str, Iterable[ClawPrize]]```.
+
+```sh
+python src/main.py -c ./custom-config.py
+```
 
 #### JSON file
 
@@ -109,15 +120,6 @@ Refer to the [JSON Schema](https://raw.githubusercontent.com/install-it/it-claws
 
 ```sh
 python src/main.py -c ./custom-config.json
-```
-
-#### Python source file
-
-When using a Python file, it-claws will look for a variable named `CLAW_CONFIG` defined in the specified source.
-Refer to the `DriverClaw` class for the expected structure and type details.
-
-```sh
-python src/main.py -c ./custom-config.py
 ```
 
 ###  Including Extra Files in the Archive
