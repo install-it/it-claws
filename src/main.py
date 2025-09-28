@@ -164,7 +164,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
         archive.zip(args.archive_path,
-                    *(args.include_files or []),
+                    *(args.include_file or []),
                     args.download_dir,
                     level=args.compress_level,
                     silent=args.silent)
