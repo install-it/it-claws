@@ -57,8 +57,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Find and download the latest common hardware drivers, and diagnostic tool.')
     parser.add_argument(
-        '-o', '--output-dir', type=str, default='drivers',
-        help='Output directory for downloaded drivers (default: drivers)'
+        '-d', '--download-dir', type=str, default='downloads',
+        help='Directory for downloads (default: downloads)'
     )
     parser.add_argument(
         '-e', '--error-handling', choices=['exit', 'ignore', 'log'], default='log',
@@ -69,15 +69,15 @@ if __name__ == '__main__':
         help='Retry failed downloads from previous run'
     )
     parser.add_argument(
-        '-n', '--archive-name', type=str, default='driver-pack.zip',
-        help='Name of the output archive file (default: driver-pack.zip)'
+        '-o', '--archive-path', type=str, default='driver-pack.zip',
+        help='Path for the produced archive file (default: driver-pack.zip)'
     )
     parser.add_argument(
         '-l', '--compress-level', type=int, default=5, choices=range(0, 10),
         help='Compression level for the archive (0-9, default: 5)'
     )
     parser.add_argument(
-        '-i', '--include-files', type=str, nargs='+', action='extend',
+        '-i', '--include-file', type=str, nargs='+', action='extend',
         help='Additional files or directories to include in archive'
     )
     parser.add_argument(
@@ -89,24 +89,24 @@ if __name__ == '__main__':
         help='Path to configuration file (.json, .py, or .pkl)'
     )
     parser.add_argument(
-        '--config', action='store_true',
+        '--configure', action='store_true',
         help='Interactive configuration mode to select drivers'
     )
 
     group_archive = parser.add_mutually_exclusive_group()
     group_archive.add_argument(
-        '-a', '--archive-only', action='store_true',
+        '--archive-only', action='store_true',
         help='Only create archive from existing output directory, skip scraping'
     )
     group_archive.add_argument(
-        '-x', '--no-archive', action='store_true',
+        '--no-archive', action='store_true',
         help='Skip creating zip archive'
     )
 
     args = parser.parse_args()
 
     with setup_print(args.silent):
-        if args.config:
+        if args.configure:
             config_file = args.claw_config or 'claw_config.pkl'
 
             print('Starting interactive configuration...')
@@ -131,15 +131,15 @@ if __name__ == '__main__':
             archive = ArchivePowershell()
 
         if not args.archive_only:
-            if not args.retry_failed and os.path.exists(args.output_dir):
-                shutil.rmtree(args.output_dir)
+            if not args.retry_failed and os.path.exists(args.download_dir):
+                shutil.rmtree(args.download_dir)
 
             if args.retry_failed:
-                claw = DriverClaw.from_failed(archive, Path(args.output_dir))
+                claw = DriverClaw.from_failed(archive, Path(args.download_dir))
             else:
                 claw = DriverClaw.from_file(archive,
                                             Path(args.claw_config),
-                                            Path(args.output_dir))
+                                            Path(args.download_dir))
 
             failed = claw.start(args.error_handling)
             if len(failed) > 0:
@@ -149,16 +149,16 @@ if __name__ == '__main__':
             if args.no_archive:
                 sys.exit(0)
 
-        if not os.path.exists(args.output_dir):
+        if not os.path.exists(args.download_dir):
             print(
-                f'Error: Output directory "{args.output_dir}" does not exist.')
+                f'Error: Output directory "{args.download_dir}" does not exist.')
             sys.exit(1)
-        if not os.listdir(args.output_dir):
-            print(f'Error: Output directory "{args.output_dir}" is empty.')
+        if not os.listdir(args.download_dir):
+            print(f'Error: Output directory "{args.download_dir}" is empty.')
             sys.exit(1)
 
-        archive.zip(args.archive_name,
+        archive.zip(args.archive_path,
                     *(args.include_files or []),
-                    args.output_dir,
+                    args.download_dir,
                     level=args.compress_level,
                     silent=args.silent)
