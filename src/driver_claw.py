@@ -23,19 +23,7 @@ from tqdm import tqdm
 
 from archive import Archive
 
-
-@contextlib.contextmanager
-def get_browser():
-    options = webdriver.FirefoxOptions()
-    # options.set_preference('intl.accept_languages', 'zh-Hant')
-    options.add_argument('--headless')
-
-    driver = webdriver.Firefox(options=options)
-
-    try:
-        yield driver
-    finally:
-        driver.quit()
+SupportedWebDriver = Literal['Chrome', 'Edge', 'Firefix']
 
 
 class ClawPrize(TypedDict):
@@ -59,28 +47,37 @@ class DriverClaw:
 
     archive: Archive
 
+    driver_name: SupportedWebDriver
+
     @classmethod
-    def from_file(cls, archive: Archive, prizes_path: Path, destination: Path) -> 'DriverClaw':
+    def from_file(cls, archive: Archive, driver_name: SupportedWebDriver, prizes_path: Path, destination: Path) -> 'DriverClaw':
         if '.json' == prizes_path.suffix:
             with open(prizes_path) as f:
-                return cls(archive, json.load(f), destination)
+                return cls(archive=archive, driver_name=driver_name,
+                           prizes=json.load(f), destination=destination)
         elif '.pkl' == prizes_path.suffix:
             with open(prizes_path, 'rb') as f:
-                return cls(archive, pickle.load(f), destination)
+                return cls(archive=archive, driver_name=driver_name,
+                           prizes=pickle.load(f), destination=destination)
         elif '.py' == prizes_path.suffix:
-            spec = importlib.util.spec_from_file_location(
-                'custom_config', prizes_path)
-            custom = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(custom)
-            return cls(archive, custom.CLAW_PRIZES, destination)
+            spec = (importlib
+                    .util
+                    .spec_from_file_location('custom_config', prizes_path))
+            spec.loader.exec_module(
+                custom := importlib.util.module_from_spec(spec))
+            return cls(archive=archive, driver_name=driver_name,
+                       prizes=custom.CLAW_PRIZES, destination=destination)
         raise ValueError(f'\'{prizes_path}\' is not a supported file format')
 
     @classmethod
-    def from_failed(cls, archive: Archive, destination: Path) -> 'DriverClaw':
-        return cls.from_file(archive, Path(cls.file_error_log).joinpath(cls.file_error_log), destination)
+    def from_failed(cls, driver_name: SupportedWebDriver, archive: Archive, destination: Path) -> 'DriverClaw':
+        return cls.from_file(
+            archive, driver_name, Path(cls.file_error_log).joinpath(cls.file_error_log), destination)
 
-    def __init__(self, archive: Archive, prizes: dict[str, Iterable[ClawPrize]], destination: str | Path):
+    def __init__(self, archive: Archive, browser: SupportedWebDriver,
+                 prizes: dict[str, Iterable[ClawPrize]], destination: str | Path):
         self.archive = archive
+        self.driver_name = browser
         self.prizes = prizes
         self.dest = Path(destination)
 
@@ -95,7 +92,7 @@ class DriverClaw:
         """
         failed: dict[str, list[ClawPrize]] = {}
 
-        with get_browser() as browser:
+        with self._get_browser() as driver:
             claw_items = [{**item, 'category': category}
                           for category, items in self.prizes.items()
                           for item in items]
@@ -112,7 +109,7 @@ class DriverClaw:
                     print('├ Locating download URL...')
                     url = (item['url']
                            if type(item['url']) is str
-                           else item['url'](browser))
+                           else item['url'](driver))
 
                     print('├ Downloading...')
                     self.download_and_save(
@@ -200,3 +197,21 @@ class DriverClaw:
         """
         with open(self.dest.joinpath(self.file_error_log), 'wb') as f:
             return pickle.dump(failed, f)
+
+    @contextlib.contextmanager
+    def _get_browser(self):
+        options = webdriver.__dict__[f'{self.driver_name}Options']()
+
+        if self.driver_name == 'Firefox':
+            options.add_argument('--headless')
+        else:
+            options.add_argument('--headless=new')
+            options.add_argument('--disable-gpu')
+
+        driver: webdriver.Remote = (webdriver.
+                                    __dict__[self.driver_name](options=options))
+
+        try:
+            yield driver
+        finally:
+            driver.quit()

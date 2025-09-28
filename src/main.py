@@ -92,6 +92,11 @@ if __name__ == '__main__':
         '--configure', action='store_true',
         help='Interactive configuration mode to select drivers'
     )
+    parser.add_argument(
+        '-w', '--web-driver', default='Firefox',
+        choices=['Chrome', 'Edge', 'Firefox'],
+        help='Select the web driver to use'
+    )
 
     group_archive = parser.add_mutually_exclusive_group()
     group_archive.add_argument(
@@ -135,11 +140,12 @@ if __name__ == '__main__':
                 shutil.rmtree(args.download_dir)
 
             if args.retry_failed:
-                claw = DriverClaw.from_failed(archive, Path(args.download_dir))
+                claw = DriverClaw.from_failed(
+                    archive=archive, driver_name=args.web_driver, destination=Path(args.download_dir))
             else:
-                claw = DriverClaw.from_file(archive,
-                                            Path(args.claw_config),
-                                            Path(args.download_dir))
+                claw = DriverClaw.from_file(
+                    archive=archive, driver_name=args.web_driver,
+                    prizes_path=Path(args.claw_config), destination=Path(args.download_dir))
 
             failed = claw.start(args.error_handling)
             if len(failed) > 0:
