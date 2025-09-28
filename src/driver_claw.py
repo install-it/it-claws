@@ -165,7 +165,7 @@ class DriverClaw:
             resp.raw.read = functools.partial(
                 resp.raw.read, decode_content=True)
 
-            with tempfile.TemporaryFile(delete_on_close=False, suffix='.zip' if 'zip' in file_type else None) as temp:
+            with tempfile.NamedTemporaryFile(suffix='.zip' if 'zip' in file_type else None) as temp:
                 with tqdm.wrapattr(resp.raw, 'read', total=int(resp.headers.get('Content-Length', 0))) as content:
                     shutil.copyfileobj(content, temp)
                 temp.close()
