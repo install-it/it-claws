@@ -112,14 +112,14 @@ if __name__ == '__main__':
 
     with setup_print(args.silent):
         if args.configure:
-            config_file = args.claw_config or 'claw_config.pkl'
+            config_file = Path(args.claw_config or 'claw_config.pkl')
 
             print('Starting interactive configuration...')
             selections = config.configurate()
             with open(config_file, 'wb') as f:
                 pickle.dump(selections, f)
 
-            print(f'Configuration saved to "{config_file}"')
+            print(f'Configuration is saved to "{config_file.absolute()}"')
             sys.exit(0)
 
         try:
