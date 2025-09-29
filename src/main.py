@@ -13,11 +13,6 @@ import config
 from archive import Archive7zip, ArchivePowershell, ArchivePyZipFile
 from driver_claw import DriverClaw
 
-# set proper CWD
-os.chdir(Path(sys.executable).parent
-         if getattr(sys, 'frozen', False)
-         else Path(__file__).parents[1])
-
 
 @contextmanager
 def setup_print(silent: bool):
@@ -54,6 +49,11 @@ def validate_ext(choices: Iterable[str], fname: str):
 
 
 if __name__ == '__main__':
+    # set proper CWD
+    os.chdir(Path(sys.executable).parent
+             if getattr(sys, 'frozen', False)
+             else Path(__file__).parents[1])
+
     parser = argparse.ArgumentParser(
         description='Find and download the latest common hardware drivers, and diagnostic tool.')
     parser.add_argument(
