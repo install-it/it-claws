@@ -10,10 +10,9 @@ import os
 import pickle
 import re
 import shutil
-import sys
 import tempfile
 from pathlib import Path
-from typing import Callable, Iterable, Literal, TypedDict
+from typing import Callable, Literal, TypedDict
 from urllib.parse import urlparse
 
 import requests
@@ -27,19 +26,19 @@ SupportedWebDriver = Literal['Chrome', 'Edge', 'Firefix']
 
 
 class ClawPrize(TypedDict):
+    group: str
+    """category or group name for organizing downloaded files."""
     path: str
-    """Local file path where the downloaded or extracted file will be stored."""
+    """path to store downloaded or extracted files"""
     url: str | Callable[[Remote], str]
     """URL to download the file, or a callable that generates the URL from a Remote object."""
     file_type: Literal['exe', 'zip', 'zip/folder', 'zip/exe']
     """Type of the downloaded file, used to determine how it should be handled."""
     rename_as: str | None
-    """Optional new name for the executable after download or extraction."""
+    """optional new name for the executable after download or extraction."""
 
 
 class DriverClaw:
-
-    file_error_log = '.failedclaws.pkl'
 
     dest: Path
     """Directory to save downloaded files.
@@ -69,69 +68,49 @@ class DriverClaw:
                        prizes=custom.CLAW_PRIZES, destination=destination)
         raise ValueError(f'\'{prizes_path}\' is not a supported file format')
 
-    @classmethod
-    def from_failed(cls, driver_name: SupportedWebDriver, archive: Archive, destination: Path) -> 'DriverClaw':
-        return cls.from_file(
-            archive, driver_name, Path(cls.file_error_log).joinpath(cls.file_error_log), destination)
-
-    def __init__(self, archive: Archive, browser: SupportedWebDriver,
-                 prizes: dict[str, Iterable[ClawPrize]], destination: str | Path):
+    def __init__(self, archive: Archive, driver_name: SupportedWebDriver,
+                 prizes: list[ClawPrize], destination: str | Path):
         self.archive = archive
-        self.driver_name = browser
+        self.driver_name = driver_name
         self.prizes = prizes
         self.dest = Path(destination)
 
-    def start(self, on_error: Literal['exit', 'log', 'ignore']) -> dict[str, list[ClawPrize]]:
+    def start(self, stop_on_error: bool) -> list[ClawPrize]:
         """Start downloading drivers based on provided targets.
 
         Args:
-            on_error (Literal['exit', 'log', 'ignore']): Error handling mode.
+            stop_on_error (bool): Error handling mode.
 
         Returns:
-            dict[str, list[ClawPrize]]: Dictionary of failed downloads claw configurations by category.
+            list[ClawPrize]: List of failed downloads claw configurations.
         """
-        failed: dict[str, list[ClawPrize]] = {}
-
+        failed: list['ClawPrize'] = []
         with self._get_browser() as driver:
-            claw_items = [{**item, 'category': category}
-                          for category, items in self.prizes.items()
-                          for item in items]
-
-            for i, item in enumerate(claw_items):
-                category = item['category']
-                fullpath = self.dest.joinpath(category, item['path'])
+            for i, prize in enumerate(self.prizes):
+                fullpath = self.dest.joinpath(prize['group'], prize['path'])
                 fullpath.mkdir(parents=True, exist_ok=True)
 
                 try:
-                    print(f'Processing {i+1:>2}/{len(claw_items)}: '
-                          f'[{category}] {item['path']}')
+                    print(f'Processing {i+1:>2}/{len(self.prizes)}: '
+                          f'[{prize['group']}] {prize['path']}')
 
                     print('├ Locating download URL...')
-                    url = (item['url']
-                           if type(item['url']) is str
-                           else item['url'](driver))
+                    url = (prize['url']
+                           if type(prize['url']) is str
+                           else prize['url'](driver))
 
                     print('├ Downloading...')
                     self.download_and_save(
-                        url, item['file_type'], item['rename_as'], fullpath)
+                        url, prize['file_type'], prize['rename_as'], fullpath)
                 except Exception as e:
                     print(f'┴ Failed: {e}')
 
-                    if on_error == 'exit':
-                        sys.exit(1)
-                    if on_error == 'log':
-                        failed.setdefault(category, [])
-                        failed[category].append(item)
+                    if stop_on_error:
+                        return
+
+                    failed.append(prize)
                     continue
-
                 print('┴ Completed.')
-
-        if on_error == 'log' and len(failed) > 0:
-            self._dump_failed(failed)
-
-        if len(failed) == 0:
-            self.dest.joinpath(self.file_error_log).unlink(True)
-
         return failed
 
     def download_and_save(self, url: str, file_type: Literal['exe', 'zip', 'zip/exe', 'zip/folder'], rename_as: str | None,  path: str | Path) -> None:
@@ -191,12 +170,6 @@ class DriverClaw:
                     if rename_as:
                         fname = f'{rename_as}.{fname.split('.')[-1]}'
                     shutil.move(temp.name, path.joinpath(fname.strip('\"')))
-
-    def _dump_failed(self, failed: dict[str, list[ClawPrize]]):
-        """Save failed downloads to the error log.
-        """
-        with open(self.dest.joinpath(self.file_error_log), 'wb') as f:
-            return pickle.dump(failed, f)
 
     @contextlib.contextmanager
     def _get_browser(self):

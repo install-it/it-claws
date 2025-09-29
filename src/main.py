@@ -139,19 +139,27 @@ if __name__ == '__main__':
             if not args.retry_failed and os.path.exists(args.download_dir):
                 shutil.rmtree(args.download_dir)
 
-            if args.retry_failed:
-                claw = DriverClaw.from_failed(
-                    archive=archive, driver_name=args.web_driver, destination=Path(args.download_dir))
-            else:
-                claw = DriverClaw.from_file(
-                    archive=archive, driver_name=args.web_driver,
-                    prizes_path=Path(args.claw_config), destination=Path(args.download_dir))
+            claw = DriverClaw.from_file(
+                archive=archive, driver_name=args.web_driver,
+                prizes_path=(Path(args.download_dir, '.failedclaws.pkl')
+                             if args.retry_failed
+                             else Path(args.claw_config)),
+                destination=Path(args.download_dir))
+            failed = claw.start(args.error_handling == 'exit')
 
-            failed = claw.start(args.error_handling)
             if len(failed) > 0:
-                print(
-                    f'Failed to download {len(failed)} file(s). Use --retry-failed to retry.')
-                sys.exit(1)
+                if args.error_handling == 'log':
+                    print(
+                        f'Failed to download {len(failed)} file(s). Use --retry-failed to retry.')
+
+                    with open(Path(args.download_dir, '.failedclaws.pkl'), 'wb') as f:
+                        pickle.dump(failed, f)
+
+                if args.error_handling != 'ignore':
+                    sys.exit(1)
+            else:
+                Path(args.download_dir, '.failedclaws.pkl').unlink(True)
+
             if args.no_archive:
                 sys.exit(0)
 
