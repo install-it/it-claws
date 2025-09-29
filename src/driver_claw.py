@@ -10,48 +10,36 @@ import os
 import pickle
 import re
 import shutil
-import sys
 import tempfile
 from pathlib import Path
-from typing import Callable, Iterable, Literal, TypedDict
+from typing import Callable, Literal, TypedDict
 from urllib.parse import urlparse
 
 import requests
+from fake_useragent import FakeUserAgent
 from selenium import webdriver
 from selenium.webdriver import Remote
 from tqdm import tqdm
 
 from archive import Archive
 
-
-@contextlib.contextmanager
-def get_browser():
-    options = webdriver.FirefoxOptions()
-    # options.set_preference('intl.accept_languages', 'zh-Hant')
-    options.add_argument('--headless')
-
-    driver = webdriver.Firefox(options=options)
-
-    try:
-        yield driver
-    finally:
-        driver.quit()
+SupportedWebDriver = Literal['Chrome', 'Edge', 'Firefix']
 
 
 class ClawPrize(TypedDict):
+    group: str
+    """category or group name for organizing downloaded files."""
     path: str
-    """Local file path where the downloaded or extracted file will be stored."""
+    """path to store downloaded or extracted files"""
     url: str | Callable[[Remote], str]
     """URL to download the file, or a callable that generates the URL from a Remote object."""
     file_type: Literal['exe', 'zip', 'zip/folder', 'zip/exe']
     """Type of the downloaded file, used to determine how it should be handled."""
     rename_as: str | None
-    """Optional new name for the executable after download or extraction."""
+    """optional new name for the executable after download or extraction."""
 
 
 class DriverClaw:
-
-    file_error_log = '.failedclaws.pkl'
 
     dest: Path
     """Directory to save downloaded files.
@@ -59,82 +47,71 @@ class DriverClaw:
 
     archive: Archive
 
+    driver_name: SupportedWebDriver
+
     @classmethod
-    def from_file(cls, archive: Archive, prizes_path: Path, destination: Path) -> 'DriverClaw':
+    def from_file(cls, archive: Archive, driver_name: SupportedWebDriver, prizes_path: Path, destination: Path) -> 'DriverClaw':
         if '.json' == prizes_path.suffix:
             with open(prizes_path) as f:
-                return cls(archive, json.load(f), destination)
+                return cls(archive=archive, driver_name=driver_name,
+                           prizes=json.load(f), destination=destination)
         elif '.pkl' == prizes_path.suffix:
             with open(prizes_path, 'rb') as f:
-                return cls(archive, pickle.load(f), destination)
+                return cls(archive=archive, driver_name=driver_name,
+                           prizes=pickle.load(f), destination=destination)
         elif '.py' == prizes_path.suffix:
-            spec = importlib.util.spec_from_file_location(
-                'custom_config', prizes_path)
-            custom = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(custom)
-            return cls(archive, custom.CLAW_PRIZES, destination)
+            spec = (importlib
+                    .util
+                    .spec_from_file_location('custom_config', prizes_path))
+            spec.loader.exec_module(
+                custom := importlib.util.module_from_spec(spec))
+            return cls(archive=archive, driver_name=driver_name,
+                       prizes=custom.CLAW_PRIZES, destination=destination)
         raise ValueError(f'\'{prizes_path}\' is not a supported file format')
 
-    @classmethod
-    def from_failed(cls, archive: Archive, destination: Path) -> 'DriverClaw':
-        return cls.from_file(archive, Path(cls.file_error_log).joinpath(cls.file_error_log), destination)
-
-    def __init__(self, archive: Archive, prizes: dict[str, Iterable[ClawPrize]], destination: str | Path):
+    def __init__(self, archive: Archive, driver_name: SupportedWebDriver,
+                 prizes: list[ClawPrize], destination: str | Path):
         self.archive = archive
+        self.driver_name = driver_name
         self.prizes = prizes
         self.dest = Path(destination)
 
-    def start(self, on_error: Literal['exit', 'log', 'ignore']) -> dict[str, list[ClawPrize]]:
+    def start(self, stop_on_error: bool) -> list[ClawPrize]:
         """Start downloading drivers based on provided targets.
 
         Args:
-            on_error (Literal['exit', 'log', 'ignore']): Error handling mode.
+            stop_on_error (bool): Error handling mode.
 
         Returns:
-            dict[str, list[ClawPrize]]: Dictionary of failed downloads claw configurations by category.
+            list[ClawPrize]: List of failed downloads claw configurations.
         """
-        failed: dict[str, list[ClawPrize]] = {}
-
-        with get_browser() as browser:
-            claw_items = [{**item, 'category': category}
-                          for category, items in self.prizes.items()
-                          for item in items]
-
-            for i, item in enumerate(claw_items):
-                category = item['category']
-                fullpath = self.dest.joinpath(category, item['path'])
+        failed: list['ClawPrize'] = []
+        with self._get_browser() as driver:
+            for i, prize in enumerate(self.prizes):
+                fullpath = self.dest.joinpath(prize['group'], prize['path'])
                 fullpath.mkdir(parents=True, exist_ok=True)
 
                 try:
-                    print(f'Processing {i+1:>2}/{len(claw_items)}: '
-                          f'[{category}] {item['path']}')
+                    print(f'Processing {i+1:>2}/{len(self.prizes)}: '
+                          f'[{prize['group']}] {prize['path']}')
 
                     print('├ Locating download URL...')
-                    url = (item['url']
-                           if type(item['url']) is str
-                           else item['url'](browser))
+                    url = (prize['url']
+                           if type(prize['url']) is str
+                           else prize['url'](driver))
 
                     print('├ Downloading...')
                     self.download_and_save(
-                        url, item['file_type'], item['rename_as'], fullpath)
+                        url, prize['file_type'], prize['rename_as'], fullpath)
                 except Exception as e:
                     print(f'┴ Failed: {e}')
 
-                    if on_error == 'exit':
-                        sys.exit(1)
-                    if on_error == 'log':
-                        failed.setdefault(category, [])
-                        failed[category].append(item)
+                    if stop_on_error:
+                        return
+
+                    failed.append(prize)
                     continue
-
                 print('┴ Completed.')
-
-        if on_error == 'log' and len(failed) > 0:
-            self._dump_failed(failed)
-
-        if len(failed) == 0:
-            self.dest.joinpath(self.file_error_log).unlink(True)
-
         return failed
 
     def download_and_save(self, url: str, file_type: Literal['exe', 'zip', 'zip/exe', 'zip/folder'], rename_as: str | None,  path: str | Path) -> None:
@@ -152,10 +129,9 @@ class DriverClaw:
             NotImplementedError: If multiple executables are found in zip/exe.
         """
         path = Path(path)
-        headers = {} if 'sourceforge' in url or 'geeks3d' in url else {
-            'referer': urlparse(url).hostname,
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0'
-        }
+        headers = ({}
+                   if 'sourceforge' in url or 'geeks3d' in url
+                   else {'referer': urlparse(url).hostname})
 
         with requests.get(url, stream=True, headers=headers, allow_redirects=True) as resp:
             resp.raise_for_status()
@@ -165,7 +141,7 @@ class DriverClaw:
             resp.raw.read = functools.partial(
                 resp.raw.read, decode_content=True)
 
-            with tempfile.TemporaryFile(delete_on_close=False, suffix='.zip' if 'zip' in file_type else None) as temp:
+            with tempfile.NamedTemporaryFile(delete_on_close=False, suffix='.zip' if 'zip' in file_type else None) as temp:
                 with tqdm.wrapattr(resp.raw, 'read', total=int(resp.headers.get('Content-Length', 0))) as content:
                     shutil.copyfileobj(content, temp)
                 temp.close()
@@ -195,8 +171,24 @@ class DriverClaw:
                         fname = f'{rename_as}.{fname.split('.')[-1]}'
                     shutil.move(temp.name, path.joinpath(fname.strip('\"')))
 
-    def _dump_failed(self, failed: dict[str, list[ClawPrize]]):
-        """Save failed downloads to the error log.
-        """
-        with open(self.dest.joinpath(self.file_error_log), 'wb') as f:
-            return pickle.dump(failed, f)
+    @contextlib.contextmanager
+    def _get_browser(self):
+        options = webdriver.__dict__[f'{self.driver_name}Options']()
+        user_agent = FakeUserAgent(
+            browsers=[self.driver_name], platforms='desktop').random
+
+        if self.driver_name == 'Firefox':
+            options.add_argument('--headless')
+            options.set_preference('general.useragent.override', user_agent)
+        else:
+            options.add_argument('--headless=new')
+            options.add_argument('--disable-gpu')
+            options.add_argument(f'--user-agent={user_agent}')
+
+        driver: webdriver.Remote = (webdriver.
+                                    __dict__[self.driver_name](options=options))
+
+        try:
+            yield driver
+        finally:
+            driver.quit()

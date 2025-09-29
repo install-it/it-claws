@@ -3,6 +3,7 @@
 
 import os
 import subprocess
+import zipfile
 from abc import ABC
 from pathlib import Path
 
@@ -83,3 +84,35 @@ class ArchivePowershell(Archive):
             ),
             stdout=stream, stderr=stream
         ).returncode
+
+
+class ArchivePyZipFile(Archive):
+
+    def unzip(self, source, target, silent=True):
+        try:
+            zipfile.ZipFile(source).extractall(target)
+        except Exception as e:
+            if not silent:
+                print(e)
+            return -1
+        return 0
+
+    def zip(self, target, *source, level=5, silent=True):
+        try:
+            with zipfile.ZipFile(target, 'w',
+                                 compression=zipfile.ZIP_DEFLATED, compresslevel=level) as zf:
+                for s in map(Path, source):
+                    if s.is_file():
+                        zf.write(s)
+                        continue
+
+                    # reference: https://stackoverflow.com/a/1855118
+                    for root, _, files in s.walk():
+                        for file in files:
+                            zf.write(root.joinpath(file),
+                                     root.joinpath(file).relative_to(s.parent))
+        except Exception as e:
+            if not silent:
+                print(e)
+            return -1
+        return 0
