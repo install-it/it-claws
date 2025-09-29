@@ -172,6 +172,7 @@ if __name__ == '__main__':
             print(f'Error: Output directory "{args.download_dir}" is empty.')
             sys.exit(1)
 
+        print(f'Archiving downloaded files into "{args.archive_path}".')
         archive.zip(args.archive_path,
                     *(args.include_file or []),
                     args.download_dir,
