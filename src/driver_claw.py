@@ -16,6 +16,7 @@ from typing import Callable, Literal, TypedDict
 from urllib.parse import urlparse
 
 import requests
+from fake_useragent import FakeUserAgent
 from selenium import webdriver
 from selenium.webdriver import Remote
 from tqdm import tqdm
@@ -128,10 +129,9 @@ class DriverClaw:
             NotImplementedError: If multiple executables are found in zip/exe.
         """
         path = Path(path)
-        headers = {} if 'sourceforge' in url or 'geeks3d' in url else {
-            'referer': urlparse(url).hostname,
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:138.0) Gecko/20100101 Firefox/138.0'
-        }
+        headers = ({}
+                   if 'sourceforge' in url or 'geeks3d' in url
+                   else {'referer': urlparse(url).hostname})
 
         with requests.get(url, stream=True, headers=headers, allow_redirects=True) as resp:
             resp.raise_for_status()
@@ -174,12 +174,16 @@ class DriverClaw:
     @contextlib.contextmanager
     def _get_browser(self):
         options = webdriver.__dict__[f'{self.driver_name}Options']()
+        user_agent = FakeUserAgent(
+            browsers=[self.driver_name], platforms='desktop').random
 
         if self.driver_name == 'Firefox':
             options.add_argument('--headless')
+            options.set_preference('general.useragent.override', user_agent)
         else:
             options.add_argument('--headless=new')
             options.add_argument('--disable-gpu')
+            options.add_argument(f'--user-agent={user_agent}')
 
         driver: webdriver.Remote = (webdriver.
                                     __dict__[self.driver_name](options=options))
