@@ -10,7 +10,7 @@ from typing import Iterable
 import patoolib
 
 import config
-from archive import Archive7zip, ArchivePowershell
+from archive import Archive7zip, ArchivePowershell, ArchivePyZipFile
 from driver_claw import DriverClaw
 
 # set proper CWD
@@ -124,6 +124,7 @@ if __name__ == '__main__':
 
         try:
             path_7zip = Path('bin', '7zip', '7za.exe')
+
             archive = Archive7zip(path_7zip
                                   if path_7zip.exists()
                                   else patoolib.find_archive_program("7z", "unzip"))
@@ -132,8 +133,8 @@ if __name__ == '__main__':
                 f'Using "{archive.path_7zip.absolute()}" as the archive handler.')
         except patoolib.util.PatoolError:
             print(
-                'Unable to locate any 7zip executable, fell back to use Powershell as the archive handler.')
-            archive = ArchivePowershell()
+                'Unable to locate any 7zip executable, fell back to use Python built-in zip library as the archive handler.')
+            archive = ArchivePyZipFile()
 
         if not args.archive_only:
             if not args.retry_failed and os.path.exists(args.download_dir):
