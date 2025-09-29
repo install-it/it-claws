@@ -33,7 +33,7 @@ def setup_print(silent: bool):
         yield
 
 
-def file_ext(choices: Iterable[str], fname: str):
+def validate_ext(choices: Iterable[str], fname: str):
     """Validate file extension for configuration files.
 
     Args:
@@ -84,7 +84,7 @@ if __name__ == '__main__':
         '-s', '--silent', action='store_true', help='Suppress all output messages'
     )
     parser.add_argument(
-        '-c', '--claw-config', type=lambda s: file_ext(('py', 'json', 'pkl'), s),
+        '-c', '--claw-config', type=lambda s: validate_ext(('py', 'json', 'pkl'), s),
         default='claw_prizes.pkl',
         help='Path to configuration file (.json, .py, or .pkl)'
     )
