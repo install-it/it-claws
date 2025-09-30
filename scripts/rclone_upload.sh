@@ -20,12 +20,17 @@ for ((i=1; i<=MAX_RETRIES; i++)); do
         echo "Uploading output using rclone..."
         rclone sync "$ARCHIVE_PATH" "${RC_REMOTE_PATH}"
         exit 0
-    else
-        echo "it-claws executes failed"
+    fi
+
+    if [ $? -eq 3 ]; then
+        echo "Some download job failed"
         if [ $i -lt $MAX_RETRIES ]; then
             echo "Retrying in $RETRY_DELAY seconds..."
             sleep $RETRY_DELAY
         fi
+    else
+        echo "it-claws executes failed"
+        exit $?
     fi
 done
 
