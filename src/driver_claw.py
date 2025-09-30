@@ -130,7 +130,7 @@ class DriverClaw:
         """
         path = Path(path)
         headers = ({}
-                   if 'sourceforge' in url or 'geeks3d' in url
+                   if any(s in url for s in ('asus', 'sourceforge', 'geeks3d'))
                    else {'referer': urlparse(url).hostname})
 
         with requests.get(url, stream=True, headers=headers, allow_redirects=True) as resp:
