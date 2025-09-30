@@ -18,7 +18,7 @@ import inquirer
 import url
 from driver_claw import ClawPrize
 
-CLAW_PRIZES: list[ClawPrize] = (
+CLAW_PRIZES: tuple[ClawPrize] = (
     {
         'group': 'display',
         'path': 'AMD',
