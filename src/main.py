@@ -70,7 +70,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '-o', '--archive-path', type=str, default='driver-pack.zip',
-        help='Path for the produced archive file (default: driver-pack.zip)'
+        help='Path for the produced archive file (default: ./driver-pack.zip)'
     )
     parser.add_argument(
         '-l', '--compress-level', type=int, default=5, choices=range(0, 10),
