@@ -85,7 +85,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '-c', '--claw-config', type=lambda s: validate_ext(('py', 'json', 'pkl'), s),
-        default='claw_prizes.pkl',
+        default='config/claw_prizes.pkl',
         help='Path to configuration file (.json, .py, or .pkl)'
     )
     parser.add_argument(
