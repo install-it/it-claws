@@ -14,9 +14,11 @@ RUN echo "**** installing runtime packages ****" && \
 COPY . /app
 
 RUN echo "**** fixing permission ****" && \ 
-  find ./scripts/*.sh -type d -exec chmod +x {} \;
+  find ./scripts/*.sh -type f -exec chmod +x {} \;
 
 RUN echo "**** installing Python dependencies ****" && \
     python3 -m pip install -r ./requirements.txt
+
+ENTRYPOINT ["./scripts/entry_point.sh"]
 
 CMD ["python", "src/main.py"]
