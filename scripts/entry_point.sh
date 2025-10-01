@@ -15,4 +15,6 @@ if [ ! -L "$RCLONE_CONFIG_DIR" ] && [ -d "$RCLONE_CONFIG_DIR" ]; then
 fi
 ln -sf /config/rclone "$RCLONE_CONFIG_DIR"
 
+echo "**** executing "$@" ****"
+
 exec "$@"
