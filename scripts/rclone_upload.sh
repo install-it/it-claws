@@ -24,25 +24,22 @@ for ((i=1; i<=MAX_RETRIES; i++)); do
 
     if [ $? -eq 0 ]; then
         echo "[INFO] it-claws executed successfully"
-
-        echo "[INFO ]Uploading output using rclone..."
-        if rclone sync "$ARCHIVE_PATH" "${RC_REMOTE_PATH}"; then
-            echo "[INFO] Upload successful"
-            exit 0
-        else
-            echo "[ERROR] rclone sync failed"
-            exit 16
-        fi
+        break
     else
         if [ $? -eq 4 ] && [ $i -lt $MAX_RETRIES ]; then
-            echo "Download job failed, retrying in $RETRY_DELAY seconds..."
+            echo "[WARN] Some download failed, retrying in $RETRY_DELAY seconds..."
             sleep "$RETRY_DELAY"
         else
-            echo "it-claws executes failed"
+            echo "[ERROR] it-claws executes failed"
             exit 1
         fi
-    fi
 done
 
-echo "it-claws failed after $MAX_RETRIES attempts"
-exit 1
+echo "[INFO] Uploading output using rclone..."
+if rclone sync "$ARCHIVE_PATH" "$RC_REMOTE_PATH"; then
+    echo "[INFO] Upload successful"
+    exit 0
+else
+    echo "[ERROR] rclone sync failed"
+    exit 16
+fi
