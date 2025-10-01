@@ -18,8 +18,8 @@ for ((i=1; i<=MAX_RETRIES; i++)); do
     echo "Attempt $i of $MAX_RETRIES"
     
     python /app/src/main.py \
-        -d "${DOWNLOAD_DIR}" \
-        -o "$OUTPUT_ZIP" $((( i > 1 )) && echo "-r") ${ARGUMENTS}
+        -d "$DOWNLOAD_DIR" \
+        -o "$OUTPUT_ZIP" $((( i > 1 )) && echo "-r") $ARGUMENTS
 
     if [ $? -eq 0 ]; then
         echo "[INFO] it-claws executed successfully"
