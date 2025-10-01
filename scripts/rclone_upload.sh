@@ -20,7 +20,7 @@ for ((i=1; i<=MAX_RETRIES; i++)); do
     
     python /app/src/main.py \
         -d "$DOWNLOAD_DIR" \
-        -o "$OUTPUT_ZIP" $((( i > 1 )) && echo "-r") $ARGUMENTS
+        -o "$ARCHIVE_PATH" $((( i > 1 )) && echo "-r") $ARGUMENTS
 
     exit_code=$?
     if [ $exit_code -eq 0 ]; then
