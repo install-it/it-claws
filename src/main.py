@@ -157,7 +157,7 @@ if __name__ == '__main__':
                         pickle.dump(failed, f)
 
                 if args.error_handling != 'ignore':
-                    sys.exit(3)
+                    sys.exit(4)
             else:
                 Path(args.download_dir, '.failedclaws.pkl').unlink(True)
 

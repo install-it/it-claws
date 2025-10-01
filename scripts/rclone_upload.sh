@@ -33,7 +33,7 @@ for ((i=1; i<=MAX_RETRIES; i++)); do
             exit 16
         fi
     else
-        if [ $? -eq 3 ] && [ $i -lt $MAX_RETRIES ]; then
+        if [ $? -eq 4 ] && [ $i -lt $MAX_RETRIES ]; then
             echo "Download job failed, retrying in $RETRY_DELAY seconds..."
             sleep "$RETRY_DELAY"
         else
