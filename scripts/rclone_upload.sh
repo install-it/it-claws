@@ -36,7 +36,7 @@ for ((i=1; i<=MAX_RETRIES; i++)); do
 done
 
 echo "[INFO] Uploading output using rclone..."
-if rclone sync "$ARCHIVE_PATH" "$RC_REMOTE_PATH"; then
+if rclone sync -v "$ARCHIVE_PATH" "$RC_REMOTE_PATH"; then
     echo "[INFO] Upload successful"
     exit 0
 else
