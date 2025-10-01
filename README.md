@@ -37,13 +37,15 @@
   <img src="https://github.com/user-attachments/assets/83d46686-2893-41c1-9077-ef0fede26dcc" width="892" height="552">
 </p>
 
-it-claws is a Python-based command-line utility for downloading the latest PC hardware drivers and diagnostic tools. Leveraging Selenium, it automatically navigates official websites and motherboard manufacturers' pages to locate and retrieve the most up-to-date versions of essential drivers and utilities.
+it-claws is a Python-based command-line utility for downloading the latest PC hardware drivers and diagnostic tools. Leveraging Selenium, it automatically navigates official websites to locate and retrieve the most up-to-date versions of essential drivers and utilities.
 
 This tool also serves as a companion to [install-it](https://github.com/install-it/install-it/). Refer to the [Usage](#including-extra-files-in-the-archive) section for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Built With
+
+[<img src="https://img.shields.io/badge/7zip-000?style=for-the-badge&logo=7zip&logoColor=white">](https://www.7-zip.org/)
 [<img src="https://img.shields.io/badge/python-306998?style=for-the-badge&logo=python&logoColor=white">](https://www.python.org/)
 [<img src="https://img.shields.io/badge/selenium-01a71c?style=for-the-badge&logo=selenium&logoColor=white">](https://www.selenium.dev/)
 
@@ -83,27 +85,25 @@ pip install -r requirements.txt
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-###  Specify 7-Zip Executable Location
+### Customising Crawl Configurations
 
-it-claws uses 7-Zip to extract and compress files.
-By default, it-claws will look for the 7-Zip executable under `bin/7zip`, which will be included in release builds.
+#### Creating configuration
 
-If you are not comfortable with that, you can remove the `bin` folder. it-claws will then look for 7-Zip that is installed in the system. <br />
-If 7-Zip is not available, `PowerShell` will be used as a fall back. Please note that:
+it-claws comes with a brunch of software preset definded in [`src/config.py`](https://github.com/install-it/it-claws/blob/main/src/config.py), which includes a curated list of common hardware drivers and diagnostic tools.
 
-- Compression level will be lower compared to 7-Zip.
-- There could be a higher chance of failure when extracting certain downloaded archives (only support `.zip`).
+```sh
+python src/main.py --configure
+```
 
-### Customise Crawl Configurations
+#### Providing your custom configuration
 
-The default crawl configuration is located in `src/config.py`, which includes a curated list of common hardware drivers and diagnostic tools.
-To use a custom configuration file, specify it with the `-c` or `--claw-config` option. The tool accepts both JSON and Python source files.
+To use a custom configuration file, specify it with the `-c` or `--claw-config` option.
 
-The module `src/url.py` provides helper methods to extract download URLs from well-known hardware manufacturers and vendors. You can leverage these utilities when drafting your own claw configuration.
+The module [`src/url.py`](https://github.com/install-it/it-claws/blob/main/src/url.py) provides helper methods to extract download URLs from well-known hardware manufacturers and vendors. You can leverage these utilities when drafting your own claw configuration.
 
 #### Python pickle file
 
-The expected type is ```dict[str, Iterable[ClawPrize]]```.
+The expected type is `Iterable[ClawPrize]`.
 
 ```sh
 python src/main.py -c ./custom-config.pkl
@@ -112,7 +112,7 @@ python src/main.py -c ./custom-config.pkl
 #### Python source file
 
 When using a Python file, it-claws will look for a variable named `CLAW_CONFIG` defined in the specified source.
-The expected type is ```dict[str, Iterable[ClawPrize]]```.
+The expected type is `Iterable[ClawPrize]`.
 
 ```sh
 python src/main.py -c ./custom-config.py
@@ -135,11 +135,11 @@ To include multiple paths, either separate them with spaces or provide the optio
 python src/main.py -i foo/ bar/ -i README.md
 ```
 
-The `conf/` directory contains configuration files for the default set of drivers and tools used by driver-box.
-To use this tool to download drivers and utilities for driver-box, include the directory as input:
+The `install-it/conf` directory contains configuration files for the default set of drivers and tools used by [install-it](https://github.com/install-it/install-it).
+To use this tool to download drivers and utilities for install-it, include the directory:
 
 ```sh
-python src/main.py -i conf/
+python src/main.py -i install-it/conf
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
