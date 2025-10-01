@@ -33,6 +33,7 @@ for ((i=1; i<=MAX_RETRIES; i++)); do
             echo "[ERROR] it-claws executes failed"
             exit 1
         fi
+    fi
 done
 
 echo "[INFO] Uploading output using rclone..."
