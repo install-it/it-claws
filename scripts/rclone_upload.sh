@@ -16,7 +16,7 @@ if [ "${TMPFS:-1}" = "1" ]; then
 fi
 
 for ((i=1; i<=MAX_RETRIES; i++)); do
-    echo "Attempt $i of $MAX_RETRIES"
+    echo "[INFO] Attempt $i of $MAX_RETRIES"
     
     python /app/src/main.py \
         -d "$DOWNLOAD_DIR" \
