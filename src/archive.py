@@ -58,7 +58,7 @@ class Archive7zip(Archive):
         stream = subprocess.DEVNULL if silent else None
         return subprocess.run(
             (self.path_7zip, 'a', str(target),
-             " ".join(source), f'-mx{level}'),
+             *source, f'-mx{level}'),
             stdout=stream, stderr=stream
         ).returncode
 

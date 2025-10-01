@@ -129,9 +129,9 @@ class DriverClaw:
             NotImplementedError: If multiple executables are found in zip/exe.
         """
         path = Path(path)
-        headers = ({}
-                   if 'sourceforge' in url or 'geeks3d' in url
-                   else {'referer': urlparse(url).hostname})
+        headers = ({'referer': urlparse(url).hostname}
+                   if 'amd' in url
+                   else {})
 
         with requests.get(url, stream=True, headers=headers, allow_redirects=True) as resp:
             resp.raise_for_status()

@@ -70,7 +70,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '-o', '--archive-path', type=str, default='driver-pack.zip',
-        help='Path for the produced archive file (default: driver-pack.zip)'
+        help='Path for the produced archive file (default: ./driver-pack.zip)'
     )
     parser.add_argument(
         '-l', '--compress-level', type=int, default=5, choices=range(0, 10),
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '-c', '--claw-config', type=lambda s: validate_ext(('py', 'json', 'pkl'), s),
-        default='claw_prizes.pkl',
+        default='config/claw_prizes.pkl',
         help='Path to configuration file (.json, .py, or .pkl)'
     )
     parser.add_argument(
@@ -157,7 +157,7 @@ if __name__ == '__main__':
                         pickle.dump(failed, f)
 
                 if args.error_handling != 'ignore':
-                    sys.exit(1)
+                    sys.exit(4)
             else:
                 Path(args.download_dir, '.failedclaws.pkl').unlink(True)
 
