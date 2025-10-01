@@ -22,17 +22,16 @@ for ((i=1; i<=MAX_RETRIES; i++)); do
         -d "$DOWNLOAD_DIR" \
         -o "$OUTPUT_ZIP" $((( i > 1 )) && echo "-r") $ARGUMENTS
 
-    if [ $? -eq 0 ]; then
+    exit_code=$?
+    if [ $exit_code -eq 0 ]; then
         echo "[INFO] it-claws executed successfully"
         break
-    else
-        if [ $? -eq 4 ] && [ $i -lt $MAX_RETRIES ]; then
+    elif [ $exit_code -eq 4 ] && [ $i -lt $MAX_RETRIES ]; then
             echo "[WARN] Some download failed, retrying in $RETRY_DELAY seconds..."
             sleep "$RETRY_DELAY"
-        else
-            echo "[ERROR] it-claws executes failed"
-            exit 1
-        fi
+    else
+        echo "[ERROR] it-claws executes failed"
+        exit 1
     fi
 done
 
