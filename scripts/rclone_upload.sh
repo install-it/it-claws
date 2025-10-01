@@ -8,6 +8,7 @@ RETRY_DELAY=${RETRY_DELAY:-10}
 
 mkdir -p $DATA_PATH
 if [ "${TMPFS:-1}" = "1" ]; then
+    echo "[INFO] Mounting a tmpfs of size $TMPFS_SIZE on "$DATA_PATH""
     if ! mount -t tmpfs -o size=${TMPFS_SIZE:-24G} tmpfs $DATA_PATH; then
         echo "[ERROR] Failed to mount tmpfs"
         exit 32
