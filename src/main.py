@@ -62,7 +62,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '-e', '--error-handling', choices=['exit', 'ignore', 'log'], default='log',
-        help='How to handle download errors: exit (stop on error), ignore (continue), log (log failures and continue)'
+        help='How to handle download errors: exit (stop on error), ignore (continue), log (log failures and continue, default)'
     )
     parser.add_argument(
         '-r', '--retry-failed', action='store_true',
