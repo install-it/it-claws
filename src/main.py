@@ -95,7 +95,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '-w', '--web-driver', default='Firefox',
         choices=['Chrome', 'Edge', 'Firefox'],
-        help='Select the web driver to use'
+        help='Select the web driver to use (default: Firefox)'
     )
 
     group_archive = parser.add_mutually_exclusive_group()
