@@ -7,8 +7,6 @@ from contextlib import contextmanager, redirect_stdout
 from pathlib import Path
 from typing import Iterable
 
-import patoolib
-
 import config
 from archive import Archive7zip, ArchivePowershell, ArchivePyZipFile
 from driver_claw import DriverClaw
@@ -97,6 +95,11 @@ if __name__ == '__main__':
         choices=['Chrome', 'Edge', 'Firefox'],
         help='Select the web driver to use (default: Firefox)'
     )
+    parser.add_argument(
+        '-a', '--archive-handler', default='7zip',
+        choices=['7zip', 'Python', 'Powershell'],
+        help='Choose the archive handler (default: 7zip)'
+    )
 
     group_archive = parser.add_mutually_exclusive_group()
     group_archive.add_argument(
@@ -122,18 +125,11 @@ if __name__ == '__main__':
             print(f'Configuration is saved to "{config_file.absolute()}"')
             sys.exit(0)
 
-        try:
-            path_7zip = Path('bin', '7zip', '7za.exe')
-
-            archive = Archive7zip(path_7zip
-                                  if path_7zip.exists()
-                                  else patoolib.find_archive_program("7z", "unzip"))
-
-            print(
-                f'Using "{archive.path_7zip.absolute()}" as the archive handler.')
-        except patoolib.util.PatoolError:
-            print(
-                'Unable to locate any 7zip executable, fell back to use Python built-in zip library as the archive handler.')
+        if args.archive_handler == '7zip':
+            archive = Archive7zip()
+        elif args.archive_handler == 'Powershell':
+            archive = ArchivePowershell()
+        else:
             archive = ArchivePyZipFile()
 
         if not args.archive_only:

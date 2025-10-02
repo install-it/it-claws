@@ -38,12 +38,11 @@ class Archive(ABC):
 
 class Archive7zip(Archive):
 
-    path_7zip: Path
+    path_7zip = Path(__file__).parents[1].joinpath('bin', '7zip', '7za.exe')
 
-    def __init__(self, path_7zip: str | Path | None):
+    def __init__(self):
         super().__init__()
 
-        self.path_7zip = Path(path_7zip)
         if not self.path_7zip.exists():
             raise FileNotFoundError(f'cannot locate {self.path_7zip}')
 
