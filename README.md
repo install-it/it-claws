@@ -159,7 +159,7 @@ The `install-it/conf` directory contains configuration files of the scraping pre
 To use this tool to download drivers and utilities for install-it, include the directory:
 
 ```sh
-python src/main.py -i install-it/conf
+python src/main.py -i ./install-it/conf
 ```
 
 Then, you can import the output archive into install-it using its import function.
