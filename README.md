@@ -59,10 +59,11 @@ This tool also serves as a companion to [install-it](https://github.com/install-
 
 - [Python](https://www.python.org/downloads/) >= 3.12
 - [7zip](https://www.7-zip.org/download.html) (Optional)
+- [Google Chrome](https://www.google.com/chrome/), [Microsoft Edge](https://www.microsoft.com/en-us/edge/download), or [Mozilla Firefox](https://www.firefox.com/en-US/)
 
 ### Setup
 
-#### Install dependencies
+#### Install Python Dependencies
 ```sh
 pip install -r requirements.txt
 ```
@@ -85,11 +86,13 @@ pip install -r requirements.txt
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-### Customising Crawl Configurations
+### Customising Scraping Configurations
 
 #### Creating configuration
 
-it-claws comes with a brunch of software preset definded in [`src/config.py`](https://github.com/install-it/it-claws/blob/main/src/config.py), which includes a curated list of common hardware drivers and diagnostic tools.
+it-claws comes with a brunch of software scraping preset (see: [`src/config.py`](https://github.com/install-it/it-claws/blob/main/src/config.py)), which includes a curated list of common hardware drivers, software, and diagnostic tools.
+
+Run the following command to configure your scraping list:
 
 ```sh
 python src/main.py --configure
@@ -99,9 +102,9 @@ python src/main.py --configure
 
 To use a custom configuration file, specify it with the `-c` or `--claw-config` option.
 
-The module [`src/url.py`](https://github.com/install-it/it-claws/blob/main/src/url.py) provides helper methods to extract download URLs from well-known hardware manufacturers and vendors. You can leverage these utilities when drafting your own claw configuration.
+The module [`src/url.py`](https://github.com/install-it/it-claws/blob/main/src/url.py) provides helper methods to extract download URLs from well-known hardware manufacturers and vendors. You can leverage these utilities when drafting your own scraping configuration.
 
-#### Python pickle file
+#### Python Pickle File
 
 The expected type is `Iterable[ClawPrize]`.
 
@@ -109,38 +112,57 @@ The expected type is `Iterable[ClawPrize]`.
 python src/main.py -c ./custom-config.pkl
 ```
 
-#### Python source file
+#### Python Source File
 
-When using a Python file, it-claws will look for a variable named `CLAW_CONFIG` defined in the specified source.
-The expected type is `Iterable[ClawPrize]`.
+it-claws will look for the `CLAW_CONFIG` variable defined in the specified `.py` file.
+
+```python
+# custom-config.py
+
+CLAW_CONFIG: Iterable[ClawPrize] = [
+  # define your configuration here
+]
+```
 
 ```sh
 python src/main.py -c ./custom-config.py
 ```
 
-#### JSON file
+#### JSON File
 
-Refer to the [JSON Schema](https://raw.githubusercontent.com/install-it/it-claws/main/claw-config-schema.json) for guidance on constructing a valid claw configuration.
+Refer to the [JSON Schema](https://raw.githubusercontent.com/install-it/it-claws/main/claw-config-schema.json) for guidance on constructing a valid scraping configuration.
 
 ```sh
 python src/main.py -c ./custom-config.json
 ```
 
+### Specific a Browser for Scraping
+
+it-claws required a web browser to scrape the download URL. You can use any one of Google Chrome, Microsoft Edge, or Mozilla Firefox (default).
+
+To specific a browser, use `-w` or `--web-driver` with the name of the browser choice. 
+
+```sh
+python src/main.py -w Chrome
+```
+
 ###  Including Extra Files in the Archive
 
-Use `-i` or `--include-files` to specify the file or directory paths you want to include in the output archive.
+Use `-i` or `--include-files` to specify the file(s) or directory path(s) you want to include in the output archive.
 To include multiple paths, either separate them with spaces or provide the option multiple times.
 
 ```sh
 python src/main.py -i foo/ bar/ -i README.md
 ```
 
-The `install-it/conf` directory contains configuration files for the default set of drivers and tools used by [install-it](https://github.com/install-it/install-it).
+The `install-it/conf` directory contains configuration files of the scraping preset for [install-it](https://github.com/install-it/install-it).
 To use this tool to download drivers and utilities for install-it, include the directory:
 
 ```sh
 python src/main.py -i install-it/conf
 ```
+
+Then, you can import the output archive into install-it using its import function.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
