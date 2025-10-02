@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import Iterable
 
 import config
-from archive import Archive7zip, ArchivePowershell, ArchivePyZipFile
+from archive import (Archive7zip, ArchivePowershell, ArchivePyZipFile,
+                     ArchiveZipUnzip)
 from driver_claw import DriverClaw
 
 
@@ -97,7 +98,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '-a', '--archive-handler', default='7zip',
-        choices=['7zip', 'Python', 'Powershell'],
+        choices=['7zip', 'Python', 'Powershell', 'zip_unzip'],
         help='Choose the archive handler (default: 7zip)'
     )
 
@@ -129,6 +130,8 @@ if __name__ == '__main__':
             archive = Archive7zip()
         elif args.archive_handler == 'Powershell':
             archive = ArchivePowershell()
+        elif args.archive_handler == 'zip_unzip':
+            archive = ArchiveZipUnzip()
         else:
             archive = ArchivePyZipFile()
 

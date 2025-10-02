@@ -115,3 +115,21 @@ class ArchivePyZipFile(Archive):
                 print(e)
             return -1
         return 0
+
+
+class ArchiveZipUnzip(Archive):
+
+    def unzip(self, source, target, silent=True):
+        stream = subprocess.DEVNULL if silent else None
+        return subprocess.run(
+            ('unzip', '-o', str(source), '-d', str(target)),
+            stdout=stream, stderr=stream
+        ).returncode
+
+    def zip(self, target, *source, level=5, silent=True):
+        stream = subprocess.DEVNULL if silent else None
+        return subprocess.run(
+            ('zip', '-r', f'-{level}', str(target),
+             *source, '-q' if silent else '-v'),
+            stdout=stream, stderr=stream
+        ).returncode
