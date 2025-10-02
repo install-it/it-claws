@@ -309,7 +309,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'rename_as': None
     },
     {
-        'group': 'tool',
+        'group': 'software',
         'path': 'Steam',
         'url': 'https://cdn.fastly.steamstatic.com/client/installer/SteamSetup.exe',
         'file_type': 'exe',
