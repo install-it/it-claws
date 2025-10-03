@@ -7,6 +7,8 @@ import zipfile
 from abc import ABC
 from pathlib import Path
 
+import patoolib
+
 
 class Archive(ABC):
 
@@ -44,7 +46,7 @@ class Archive7zip(Archive):
         super().__init__()
 
         if not self.path_7zip.exists():
-            raise FileNotFoundError(f'cannot locate {self.path_7zip}')
+            self.path_7zip = patoolib.find_archive_program('7z', 'extract')
 
     def unzip(self, source, target, silent=True):
         stream = subprocess.DEVNULL if silent else None
@@ -128,8 +130,21 @@ class ArchiveZipUnzip(Archive):
 
     def zip(self, target, *source, level=5, silent=True):
         stream = subprocess.DEVNULL if silent else None
-        return subprocess.run(
-            ('zip', '-r', f'-{level}', str(target),
-             *source, '-q' if silent else '-v'),
-            stdout=stream, stderr=stream
-        ).returncode
+        for src in map(Path, source):
+            if src.is_absolute():
+                rtcode = subprocess.run(
+                    ('zip', '-r', f'-{level}', Path(target).absolute(),
+                     src, '-q' if silent else '-v'),
+                    stdout=stream, stderr=stream
+                ).returncode
+            else:
+                rtcode = subprocess.run(
+                    ('zip', '-r', f'-{level}', Path(target).absolute(),
+                     src.name, '-q' if silent else '-v'),
+                    cwd=src.parent,
+                    stdout=stream, stderr=stream
+                ).returncode
+
+            if rtcode == 0:
+                continue
+        return rtcode
