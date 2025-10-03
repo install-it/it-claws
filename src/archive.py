@@ -1,6 +1,7 @@
 """Handling archive operations.
 """
 
+import glob
 import os
 import subprocess
 import zipfile
@@ -102,16 +103,21 @@ class ArchivePyZipFile(Archive):
         try:
             with zipfile.ZipFile(target, 'w',
                                  compression=zipfile.ZIP_DEFLATED, compresslevel=level) as zf:
-                for s in map(Path, source):
-                    if s.is_file():
-                        zf.write(s)
-                        continue
+                all_paths = [
+                    p for s in map(Path, source)
+                    for p in ([s] if not any(c in s.as_posix() for c in '*?[]')
+                              else map(Path, glob.glob(s.as_posix(), recursive=True)))
+                ]
 
-                    # reference: https://stackoverflow.com/a/1855118
-                    for root, _, files in s.walk():
-                        for file in files:
-                            zf.write(root.joinpath(file),
-                                     root.joinpath(file).relative_to(s.parent))
+                for p in all_paths:
+                    if p.is_file():
+                        zf.write(p, p.parent.joinpath(p.name))
+                    elif p.is_dir():
+                        for root, _, files in p.walk():
+                            for file in files:
+                                zf.write(root.joinpath(file),
+                                         root.joinpath(file).relative_to(p.parent))
+                                # TODO: decide whether to replicate 7zip's behaviour (./foo vs foo/)
         except Exception as e:
             if not silent:
                 print(e)
