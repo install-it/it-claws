@@ -224,3 +224,20 @@ def y_cruncher(remote: webdriver.Remote) -> str:
     return (remote
             .find_element(By.XPATH, '//table[contains(., "Download Link")]//tr[contains(., "Windows")]//a')
             .get_attribute('href'))
+
+
+def vlc(remote: webdriver.Remote,
+        architecture: Literal['win32-win32', 'win64-win64',
+                              'macosx-arm64', 'macosx-intel64', 'macosx-universal']
+        ) -> str:
+    """Fetch y-cruncher download URL.
+    """
+    os, arch = architecture.split('-')
+    ext = 'dmg' if os == 'macosx' else 'exe'
+
+    remote.get(f'https://download.videolan.org/pub/videolan/vlc/last/{os}/')
+
+    return (remote
+            .find_element(By.XPATH,
+                          f'//a[substring(@href, string-length(@href) - string-length("-{os}.{ext}") + 1) = "-{os}.{ext}"]')
+            .get_attribute('href'))

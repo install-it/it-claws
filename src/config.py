@@ -328,14 +328,21 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'url': 'https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64',
         'file_type': 'exe',
         'rename_as': None,
-    }
+    },
     # {
     #     'group': 'software',
     #     'path': 'Chrome',
     #     'url': 'https://stackoverflow.com/a/65038275',
     #     'file_type': 'exe',
     #     'rename_as': None,
-    # }
+    # },
+    {
+        'group': 'software',
+        'path': 'VLC Player',
+        'url': functools.partial(url.vlc, architecture='win64-win64'),
+        'file_type': 'exe',
+        'rename_as': 'vlc-win64',
+    }
 )
 
 
