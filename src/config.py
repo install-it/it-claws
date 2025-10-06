@@ -321,6 +321,13 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'url': 'https://download.mozilla.org/?product=firefox-latest-ssl&os=win64',  # &lang=zh-TW
         'file_type': 'exe',
         'rename_as': 'Firefox_Setup.exe',
+    },
+    {
+        'group': 'software',
+        'path': 'Discord',
+        'url': 'https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64',
+        'file_type': 'exe',
+        'rename_as': None,
     }
 )
 
