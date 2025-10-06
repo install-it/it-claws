@@ -329,6 +329,13 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'file_type': 'exe',
         'rename_as': None,
     }
+    # {
+    #     'group': 'software',
+    #     'path': 'Chrome',
+    #     'url': 'https://stackoverflow.com/a/65038275',
+    #     'file_type': 'exe',
+    #     'rename_as': None,
+    # }
 )
 
 
