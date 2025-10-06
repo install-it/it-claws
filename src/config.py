@@ -314,6 +314,13 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'url': 'https://cdn.fastly.steamstatic.com/client/installer/SteamSetup.exe',
         'file_type': 'exe',
         'rename_as': None,
+    },
+    {
+        'group': 'software',
+        'path': 'Firefox',
+        'url': 'https://download.mozilla.org/?product=firefox-latest-ssl&os=win64',  # &lang=zh-TW
+        'file_type': 'exe',
+        'rename_as': 'Firefox_Setup.exe',
     }
 )
 
