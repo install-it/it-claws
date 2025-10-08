@@ -332,7 +332,14 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     # {
     #     'group': 'software',
     #     'path': 'Chrome',
-    #     'url': 'https://stackoverflow.com/a/65038275',
+    #     'url': 'https://stackoverflow.com/a/65038275; https://nira.com/chrome-offline-installer/',
+    #     'file_type': 'exe',
+    #     'rename_as': None,
+    # },
+    # {
+    #     'group': 'software',
+    #     'path': 'Chrome Enterprise',
+    #     'url': 'https://stackoverflow.com/a/75754456',
     #     'file_type': 'exe',
     #     'rename_as': None,
     # },
