@@ -18,7 +18,7 @@ from urllib.parse import urlparse
 import requests
 from fake_useragent import FakeUserAgent
 from selenium import webdriver
-from selenium.webdriver import Remote
+from selenium.webdriver import ChromeOptions, FirefoxOptions, Remote
 from tqdm import tqdm
 
 from archive import Archive
@@ -173,11 +173,12 @@ class DriverClaw:
 
     @contextlib.contextmanager
     def _get_browser(self):
-        options = webdriver.__dict__[f'{self.driver_name}Options']()
+        options: ChromeOptions | FirefoxOptions = (webdriver
+                                                   .__dict__[f'{self.driver_name}Options']())
         user_agent = FakeUserAgent(
             browsers=[self.driver_name], platforms='desktop').random
 
-        if self.driver_name == 'Firefox':
+        if isinstance(options, FirefoxOptions):
             options.add_argument('--headless')
             options.set_preference('general.useragent.override', user_agent)
         else:
