@@ -21,7 +21,7 @@ from driver_claw import ClawPrize
 CLAW_PRIZES: tuple[ClawPrize] = (
     {
         'group': 'display',
-        'path': 'AMD',
+        'path': 'AMD Software: Adrenalin Edition',
         'url': functools.partial(
                 url.amd,
                 url='https://www.amd.com/en/support/downloads/drivers.html/graphics/radeon-rx/radeon-rx-9000-series/amd-radeon-rx-9070-xt.html',
@@ -51,14 +51,14 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     },
     {
         'group': 'display',
-        'path': 'Nvidia',
+        'path': 'GeForce Game Ready Driver',
         'url': functools.partial(url.nvidia_grd, dri_type='desktop'),
         'file_type': 'zip',
         'rename_as': None
     },
     {
         'group': 'miscellaneous',
-        'path': 'AMD Chipset',
+        'path': 'AMD Chipset Drivers',
         'url': functools.partial(
                 url.amd,
                 url='https://www.amd.com/en/support/downloads/drivers.html/chipsets/am5/x870e.html',
@@ -68,7 +68,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     },
     {
         'group': 'miscellaneous',
-        'path': 'Intel Chipset (INF Utility)',
+        'path': 'Intel Chipset INF Utility',
         'url': functools.partial(
                 url.intel,
                 url='https://www.intel.com/content/www/us/en/download/19347/chipset-inf-utility.html'
@@ -255,7 +255,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     },
     {
         'group': 'network',
-        'path': 'Realtek',
+        'path': 'Realtek PCI-E Ethernet Drivers',
         'url': functools.partial(
                 url.msi,
                 url='https://hk.msi.com/Motherboard/MAG-X870-TOMAHAWK-WIFI/support#driver',
@@ -309,11 +309,46 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'rename_as': None
     },
     {
-        'group': 'tool',
+        'group': 'software',
         'path': 'Steam',
         'url': 'https://cdn.fastly.steamstatic.com/client/installer/SteamSetup.exe',
         'file_type': 'exe',
         'rename_as': None,
+    },
+    {
+        'group': 'software',
+        'path': 'Firefox',
+        'url': 'https://download.mozilla.org/?product=firefox-latest-ssl&os=win64',  # &lang=zh-TW
+        'file_type': 'exe',
+        'rename_as': 'Firefox_Setup.exe',
+    },
+    {
+        'group': 'software',
+        'path': 'Discord',
+        'url': 'https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64',
+        'file_type': 'exe',
+        'rename_as': None,
+    },
+    # {
+    #     'group': 'software',
+    #     'path': 'Chrome',
+    #     'url': 'https://stackoverflow.com/a/65038275; https://nira.com/chrome-offline-installer/',
+    #     'file_type': 'exe',
+    #     'rename_as': None,
+    # },
+    # {
+    #     'group': 'software',
+    #     'path': 'Chrome Enterprise',
+    #     'url': 'https://stackoverflow.com/a/75754456',
+    #     'file_type': 'exe',
+    #     'rename_as': None,
+    # },
+    {
+        'group': 'software',
+        'path': 'VLC Player',
+        'url': functools.partial(url.vlc, architecture='win64-win64'),
+        'file_type': 'exe',
+        'rename_as': 'vlc-win64',
     }
 )
 

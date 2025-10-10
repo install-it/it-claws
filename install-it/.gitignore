@@ -1,4 +1,5 @@
 *
 
-!conf
 !.gitignore
+!conf/
+!conf/groups.json

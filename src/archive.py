@@ -1,11 +1,14 @@
 """Handling archive operations.
 """
 
+import glob
 import os
 import subprocess
 import zipfile
 from abc import ABC
 from pathlib import Path
+
+import patoolib
 
 
 class Archive(ABC):
@@ -38,14 +41,13 @@ class Archive(ABC):
 
 class Archive7zip(Archive):
 
-    path_7zip: Path
+    path_7zip = Path(__file__).parents[1].joinpath('bin', '7zip', '7za.exe')
 
-    def __init__(self, path_7zip: str | Path | None):
+    def __init__(self):
         super().__init__()
 
-        self.path_7zip = Path(path_7zip)
         if not self.path_7zip.exists():
-            raise FileNotFoundError(f'cannot locate {self.path_7zip}')
+            self.path_7zip = patoolib.find_archive_program('7z', 'extract')
 
     def unzip(self, source, target, silent=True):
         stream = subprocess.DEVNULL if silent else None
@@ -101,18 +103,54 @@ class ArchivePyZipFile(Archive):
         try:
             with zipfile.ZipFile(target, 'w',
                                  compression=zipfile.ZIP_DEFLATED, compresslevel=level) as zf:
-                for s in map(Path, source):
-                    if s.is_file():
-                        zf.write(s)
-                        continue
+                all_paths = [
+                    p for s in map(Path, source)
+                    for p in ([s] if not any(c in s.as_posix() for c in '*?[]')
+                              else map(Path, glob.glob(s.as_posix(), recursive=True)))
+                ]
 
-                    # reference: https://stackoverflow.com/a/1855118
-                    for root, _, files in s.walk():
-                        for file in files:
-                            zf.write(root.joinpath(file),
-                                     root.joinpath(file).relative_to(s.parent))
+                for p in all_paths:
+                    if p.is_file():
+                        zf.write(p, p.parent.joinpath(p.name))
+                    elif p.is_dir():
+                        for root, _, files in p.walk():
+                            for file in files:
+                                zf.write(root.joinpath(file),
+                                         root.joinpath(file).relative_to(p.parent))
+                                # TODO: decide whether to replicate 7zip's behaviour (./foo vs foo/)
         except Exception as e:
             if not silent:
                 print(e)
             return -1
         return 0
+
+
+class ArchiveZipUnzip(Archive):
+
+    def unzip(self, source, target, silent=True):
+        stream = subprocess.DEVNULL if silent else None
+        return subprocess.run(
+            ('unzip', '-o', str(source), '-d', str(target)),
+            stdout=stream, stderr=stream
+        ).returncode
+
+    def zip(self, target, *source, level=5, silent=True):
+        stream = subprocess.DEVNULL if silent else None
+        for src in map(Path, source):
+            if src.is_absolute():
+                rtcode = subprocess.run(
+                    ('zip', '-r', f'-{level}', Path(target).absolute(),
+                     src, '-q' if silent else '-v'),
+                    stdout=stream, stderr=stream
+                ).returncode
+            else:
+                rtcode = subprocess.run(
+                    ('zip', '-r', f'-{level}', Path(target).absolute(),
+                     src.name, '-q' if silent else '-v'),
+                    cwd=src.parent,
+                    stdout=stream, stderr=stream
+                ).returncode
+
+            if rtcode == 0:
+                continue
+        return rtcode
