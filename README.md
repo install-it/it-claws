@@ -177,6 +177,15 @@ To extract RAR files, consider to use the package `p7zip-full p7zip-rar` instead
 it-claws provided container images for you to run it in containerised enviroments.
 Get the docker image details at [Packages](https://github.com/install-it/it-claws/pkgs/container/it-claws).
 
+```sh
+docker run -d \
+  --name=it-claws \
+  -v /path/to/rclone-config:/config/rclone \
+  -v /path/to/config:/config/app \
+  -v /path/to/downloads:/app/downloads \ # optional
+  ghcr.io/install-it/it-claws:latest
+```
+
 A few scripts for automation are provided. See [scripts](https://github.com/install-it/it-claws/tree/main/scripts) for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
