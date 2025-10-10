@@ -37,7 +37,7 @@
   <img src="https://github.com/user-attachments/assets/83d46686-2893-41c1-9077-ef0fede26dcc" width="892" height="552">
 </p>
 
-it-claws is a Python-based command-line utility for downloading the latest PC hardware drivers and diagnostic tools. Leveraging Selenium, it automatically navigates official websites to locate and retrieve the most up-to-date versions of essential drivers and utilities.
+it-claws is a Python-based command-line tool for downloading the latest PC hardware drivers, diagnostic tools and more. Leveraging Selenium, it is able to automatically navigate official websites to locate and retrieve the most up-to-date versions of the target software.
 
 This tool also serves as a companion to [install-it](https://github.com/install-it/install-it/). Refer to the [Usage](#including-extra-files-in-the-archive) section for more information.
 
@@ -58,7 +58,7 @@ This tool also serves as a companion to [install-it](https://github.com/install-
 ### Prerequisites
 
 - [Python](https://www.python.org/downloads/) >= 3.12
-- [7zip](https://www.7-zip.org/download.html) (Optional)
+- [7zip](https://www.7-zip.org/download.html)
 - [Google Chrome](https://www.google.com/chrome/), [Microsoft Edge](https://www.microsoft.com/en-us/edge/download), or [Mozilla Firefox](https://www.firefox.com/en-US/)
 
 ### Setup
@@ -90,7 +90,7 @@ pip install -r requirements.txt
 
 #### Creating configuration
 
-it-claws comes with a brunch of software scraping preset (see: [`src/config.py`](https://github.com/install-it/it-claws/blob/main/src/config.py)), which includes a curated list of common hardware drivers, software, and diagnostic tools.
+it-claws comes with a brunch of software scraping preset (see: [`src/config.py`](https://github.com/install-it/it-claws/blob/main/src/config.py)), which includes a curated list of common hardware drivers, diagnostic tools and common software.
 
 Run the following command to configure your scraping list:
 
@@ -102,7 +102,9 @@ python src/main.py --configure
 
 To use a custom configuration file, specify it with the `-c` or `--claw-config` option.
 
-The module [`src/url.py`](https://github.com/install-it/it-claws/blob/main/src/url.py) provides helper methods to extract download URLs from well-known hardware manufacturers and vendors. You can leverage these utilities when drafting your own scraping configuration.
+The module [`src/url.py`](https://github.com/install-it/it-claws/blob/main/src/url.py) provides helper methods to extract download URLs from various websites. You can leverage those when drafting your own scraping configuration.
+
+it-claw accepts Python pickle files, Python source files, and JSON files. Details are as follow.
 
 #### Python Pickle File
 
@@ -136,7 +138,7 @@ Refer to the [JSON Schema](https://raw.githubusercontent.com/install-it/it-claws
 python src/main.py -c ./custom-config.json
 ```
 
-### Specific a Browser for Scraping
+### Specific the Browser for Scraping
 
 it-claws required a web browser to scrape the download URL. You can use any one of Google Chrome, Microsoft Edge, or Mozilla Firefox (default).
 
@@ -163,6 +165,19 @@ python src/main.py -i ./install-it/conf
 ```
 
 Then, you can import the output archive into install-it using its import function.
+
+### Extract RAR Files in Linux
+
+`7z` or the binaries from [7-zip.org](https://www.7-zip.org/download.html) does not seem to support RAR format.
+
+To extract RAR files, consider to use the package `p7zip-full p7zip-rar` instead of `7z`.
+
+### Docker Deployment
+
+it-claws provided container images for you to run it in containerised enviroments.
+Get the docker image details at [Packages](https://github.com/install-it/it-claws/pkgs/container/it-claws).
+
+A few scripts for automation are provided. See [scripts](https://github.com/install-it/it-claws/tree/main/scripts) for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
