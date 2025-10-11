@@ -364,4 +364,11 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'file_type': 'exe',
         'rename_as': None,
     },
+    {
+        'group': 'software',
+        'path': '7zip',
+        'url': functools.partial(url.sourceforge, project_name='sevenzip'),
+        'file_type': 'exe',
+        'rename_as': '7zip_Setup.exe',
+    },
 )
