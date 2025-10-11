@@ -378,4 +378,11 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'file_type': 'exe',
         'rename_as': None,
     },
+    {
+        'group': 'software',
+        'path': 'iTunes',
+        'url': 'https://www.apple.com/itunes/download/win64',
+        'file_type': 'exe',
+        'rename_as': None,
+    },
 )
