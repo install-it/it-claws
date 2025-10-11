@@ -268,7 +268,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     {
         'group': 'tool',
         'path': 'CrystalDiskinfo',
-        'url': url.crystaldick_info,
+        'url': functools.partial(url.sourceforge, project_name='crystaldiskinfo'),
         'file_type': 'zip/exe',
         'rename_as': None
 
@@ -276,7 +276,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     {
         'group': 'tool',
         'path': 'CrystalDiskMark',
-        'url': url.crystaldick_mark,
+        'url': functools.partial(url.sourceforge, project_name='crystalmarkretro'),
         'file_type': 'zip/exe',
         'rename_as': None
     },

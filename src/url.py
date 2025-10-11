@@ -161,31 +161,18 @@ def nvidia_grd(remote: webdriver.Remote, dri_type: Literal['desktop', 'laptop'])
             .get_attribute('href'))
 
 
+def sourceforge(remote: webdriver.Remote, project_name: str) -> str:
+    remote.get(f'https://sourceforge.net/projects/{project_name}/files/')
+
+    version = remote.find_element(
+        By.XPATH, '//a[contains(., "Download Latest Version")]').get_attribute('title').split(':')[0]
+
+    return f'https://download.sourceforge.net/{project_name}/{version}'
+
+
 # ---------------------------------------------
 #                   Tools
 # ---------------------------------------------
-
-
-def crystaldick_info(remote: webdriver.Remote) -> str:
-    """Fetch CrystalDiskInfo download URL.
-    """
-    remote.get('https://sourceforge.net/projects/crystaldiskinfo/files/')
-
-    version = remote.find_element(
-        By.XPATH, '//a[contains(., "Download Latest Version")]').get_attribute('title').split(':')[0]
-
-    return f'https://download.sourceforge.net/crystaldiskinfo/{version}'
-
-
-def crystaldick_mark(remote: webdriver.Remote) -> str:
-    """Fetch CrystalDiskMark download URL.
-    """
-    remote.get('https://sourceforge.net/projects/crystalmarkretro/files/')
-
-    version = remote.find_element(
-        By.XPATH, '//a[contains(., "Download Latest Version")]').get_attribute('title').split(':')[0]
-
-    return f'https://download.sourceforge.net/crystalmarkretro/{version}'
 
 
 def furmark(remote: webdriver.Remote) -> str:
