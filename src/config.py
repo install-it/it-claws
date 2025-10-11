@@ -345,9 +345,23 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     # },
     {
         'group': 'software',
-        'path': 'VLC Player',
-        'url': functools.partial(url.vlc, architecture='win64-win64'),
+        'path': 'NordVPN',
+        'url': 'https://downloads.nordcdn.com/apps/windows/NordVPN/latest/NordVPNSetup.exe',
         'file_type': 'exe',
-        'rename_as': 'vlc-win64',
-    }
+        'rename_as': None,
+    },
+    {
+        'group': 'software',
+        'path': 'Surfshark',
+        'url': 'https://downloads.surfshark.com/windows/latest/SurfsharkSetup.exe',
+        'file_type': 'exe',
+        'rename_as': None,
+    },
+    {
+        'group': 'software',
+        'path': 'Surfshark',
+        'url': 'https://downloads.surfshark.com/windows/latest/SurfsharkSetup.exe',
+        'file_type': 'exe',
+        'rename_as': None,
+    },
 )
