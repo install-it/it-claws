@@ -16,6 +16,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -36,10 +39,9 @@ jobs:
         id: extract_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Build Docker image
-        run: |
-          docker build -t ghcr.io/${{ steps.repo_lc.outputs.lowercase }}:${{ env.VERSION }} .
-
-      - name: Push Docker image
-        run: |
-          docker push ghcr.io/${{ steps.repo_lc.outputs.lowercase }}:${{ env.VERSION }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ steps.repo_lc.outputs.lowercase }}
