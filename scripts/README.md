@@ -37,12 +37,11 @@ Automates file downloads, archiving, and rclone-based uploads with retry logic a
 
 ### Workflow
 
-1. Create symbolic links for volume-mapped rclone configuration files.
-2. Mounts tmpfs at `/app/downloads` if `TMPFS=1`. <br />
+1. Mounts tmpfs at `/app/downloads` if `TMPFS=1`. <br />
    The tmpfs will be used to storing downloaded files and the result archive.
-3. Runs it-claws. <br />
+2. Runs it-claws. <br />
    Retries up to `MAX_RETRIES` times on scraping failure, waiting `RETRY_DELAY` seconds.
-4. Syncs archive to `RC_REMOTE_PATH` using rclone.
+3. Syncs archive to `RC_REMOTE_PATH` using rclone.
 
 ### Notes
 
