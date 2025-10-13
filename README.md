@@ -177,13 +177,38 @@ To extract RAR files, consider to use the package `p7zip-full p7zip-rar` instead
 it-claws provided container images for you to run it in containerised enviroments.
 Get the docker image details at [Packages](https://github.com/install-it/it-claws/pkgs/container/it-claws).
 
+You can deploy the docker image via docker CLI with:
+
 ```sh
-docker run -d \
+docker run \
   --name=it-claws \
   -v /path/to/rclone-config:/config/rclone \
   -v /path/to/config:/config/app \
-  -v /path/to/downloads:/app/downloads \ # optional
+  -v /path/to/downloads:/app/downloads \ `#optional, supply to presist downloads`
   ghcr.io/install-it/it-claws:latest
+```
+
+#### Configuration
+
+If you want to use the built-in configurator to create the scraping configuration
+inside the container environment, you may use docker's interactive mode. 
+
+```sh
+# run the container in an interactive terminal session with container auto remove enabled 
+docker run -it --rm ghcr.io/install-it/it-claws:latest bash
+
+python src/main.py --configure
+
+# leave the interactive terminal session
+exit
+```
+
+#### Customisation
+
+Override the default `CMD` ([how-to](https://docs.docker.com/get-started/docker-concepts/running-containers/overriding-container-defaults/#override-the-default-cmd-and-entrypoint-with-docker-run)) to alternate how it-claws should be executed.
+
+```sh
+docker run --name=it-claws <other options> python src/main.py -d /foo/downloads -e ignore
 ```
 
 A few scripts for automation are provided. See [scripts](https://github.com/install-it/it-claws/tree/main/scripts) for more information.
