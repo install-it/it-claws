@@ -1,6 +1,6 @@
 #!/bin/sh 
 
-echo "**** creating symbolic links for configuration files ****"
+echo "[INFO] Creating symbolic links for configuration files"
 
 mkdir -p /config/app /config/rclone
 
@@ -15,6 +15,6 @@ if [ ! -L "$RCLONE_CONFIG_DIR" ] && [ -d "$RCLONE_CONFIG_DIR" ]; then
 fi
 ln -sf /config/rclone "$RCLONE_CONFIG_DIR"
 
-echo "**** executing "$@" ****"
+echo "[INFO] Executing "$@""
 
 exec "$@"
