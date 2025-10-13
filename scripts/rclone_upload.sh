@@ -6,13 +6,6 @@ ARCHIVE_PATH="$DATA_PATH/${ARCHIVE_NAME:-driver-pack.zip}"
 MAX_RETRIES=${MAX_RETRIES:-3}
 RETRY_DELAY=${RETRY_DELAY:-10}
 
-echo "[INFO] Creating symbolic links for rclone configuration files"
-RCLONE_CONFIG_DIR=$(dirname $(rclone config file | sed -n 2p))
-if [ ! -L "$RCLONE_CONFIG_DIR" ] && [ -d "$RCLONE_CONFIG_DIR" ]; then
-    rm -rf "$RCLONE_CONFIG_DIR"
-fi
-ln -sf /config/rclone "$RCLONE_CONFIG_DIR"
-
 mkdir -p $DATA_PATH
 if [ "${TMPFS:-1}" = "1" ]; then
     echo "[INFO] Mounting a tmpfs of size ${TMPFS_SIZE:-24G} on "$DATA_PATH""
