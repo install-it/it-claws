@@ -19,7 +19,7 @@ Automates file downloads, archiving, and rclone-based uploads with retry logic a
 |--------------------|----------------------------------------|-------------------|
 | `DOWNLOAD_DIR_NAME`| Download directory name                | `downloads`       |
 | `ARCHIVE_NAME`     | Output zip file name                   | `driver-pack.zip` |
-| `MAX_RETRIES`      | Retry attempts for download failures   | `3`               |
+| `MAX_TRIES`        | Number of attempts for download        | `3`               |
 | `RETRY_DELAY`      | Seconds between retries                | `10`              |
 | `TMPFS`            | Enable tmpfs mount (1: enabled, 0: disabled) | `1`         |
 | `TMPFS_SIZE`       | tmpfs mount size                       | `24G`             |

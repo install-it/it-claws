@@ -3,7 +3,7 @@
 DATA_PATH="/app/downloads"
 DOWNLOAD_DIR="$DATA_PATH/${DOWNLOAD_DIR_NAME:-downloads}"
 ARCHIVE_PATH="$DATA_PATH/${ARCHIVE_NAME:-driver-pack.zip}"
-MAX_RETRIES=${MAX_RETRIES:-3}
+MAX_TRIES=${MAX_TRIES:-3}
 RETRY_DELAY=${RETRY_DELAY:-10}
 
 mkdir -p $DATA_PATH
@@ -15,8 +15,8 @@ if [ "${TMPFS:-1}" = "1" ]; then
     fi
 fi
 
-for ((i=1; i<=MAX_RETRIES; i++)); do
-    echo "[INFO] Attempt $i of $MAX_RETRIES"
+for ((i=1; i<=MAX_TRIES; i++)); do
+    echo "[INFO] Attempt $i of $MAX_TRIES"
     
     python /app/src/main.py \
         -d "$DOWNLOAD_DIR" \
@@ -26,7 +26,7 @@ for ((i=1; i<=MAX_RETRIES; i++)); do
     if [ $exit_code -eq 0 ]; then
         echo "[INFO] it-claws executed successfully"
         break
-    elif [ $exit_code -eq 4 ] && [ $i -lt $MAX_RETRIES ]; then
+    elif [ $exit_code -eq 4 ] && [ $i -lt $MAX_TRIES ]; then
             echo "[WARN] Some download failed, retrying in $RETRY_DELAY seconds..."
             sleep "$RETRY_DELAY"
     else
