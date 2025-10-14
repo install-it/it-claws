@@ -21,7 +21,7 @@ from driver_claw import ClawPrize
 CLAW_PRIZES: tuple[ClawPrize] = (
     {
         'group': 'display',
-        'path': 'AMD Software: Adrenalin Edition',
+        'path': 'AMD Software\uA789 Adrenalin Edition',
         'url': functools.partial(
                 url.amd,
                 url='https://www.amd.com/en/support/downloads/drivers.html/graphics/radeon-rx/radeon-rx-9000-series/amd-radeon-rx-9070-xt.html',

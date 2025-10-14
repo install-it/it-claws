@@ -46,7 +46,7 @@
                 "id": "6eee74b2",
                 "name": "",
                 "type": "",
-                "path": "drivers\\display\\AMD Software: Adrenalin Edition\\Setup.exe",
+                "path": "drivers\\display\\AMD Software\uA789 Adrenalin Edition\\Setup.exe",
                 "flags": [
                     "-install"
                 ],
@@ -92,7 +92,7 @@
                     "--noExtras"
                 ],
                 "minExeTime": 5,
-                "allowRtCodes": [],
+                "allowRtCodes": [14],
                 "incompatibles": []
             }
         ]
@@ -112,7 +112,7 @@
                     "--noExtras"
                 ],
                 "minExeTime": 5,
-                "allowRtCodes": [],
+                "allowRtCodes": [14],
                 "incompatibles": []
             }
         ]
