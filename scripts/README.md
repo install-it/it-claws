@@ -23,8 +23,12 @@ Automates file downloads, archiving, and rclone-based uploads with retry logic a
 | `RETRY_DELAY`      | Seconds between retries                | `10`              |
 | `TMPFS`            | Enable tmpfs mount (1: enabled, 0: disabled) | `1`         |
 | `TMPFS_SIZE`       | tmpfs mount size                       | `24G`             |
+| `KEEP_DOWNLOADS`   | Keep downloads after archiving (1: enabled, 0: disabled) | `24G` |
 | `RC_REMOTE_PATH`   | rclone remote upload path (required)   |                   |
 | `ARGUMENTS`        | Extra arguments for `main.py`          |                   |
+
+> [!NOTE] 
+> If `TMPFS` is set to `1`, downloads will be deleted after archiving regardless of `KEEP_DOWNLOADS` value.
 
 #### Exit Codes
 
@@ -37,11 +41,12 @@ Automates file downloads, archiving, and rclone-based uploads with retry logic a
 
 ### Workflow
 
-1. Mounts tmpfs at `/app/downloads` if `TMPFS=1`. <br />
+1. Mounts tmpfs at `/app/downloads` if `TMPFS` equals 1. <br />
    The tmpfs will be used to storing downloaded files and the result archive.
 2. Runs it-claws. <br />
    Retries up to `MAX_RETRIES` times on scraping failure, waiting `RETRY_DELAY` seconds.
-3. Syncs archive to `RC_REMOTE_PATH` using rclone.
+3. Delete downloaded files if `TMPFS` equals 1 or `KEEP_DOWNLOADS` equals 0.
+4. Syncs archive to `RC_REMOTE_PATH` using rclone.
 
 ### Notes
 
