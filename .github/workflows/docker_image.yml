@@ -44,4 +44,6 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ steps.repo_lc.outputs.lowercase }}:${{ $VERSION }}
+          tags: |
+            ghcr.io/${{ steps.repo_lc.outputs.lowercase }}:${{ env.VERSION }}
+            ghcr.io/${{ steps.repo_lc.outputs.lowercase }}:latest
