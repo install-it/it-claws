@@ -228,3 +228,10 @@ def vlc(remote: webdriver.Remote,
             .find_element(By.XPATH,
                           f'//a[substring(@href, string-length(@href) - string-length("-{arch}.{ext}") + 1) = "-{arch}.{ext}"]')
             .get_attribute('href'))
+
+
+def voidtools(remote: webdriver.Remote, arch: Literal['x64', 'x86']) -> str:
+    remote.get('https://www.voidtools.com/downloads/')
+
+    return (remote.find_element(By.CSS_SELECTOR, f'a[href$="{arch}-Setup.exe"].button')
+            .get_attribute('href'))
