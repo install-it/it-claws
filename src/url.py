@@ -225,8 +225,7 @@ def vlc(remote: webdriver.Remote,
     remote.get(f'https://download.videolan.org/pub/videolan/vlc/last/{os}/')
 
     return (remote
-            .find_element(By.XPATH,
-                          f'//a[substring(@href, string-length(@href) - string-length("-{arch}.{ext}") + 1) = "-{arch}.{ext}"]')
+            .find_element(By.CSS_SELECTOR, f'a[href$="-{arch}.{ext}"]',)
             .get_attribute('href'))
 
 
