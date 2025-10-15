@@ -351,19 +351,3 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'rename_as': 'vlc-win64',
     }
 )
-
-
-def configurate():
-    """Interactive configuration to select desired drivers.
-    """
-    choices = [(f"[{prize['group'].upper()}] {prize['path']}", prize)
-               for prize in CLAW_PRIZES]
-    questions = [
-        inquirer.Checkbox('config',
-                          message="Select the driver(s) you want to include",
-                          choices=choices,
-                          default=choices,
-                          validate=lambda _, x: len(x) > 0 or 'Please select at least one item.'),
-    ]
-    answers = inquirer.prompt(questions)
-    return [p for p in CLAW_PRIZES if p in answers['config']]
