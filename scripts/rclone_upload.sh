@@ -43,7 +43,7 @@ done
 
 if [ $TMPFS = "1" ] || [ $KEEP_DOWNLOADS = "0" ]; then
     echo "[INFO] Removing download files..."
-    find "$DOWNLOAD_DIR" ! -path "$ARCHIVE_PATH" -exec rm -rf {} +
+    find "$DOWNLOAD_DIR" -maxdepth 1 ! -path "$ARCHIVE_PATH" -exec rm -rf {} +
 fi
 
 echo "[INFO] Uploading output using rclone..."
