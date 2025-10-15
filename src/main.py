@@ -112,7 +112,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '-c', '--claw-config', type=lambda s: validate_ext(('py', 'json', 'pkl'), s),
         default='config/claw_prizes.pkl',
-        help='Path to configuration file (.json, .py, or .pkl)'
+        help='Path to configuration file (default: config/claw_prizes.pkl)'
     )
     parser.add_argument(
         '-w', '--web-driver', default='Firefox',
@@ -161,6 +161,16 @@ if __name__ == '__main__':
     with setup_print(args.silent):
         if args.configure:
             config_file = Path(args.claw_config)
+
+            if config_file.suffix != '.pkl':
+                print(
+                    f'The specified configuration path "{args.claw_config}" does not end with ".pkl". ')
+                print('Please note that it-claws relies on file extensions to determine file types, '
+                      'and the configurator outputs a Pickle (.pkl) file.')
+
+                if (not args.yes
+                        and input('Continue to configurator? [y/N] ').lower() in ['', 'n']):
+                    sys.exit(1)
 
             print('Entering configuration mode...')
             if args.select_all:
