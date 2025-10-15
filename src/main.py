@@ -1,11 +1,14 @@
 import argparse
 import os
 import pickle
+import re
 import shutil
 import sys
 from contextlib import contextmanager, redirect_stdout
 from pathlib import Path
-from typing import Iterable
+from typing import Callable, Iterable
+
+import inquirer
 
 import config
 from archive import (Archive7zip, ArchivePowershell, ArchivePyZipFile,
@@ -47,6 +50,30 @@ def validate_ext(choices: Iterable[str], fname: str):
     return fname
 
 
+def configurator(yes: bool, option_filter: Callable[[str], bool] = None) -> None:
+    """Interactive configuration to select desired option from preset.
+    """
+    choices = [(f"[{prize['group'].upper()}] {prize['path']}", prize)
+               for prize in config.CLAW_PRIZES]
+
+    default = ([]
+               if not callable(option_filter)
+               else list(filter(lambda c: option_filter(c[0]), choices)))
+
+    if not yes:
+        questions = [
+            inquirer.Checkbox('config',
+                              message="Select the option(s) you want to include",
+                              choices=choices,
+                              default=default)
+        ]
+        answers = inquirer.prompt(questions, raise_keyboard_interrupt=True)
+    else:
+        answers = {'config': default}
+
+    return [p for p in config.CLAW_PRIZES if p in answers['config']]
+
+
 if __name__ == '__main__':
     # set proper CWD
     os.chdir(Path(sys.executable).parent
@@ -85,11 +112,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '-c', '--claw-config', type=lambda s: validate_ext(('py', 'json', 'pkl'), s),
         default='config/claw_prizes.pkl',
-        help='Path to configuration file (.json, .py, or .pkl)'
-    )
-    parser.add_argument(
-        '--configure', action='store_true',
-        help='Interactive configuration mode to select drivers'
+        help='Path to configuration file (default: config/claw_prizes.pkl)'
     )
     parser.add_argument(
         '-w', '--web-driver', default='Firefox',
@@ -101,6 +124,27 @@ if __name__ == '__main__':
     #     choices=['7zip', 'Python', 'Powershell', 'zip_unzip'],
     #     help='Choose the archive handler (default: 7zip)'
     # )
+
+    group_configure = parser.add_argument_group(
+        'Configurator', 'Options for configurator')
+    group_configure.add_argument(
+        '--configure', action='store_true',
+        help='Create scrape config from preset in interactive mode.'
+    )
+    group_configure.add_argument(
+        '--yes', action='store_true',
+        help='Automatically confirm all prompts during configuration'
+    )
+
+    group_configure_select = group_configure.add_mutually_exclusive_group()
+    group_configure_select.add_argument(
+        '--select-all', action='store_true',
+        help='Select all available options during configuration'
+    )
+    group_configure_select.add_argument(
+        '--select-regex', type=str,
+        help='Select options with REGEX by option names'
+    )
 
     group_archive = parser.add_mutually_exclusive_group()
     group_archive.add_argument(
@@ -116,10 +160,27 @@ if __name__ == '__main__':
 
     with setup_print(args.silent):
         if args.configure:
-            config_file = Path(args.claw_config or 'claw_config.pkl')
+            config_file = Path(args.claw_config)
 
-            print('Starting interactive configuration...')
-            selections = config.configurate()
+            if config_file.suffix != '.pkl':
+                print(
+                    f'The specified configuration path "{args.claw_config}" does not end with ".pkl". ')
+                print('Please note that it-claws relies on file extensions to determine file types, '
+                      'and the configurator outputs a Pickle (.pkl) file.')
+
+                if (not args.yes
+                        and input('Continue to configurator? [y/N] ').lower() in ['', 'n']):
+                    sys.exit(1)
+
+            print('Entering configuration mode...')
+            if args.select_all:
+                selections = configurator(args.yes, lambda _: True)
+            elif args.select_regex:
+                selections = configurator(
+                    args.yes, lambda s: re.match(args.select_regex, s))
+            else:
+                selections = configurator(args.yes)
+
             with open(config_file, 'wb') as f:
                 pickle.dump(selections, f)
 
