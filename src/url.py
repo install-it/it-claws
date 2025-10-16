@@ -171,8 +171,10 @@ def sourceforge(remote: webdriver.Remote, project_name: str) -> str:
 
 
 # ---------------------------------------------
-#                   Tools
+#               Diagnostic Tools
 # ---------------------------------------------
+#
+# The scaped URL for diagnostic tools are intended to be portable versions.
 
 
 def furmark(remote: webdriver.Remote) -> str:
