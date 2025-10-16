@@ -222,17 +222,6 @@ def furmark(remote: webdriver.Remote) -> str:
         By.XPATH, '//a[contains(., "Geeks3D server")]').get_attribute('href')
 
 
-def hwinfo(remote: webdriver.Remote) -> str:
-    """Fetch HWiNFO download URL.
-    """
-    remote.get('https://www.hwinfo.com/download/')
-    return (remote
-            .find_element(By.XPATH,
-                          '//div[contains(@class, "download") and contains(., "Portable") and contains(., "Windows")]'
-                          '//li[contains(., "SAC ftp (SK)")]//a')
-            .get_attribute('href'))
-
-
 def y_cruncher(remote: webdriver.Remote,
                variant: Literal['Windows', 'Linux (Static)', 'Linux (Dynamic)']) -> str:
     """Fetch y-cruncher download URL.

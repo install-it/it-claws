@@ -290,7 +290,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     {
         'group': 'tool',
         'path': 'HWInfo',
-        'url': url.hwinfo,
+        'url': functools.partial(url.sourceforge, project_name='hwinfo'),
         'file_type': 'zip/exe',
         'rename_as': None
     },
