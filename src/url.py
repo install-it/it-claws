@@ -205,14 +205,16 @@ def voidtools(remote: webdriver.Remote, variant: Literal['x64', 'x86']) -> str:
 # The scaped URL for diagnostic tools are intended to be portable versions.
 
 
-def furmark(remote: webdriver.Remote) -> str:
+def furmark(remote: webdriver.Remote,
+            variant: Literal['win32', 'win64', 'linux64', 'arm64']) -> str:
     """Fetch FurMark download URL.
     """
     remote.get('https://www.geeks3d.com/furmark/downloads/')
 
     remote.get(
         remote
-        .find_element(By.XPATH, '//a[contains(., "win64 - (ZIP)")]')
+        .find_element(By.XPATH,
+                      f'//a[contains(., "{variant} - (ZIP)") or contains(., "{variant} - (7ZIP)")]')
         .get_attribute('href')
     )
 
