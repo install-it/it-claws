@@ -132,7 +132,7 @@ python src/main.py -c ./custom-config.py
 
 #### JSON File
 
-Refer to the [JSON Schema](https://raw.githubusercontent.com/install-it/it-claws/main/claw-config-schema.json) for guidance on constructing a valid scraping configuration.
+Refer to the [JSON Schema](https://raw.githubusercontent.com/install-it/it-claws/main/claw-prize-schema.json) for guidance on constructing a valid scraping configuration.
 
 ```sh
 python src/main.py -c ./custom-config.json
