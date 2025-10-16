@@ -268,7 +268,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     {
         'group': 'tool',
         'path': 'CrystalDiskinfo',
-        'url': url.crystaldick_info,
+        'url': functools.partial(url.sourceforge, project_name='crystaldiskinfo'),
         'file_type': 'zip/exe',
         'rename_as': None
 
@@ -276,7 +276,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     {
         'group': 'tool',
         'path': 'CrystalDiskMark',
-        'url': url.crystaldick_mark,
+        'url': functools.partial(url.sourceforge, project_name='crystalmarkretro'),
         'file_type': 'zip/exe',
         'rename_as': None
     },
@@ -290,7 +290,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     {
         'group': 'tool',
         'path': 'HWInfo',
-        'url': url.hwinfo,
+        'url': functools.partial(url.sourceforge, project_name='hwinfo'),
         'file_type': 'zip/exe',
         'rename_as': None
     },
@@ -349,5 +349,40 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'url': functools.partial(url.vlc, architecture='win64-win64'),
         'file_type': 'exe',
         'rename_as': 'vlc-win64',
-    }
+    },
+    {
+        'group': 'software',
+        'path': 'NordVPN',
+        'url': 'https://downloads.nordcdn.com/apps/windows/NordVPN/latest/NordVPNSetup.exe',
+        'file_type': 'exe',
+        'rename_as': None,
+    },
+    {
+        'group': 'software',
+        'path': 'Surfshark',
+        'url': 'https://downloads.surfshark.com/windows/latest/SurfsharkSetup.exe',
+        'file_type': 'exe',
+        'rename_as': None,
+    },
+    {
+        'group': 'software',
+        'path': '7zip',
+        'url': functools.partial(url.sourceforge, project_name='sevenzip'),
+        'file_type': 'exe',
+        'rename_as': '7zip_Setup.exe',
+    },
+    {
+        'group': 'software',
+        'path': 'Spotify',
+        'url': 'https://download.scdn.co/SpotifySetup.exe',
+        'file_type': 'exe',
+        'rename_as': None,
+    },
+    {
+        'group': 'software',
+        'path': 'iTunes',
+        'url': 'https://www.apple.com/itunes/download/win64',
+        'file_type': 'exe',
+        'rename_as': None,
+    },
 )

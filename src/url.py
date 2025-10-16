@@ -161,41 +161,60 @@ def nvidia_grd(remote: webdriver.Remote, dri_type: Literal['desktop', 'laptop'])
             .get_attribute('href'))
 
 
-# ---------------------------------------------
-#                   Tools
-# ---------------------------------------------
-
-
-def crystaldick_info(remote: webdriver.Remote) -> str:
-    """Fetch CrystalDiskInfo download URL.
-    """
-    remote.get('https://sourceforge.net/projects/crystaldiskinfo/files/')
+def sourceforge(remote: webdriver.Remote, project_name: str) -> str:
+    remote.get(f'https://sourceforge.net/projects/{project_name}/files/')
 
     version = remote.find_element(
         By.XPATH, '//a[contains(., "Download Latest Version")]').get_attribute('title').split(':')[0]
 
-    return f'https://download.sourceforge.net/crystaldiskinfo/{version}'
+    return f'https://download.sourceforge.net/{project_name}/{version}'
 
 
-def crystaldick_mark(remote: webdriver.Remote) -> str:
-    """Fetch CrystalDiskMark download URL.
+# ---------------------------------------------
+#               Specific Software
+# ---------------------------------------------
+
+
+def vlc(remote: webdriver.Remote,
+        variant: Literal['win32-win32', 'win64-win64',
+                         'macosx-arm64', 'macosx-intel64', 'macosx-universal']
+        ) -> str:
+    """Fetch VLC download URL.
     """
-    remote.get('https://sourceforge.net/projects/crystalmarkretro/files/')
+    os, arch = variant.split('-')
+    ext = 'dmg' if os == 'macosx' else 'exe'
 
-    version = remote.find_element(
-        By.XPATH, '//a[contains(., "Download Latest Version")]').get_attribute('title').split(':')[0]
+    remote.get(f'https://download.videolan.org/pub/videolan/vlc/last/{os}/')
 
-    return f'https://download.sourceforge.net/crystalmarkretro/{version}'
+    return (remote
+            .find_element(By.CSS_SELECTOR, f'a[href$="-{arch}.{ext}"]',)
+            .get_attribute('href'))
 
 
-def furmark(remote: webdriver.Remote) -> str:
+def voidtools(remote: webdriver.Remote, variant: Literal['x64', 'x86']) -> str:
+    remote.get('https://www.voidtools.com/downloads/')
+
+    return (remote.find_element(By.CSS_SELECTOR, f'a[href$="{variant}-Setup.exe"].button')
+            .get_attribute('href'))
+
+
+# ---------------------------------------------
+#               Diagnostic Tools
+# ---------------------------------------------
+#
+# The scaped URL for diagnostic tools are intended to be portable versions.
+
+
+def furmark(remote: webdriver.Remote,
+            variant: Literal['win32', 'win64', 'linux64', 'arm64']) -> str:
     """Fetch FurMark download URL.
     """
     remote.get('https://www.geeks3d.com/furmark/downloads/')
 
     remote.get(
         remote
-        .find_element(By.XPATH, '//a[contains(., "win64 - (ZIP)")]')
+        .find_element(By.XPATH,
+                      f'//a[contains(., "{variant} - (ZIP)") or contains(., "{variant} - (7ZIP)")]')
         .get_attribute('href')
     )
 
@@ -205,39 +224,12 @@ def furmark(remote: webdriver.Remote) -> str:
         By.XPATH, '//a[contains(., "Geeks3D server")]').get_attribute('href')
 
 
-def hwinfo(remote: webdriver.Remote) -> str:
-    """Fetch HWiNFO download URL.
-    """
-    remote.get('https://www.hwinfo.com/download/')
-    return (remote
-            .find_element(By.XPATH,
-                          '//div[contains(@class, "download") and contains(., "Portable") and contains(., "Windows")]'
-                          '//li[contains(., "SAC ftp (SK)")]//a')
-            .get_attribute('href'))
-
-
-def y_cruncher(remote: webdriver.Remote) -> str:
+def y_cruncher(remote: webdriver.Remote,
+               variant: Literal['Windows', 'Linux (Static)', 'Linux (Dynamic)']) -> str:
     """Fetch y-cruncher download URL.
     """
     remote.get('https://www.numberworld.org/y-cruncher/#Download')
 
     return (remote
-            .find_element(By.XPATH, '//table[contains(., "Download Link")]//tr[contains(., "Windows")]//a')
-            .get_attribute('href'))
-
-
-def vlc(remote: webdriver.Remote,
-        architecture: Literal['win32-win32', 'win64-win64',
-                              'macosx-arm64', 'macosx-intel64', 'macosx-universal']
-        ) -> str:
-    """Fetch y-cruncher download URL.
-    """
-    os, arch = architecture.split('-')
-    ext = 'dmg' if os == 'macosx' else 'exe'
-
-    remote.get(f'https://download.videolan.org/pub/videolan/vlc/last/{os}/')
-
-    return (remote
-            .find_element(By.XPATH,
-                          f'//a[substring(@href, string-length(@href) - string-length("-{os}.{ext}") + 1) = "-{os}.{ext}"]')
+            .find_element(By.XPATH, f'//table[contains(., "Download Link")]//tr[contains(., "{variant}")]//a')
             .get_attribute('href'))
