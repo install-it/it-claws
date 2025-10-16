@@ -203,13 +203,14 @@ def hwinfo(remote: webdriver.Remote) -> str:
             .get_attribute('href'))
 
 
-def y_cruncher(remote: webdriver.Remote) -> str:
+def y_cruncher(remote: webdriver.Remote,
+               variant: Literal['Windows', 'Linux (Static)', 'Linux (Dynamic)']) -> str:
     """Fetch y-cruncher download URL.
     """
     remote.get('https://www.numberworld.org/y-cruncher/#Download')
 
     return (remote
-            .find_element(By.XPATH, '//table[contains(., "Download Link")]//tr[contains(., "Windows")]//a')
+            .find_element(By.XPATH, f'//table[contains(., "Download Link")]//tr[contains(., "{variant}")]//a')
             .get_attribute('href'))
 
 
