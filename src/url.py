@@ -214,12 +214,12 @@ def y_cruncher(remote: webdriver.Remote) -> str:
 
 
 def vlc(remote: webdriver.Remote,
-        os: Literal['win32-win32', 'win64-win64',
-                    'macosx-arm64', 'macosx-intel64', 'macosx-universal']
+        variant: Literal['win32-win32', 'win64-win64',
+                         'macosx-arm64', 'macosx-intel64', 'macosx-universal']
         ) -> str:
     """Fetch VLC download URL.
     """
-    os, arch = os.split('-')
+    os, arch = variant.split('-')
     ext = 'dmg' if os == 'macosx' else 'exe'
 
     remote.get(f'https://download.videolan.org/pub/videolan/vlc/last/{os}/')
@@ -229,8 +229,8 @@ def vlc(remote: webdriver.Remote,
             .get_attribute('href'))
 
 
-def voidtools(remote: webdriver.Remote, arch: Literal['x64', 'x86']) -> str:
+def voidtools(remote: webdriver.Remote, variant: Literal['x64', 'x86']) -> str:
     remote.get('https://www.voidtools.com/downloads/')
 
-    return (remote.find_element(By.CSS_SELECTOR, f'a[href$="{arch}-Setup.exe"].button')
+    return (remote.find_element(By.CSS_SELECTOR, f'a[href$="{variant}-Setup.exe"].button')
             .get_attribute('href'))
