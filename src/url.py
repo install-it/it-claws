@@ -171,6 +171,34 @@ def sourceforge(remote: webdriver.Remote, project_name: str) -> str:
 
 
 # ---------------------------------------------
+#               Specific Software
+# ---------------------------------------------
+
+
+def vlc(remote: webdriver.Remote,
+        variant: Literal['win32-win32', 'win64-win64',
+                         'macosx-arm64', 'macosx-intel64', 'macosx-universal']
+        ) -> str:
+    """Fetch VLC download URL.
+    """
+    os, arch = variant.split('-')
+    ext = 'dmg' if os == 'macosx' else 'exe'
+
+    remote.get(f'https://download.videolan.org/pub/videolan/vlc/last/{os}/')
+
+    return (remote
+            .find_element(By.CSS_SELECTOR, f'a[href$="-{arch}.{ext}"]',)
+            .get_attribute('href'))
+
+
+def voidtools(remote: webdriver.Remote, variant: Literal['x64', 'x86']) -> str:
+    remote.get('https://www.voidtools.com/downloads/')
+
+    return (remote.find_element(By.CSS_SELECTOR, f'a[href$="{variant}-Setup.exe"].button')
+            .get_attribute('href'))
+
+
+# ---------------------------------------------
 #               Diagnostic Tools
 # ---------------------------------------------
 #
@@ -213,27 +241,4 @@ def y_cruncher(remote: webdriver.Remote,
 
     return (remote
             .find_element(By.XPATH, f'//table[contains(., "Download Link")]//tr[contains(., "{variant}")]//a')
-            .get_attribute('href'))
-
-
-def vlc(remote: webdriver.Remote,
-        variant: Literal['win32-win32', 'win64-win64',
-                         'macosx-arm64', 'macosx-intel64', 'macosx-universal']
-        ) -> str:
-    """Fetch VLC download URL.
-    """
-    os, arch = variant.split('-')
-    ext = 'dmg' if os == 'macosx' else 'exe'
-
-    remote.get(f'https://download.videolan.org/pub/videolan/vlc/last/{os}/')
-
-    return (remote
-            .find_element(By.CSS_SELECTOR, f'a[href$="-{arch}.{ext}"]',)
-            .get_attribute('href'))
-
-
-def voidtools(remote: webdriver.Remote, variant: Literal['x64', 'x86']) -> str:
-    remote.get('https://www.voidtools.com/downloads/')
-
-    return (remote.find_element(By.CSS_SELECTOR, f'a[href$="{variant}-Setup.exe"].button')
             .get_attribute('href'))
