@@ -2,14 +2,14 @@
 
 ## entry_point.sh
 
-Serves as the Docker image entry point, not intended for overriding `CMD`.
+Docker image entry point, not intended for overriding `CMD`.
 
 Configures symbolic links for volume-mapped configuration files.
 Avoid modifying unless familiar with the image's internal mechanics.
 
 ## rclone_upload.sh
 
-Automates file downloads, archiving, and rclone-based uploads with retry logic and optional tmpfs mounting.
+Automates file downloads, archiving, and rclone uploads with retries and optional tmpfs.
 
 ### Usage
 
@@ -21,9 +21,9 @@ Automates file downloads, archiving, and rclone-based uploads with retry logic a
 | `ARCHIVE_NAME`     | Output zip file name                   | `driver-pack.zip` |
 | `MAX_TRIES`        | Number of attempts for download        | `3`               |
 | `RETRY_DELAY`      | Seconds between retries                | `10`              |
-| `TMPFS`            | Enable tmpfs mount (1: enabled, 0: disabled) | `1`         |
+| `TMPFS`            | Enable tmpfs mount (1: on, 0: off)     | `1`               |
 | `TMPFS_SIZE`       | tmpfs mount size                       | `24G`             |
-| `KEEP_DOWNLOADS`   | Keep downloads after archiving (1: enabled, 0: disabled) | `24G` |
+| `KEEP_DOWNLOADS`   | Keep downloads after archiving (1: on, 0: off) | `1`     |
 | `RC_REMOTE_PATH`   | rclone remote upload path (required)   |                   |
 | `ARGUMENTS`        | Extra arguments for `main.py`          |                   |
 
@@ -38,20 +38,17 @@ Automates file downloads, archiving, and rclone-based uploads with retry logic a
 | 16   	| rclone failure      	|
 | 32   	| tmpfs mount failure 	|
 
-
 ### Workflow
 
 1. Mounts tmpfs at `/app/downloads` if `TMPFS` equals 1. <br />
-   The tmpfs will be used to storing downloaded files and the result archive.
-2. Runs it-claws. <br />
-   Retries up to `MAX_RETRIES` times on scraping failure, waiting `RETRY_DELAY` seconds.
-3. Delete downloaded files if `TMPFS` equals 1 or `KEEP_DOWNLOADS` equals 0.
+2. Run it-claws, retrying up to `MAX_TRIES` times with `RETRY_DELAY` seconds delay.
+3. Delete downloads if `TMPFS=1` or `KEEP_DOWNLOADS=0`.
 4. Syncs archive to `RC_REMOTE_PATH` using rclone.
 
 ### Notes
 
+- The tmpfs will be used to store downloaded files and the result archive.
 - Requires preconfigured rclone with valid `RC_REMOTE_PATH`.
-- Set `TMPFS_SIZE` based on available memory to prevent mount errors.
-
-> [!IMPORTANT]  
-> `--privileged` must be passed if tmpfs mount is enabled.
+- Set `TMPFS_SIZE` based on available memory to avoid mount errors.
+- Use `--privileged` Docker option for tmpfs mounting.
+- If `TMPFS=1`, downloads are deleted regardless of `KEEP_DOWNLOADS`.
