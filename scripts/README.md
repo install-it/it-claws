@@ -27,9 +27,6 @@ Automates file downloads, archiving, and rclone uploads with retries and optiona
 | `RC_REMOTE_PATH`   | rclone remote upload path (required)   |                   |
 | `ARGUMENTS`        | Extra arguments for `main.py`          |                   |
 
-> [!NOTE] 
-> If `TMPFS` is set to `1`, downloads will be deleted after archiving regardless of `KEEP_DOWNLOADS` value.
-
 #### Exit Codes
 
 | Code 	| Meaning             	|
