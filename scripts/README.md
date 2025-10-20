@@ -23,7 +23,7 @@ Automates file downloads, archiving, and rclone uploads with retries and optiona
 | `RETRY_DELAY`      | Seconds between retries                | `10`              |
 | `TMPFS`            | Enable tmpfs mount (1: on, 0: off)     | `1`               |
 | `TMPFS_SIZE`       | tmpfs mount size                       | `24G`             |
-| `KEEP_DOWNLOADS`   | Keep downloads after archiving (1: on, 0: off) | `24G`     |
+| `KEEP_DOWNLOADS`   | Keep downloads after archiving (1: on, 0: off) | `1`     |
 | `RC_REMOTE_PATH`   | rclone remote upload path (required)   |                   |
 | `ARGUMENTS`        | Extra arguments for `main.py`          |                   |
 
