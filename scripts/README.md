@@ -54,4 +54,4 @@ Automates file downloads, archiving, and rclone-based uploads with retry logic a
 - Set `TMPFS_SIZE` based on available memory to prevent mount errors.
 
 > [!IMPORTANT]  
-> `--privileged` must be passed if tmpfs mount is enabled.
+> The docker option `--privileged` must be passed if tmpfs mount is enabled.
