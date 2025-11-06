@@ -41,6 +41,16 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     },
     {
         'group': 'display',
+        'path': 'Intel® 11th-14th Gen Processor Graphics',
+        'url': functools.partial(
+                url.intel,
+                url='https://www.intel.com/content/www/us/en/download/864990/intel-11th-14th-gen-processor-graphics-windows.html'
+        ),
+        'file_type': 'zip',
+        'rename_as': None
+    },
+    {
+        'group': 'display',
         'path': 'Intel® Arc™ & Iris® Xe Graphics',
         'url': functools.partial(
                 url.intel,
