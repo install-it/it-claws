@@ -118,6 +118,26 @@
         ]
     },
     {
+        "id": "405e109c",
+        "name": "Intel® 11th-14th Gen Processor Graphics",
+        "type": "display",
+        "drivers": [
+            {
+                "id": "fbb949ae",
+                "name": "",
+                "type": "",
+                "path": "drivers\\display\\Intel® 11th-14th Gen Processor Graphics\\Installer.exe",
+                "flags": [
+                    "-s",
+                    "--noExtras"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [14],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
         "id": "7880de62",
         "name": "AMD Chipset",
         "type": "miscellaneous",
