@@ -13,8 +13,6 @@ FurMark, and HWInfo.
 
 import functools
 
-import inquirer
-
 import url
 from driver_claw import ClawPrize
 
