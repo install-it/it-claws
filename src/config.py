@@ -293,7 +293,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     {
         'group': 'tool',
         'path': 'FurMark',
-        'url': functools.partial(url.furmark, varient='win64'),
+        'url': functools.partial(url.furmark, variant='win64'),
         'file_type': 'zip/folder',
         'rename_as': None
     },
@@ -314,7 +314,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     {
         'group': 'tool',
         'path': 'y-cruncher',
-        'url': url.y_cruncher,
+        'url': functools.partial(url.y_cruncher, variant='Windows'),
         'file_type': 'zip/folder',
         'rename_as': None
     },
@@ -356,7 +356,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     {
         'group': 'software',
         'path': 'VLC Player',
-        'url': functools.partial(url.vlc, varient='win64-win64'),
+        'url': functools.partial(url.vlc, variant='win64-win64'),
         'file_type': 'exe',
         'rename_as': 'vlc-win64',
     },
