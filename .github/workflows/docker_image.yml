@@ -39,6 +39,17 @@ jobs:
         id: extract_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
+      
+      - name: Determine if this is a pre-release
+        id: tag_check
+        run: |
+          if [[ "$VERSION" == *alpha* || "$VERSION" == *beta* ]]; then
+            echo "PRE_RELEASE=true" >> $GITHUB_ENV
+          else
+            echo "PRE_RELEASE=false" >> $GITHUB_ENV
+          fi
+
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -46,4 +57,4 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ steps.repo_lc.outputs.lowercase }}:${{ env.VERSION }}
-            ghcr.io/${{ steps.repo_lc.outputs.lowercase }}:latest
+            ${{ env.PRE_RELEASE == 'false' && format('ghcr.io/{0}:latest', steps.repo_lc.outputs.lowercase) || '' }}
