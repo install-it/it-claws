@@ -382,7 +382,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     {
         'group': 'software',
         'path': 'Spotify',
-        'url': 'https://download.scdn.co/SpotifySetup.exe',
+        'url': 'https://download.spotify.com/SpotifyFullSetup.exe',
         'file_type': 'exe',
         'rename_as': None,
     },
