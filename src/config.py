@@ -330,7 +330,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'path': 'Firefox',
         'url': 'https://download.mozilla.org/?product=firefox-latest-ssl&os=win64',  # &lang=zh-TW
         'file_type': 'exe',
-        'rename_as': 'Firefox_Setup.exe',
+        'rename_as': 'Firefox_Setup',
     },
     {
         'group': 'software',
@@ -379,7 +379,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'path': '7zip',
         'url': functools.partial(url.sourceforge, project_name='sevenzip'),
         'file_type': 'exe',
-        'rename_as': '7zip_Setup.exe',
+        'rename_as': '7zip_Setup',
     },
     {
         'group': 'software',
