@@ -164,9 +164,10 @@ class DriverClaw:
                                 'Multiple executables found in zip.')
                         shutil.move(exe[0], path.joinpath(f'{rename_as}.exe'))
                 else:
-                    fname = (re.findall('filename=(.+)', resp.headers['Content-Disposition'])[0]
-                             if 'Content-Disposition' in resp.headers
-                             else urlparse(url).path.split('/')[-1])
+                    resp_last = resp.history[-1] if resp.history else resp
+                    fname = (re.findall('filename=(.+)', resp_last.headers['Content-Disposition'])[0]
+                             if 'Content-Disposition' in resp_last.headers
+                             else urlparse(resp_last.headers.get('location', url)).path.split('/')[-1])
                     if rename_as:
                         fname = f'{rename_as}.{fname.split('.')[-1]}'
                     shutil.move(temp.name, path.joinpath(fname.strip('\"')))
