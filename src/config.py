@@ -358,13 +358,13 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'file_type': 'exe',
         'rename_as': 'vlc-win64',
     },
-    {
-        'group': 'software',
-        'path': 'NordVPN',
-        'url': 'https://downloads.nordcdn.com/apps/windows/NordVPN/latest/NordVPNSetup.exe',
-        'file_type': 'exe',
-        'rename_as': None,
-    },
+    # {
+    #     'group': 'software',
+    #     'path': 'NordVPN',
+    #     'url': 'https://downloads.nordcdn.com/apps/windows/NordVPN/latest/NordVPNSetup.exe',
+    #     'file_type': 'exe',
+    #     'rename_as': None,
+    # },
     {
         'group': 'software',
         'path': 'Surfshark',
