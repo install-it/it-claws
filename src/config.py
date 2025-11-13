@@ -414,4 +414,11 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'file_type': 'exe',
         'rename_as': None,
     },
+    {
+        'group': 'software',
+        'path': 'Visual Studio Code',
+        'url': 'https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-user',
+        'file_type': 'exe',
+        'rename_as': "VSCodeUserSetup-x64",
+    },
 )
