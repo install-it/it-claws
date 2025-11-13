@@ -407,4 +407,11 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'file_type': 'exe',
         'rename_as': None,
     },
+    {
+        'group': 'software',
+        'path': 'Miniconda',
+        'url': 'https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe',
+        'file_type': 'exe',
+        'rename_as': None,
+    },
 )
