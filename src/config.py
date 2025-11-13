@@ -403,7 +403,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     {
         'group': 'software',
         'path': 'Github Desktop',
-        'url': 'https://zoom.us/client/latest/ZoomInstallerFull.msi?archType=x64',
+        'url': 'https://central.github.com/deployments/desktop/desktop/latest/win32',
         'file_type': 'exe',
         'rename_as': None,
     },
