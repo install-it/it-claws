@@ -421,4 +421,18 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'file_type': 'exe',
         'rename_as': "VSCodeUserSetup-x64",
     },
+    # {
+    #     'group': 'software',
+    #     'path': 'Teams',
+    #     'url': 'https://statics.teams.cdn.office.net/production-windows-x64/enterprise/webview2/lkg/MSTeams-x64.msix',
+    #     'file_type': 'exe',
+    #     'rename_as': None,
+    # },
+    # {
+    #     'group': 'software',
+    #     'path': 'Teams',
+    #     'url': 'https://statics.teams.cdn.office.net/production-teamsprovision/lkg/teamsbootstrapper.exe',
+    #     'file_type': 'exe',
+    #     'rename_as': None,
+    # },
 )
