@@ -23,7 +23,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'url': functools.partial(
                 url.amd,
                 url='https://www.amd.com/en/support/downloads/drivers.html/graphics/radeon-rx/radeon-rx-9000-series/amd-radeon-rx-9070-xt.html',
-                dri_name='win10-win11'),
+                dri_name='win11-'),
         'file_type': 'zip',
         'rename_as': None
     },
