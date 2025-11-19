@@ -92,7 +92,9 @@
                     "--noExtras"
                 ],
                 "minExeTime": 5,
-                "allowRtCodes": [14],
+                "allowRtCodes": [
+                    14
+                ],
                 "incompatibles": []
             }
         ]
@@ -112,7 +114,9 @@
                     "--noExtras"
                 ],
                 "minExeTime": 5,
-                "allowRtCodes": [14],
+                "allowRtCodes": [
+                    14
+                ],
                 "incompatibles": []
             }
         ]
@@ -132,7 +136,9 @@
                     "--noExtras"
                 ],
                 "minExeTime": 5,
-                "allowRtCodes": [14],
+                "allowRtCodes": [
+                    14
+                ],
                 "incompatibles": []
             }
         ]
@@ -412,9 +418,226 @@
                 "flags": [],
                 "minExeTime": 3,
                 "allowRtCodes": [],
-                "incompatibles": [
-                    "eaef1751"
-                ]
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "ac228047",
+        "name": "7-Zip",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "ce46c778",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\7zip\\7zip_Setup.exe",
+                "flags": [
+                    "/S"
+                ],
+                "minExeTime": 0.1,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "354af0bc",
+        "name": "Discord",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "368a31a1",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Discord\\DiscordSetup.exe",
+                "flags": [
+                    "-s"
+                ],
+                "minExeTime": 0.2,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "98789362",
+        "name": "Mozilla Firefox",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "0a84c92c",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Firefox\\Firefox_Setup.exe",
+                "flags": [
+                    "/S",
+                    "/PreventRebootRequired=true"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "5df26561",
+        "name": "iTunes",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "7c59a225",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\iTunes\\iTunes64Setup.exe",
+                "flags": [
+                    "/qn",
+                    "/norestart"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "d3e38222",
+        "name": "Steam",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "3676455f",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Steam\\SteamSetup.exe",
+                "flags": [
+                    "/S"
+                ],
+                "minExeTime": 1,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "8328e675",
+        "name": "Surfshark",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "e4e56974",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Surfshark\\SurfsharkSetup.exe",
+                "flags": [
+                    "/exenoui",
+                    "/qn"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "cde23eeb",
+        "name": "VLC Player",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "37b0c27d",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\VLC Player\\vlc-win64.exe",
+                "flags": [
+                    "/S"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "22e5a998",
+        "name": "Zoom Workplace",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "4829303a",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Zoom Workplace\\ZoomInstallerFull.msi",
+                "flags": [
+                    "/qn",
+                    "/norestart"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "a8090e7b",
+        "name": "Github Desktop",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "c39b4883",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Github Desktop\\GitHubDesktopSetup-x64.exe",
+                "flags": [
+                    "/allusers",
+                    "/silent",
+                    "/norestart"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "2b2ec01b",
+        "name": "Miniconda",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "48d7ebd7",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Miniconda\\Miniconda3-latest-Windows-x86_64.exe",
+                "flags": [
+                    "/InstallationType=JustMe",
+                    "/AddToPath=1",
+                    "/RegisterPython=1",
+                    "/S"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "e5b7b006",
+        "name": "Visual Studio Code",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "cc6a4a4f",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Visual Studio Code\\VSCodeUserSetup-x64.exe",
+                "flags": [
+                    "/VERYSILENT",
+                    "/MERGETASKS=!runcode"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
             }
         ]
     }
