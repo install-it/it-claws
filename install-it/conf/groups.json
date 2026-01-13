@@ -50,7 +50,7 @@
                 "flags": [
                     "-install"
                 ],
-                "minExeTime": 5,
+                "minExeTime": 15,
                 "allowRtCodes": [],
                 "incompatibles": []
             }
@@ -71,7 +71,7 @@
                     "-noreboot",
                     "Display.Driver"
                 ],
-                "minExeTime": 5,
+                "minExeTime": 15,
                 "allowRtCodes": [],
                 "incompatibles": []
             }
@@ -91,7 +91,7 @@
                     "-s",
                     "--noExtras"
                 ],
-                "minExeTime": 5,
+                "minExeTime": 15,
                 "allowRtCodes": [
                     14
                 ],
