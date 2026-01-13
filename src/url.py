@@ -66,7 +66,7 @@ def gigabyte(remote: webdriver.Remote, url: str, dri_name: str) -> str:
     time.sleep(2)
 
     return (remote
-            .find_element(By.XPATH, f'//div[contains(@class, "table-body-Driver")][.//text()[contains(., "{dri_name}")]]//a')
+            .find_element(By.XPATH, f'//tr[contains(@class, "item-group")][.//text()[contains(., "{dri_name}")]][1]//a')
             .get_attribute('href'))
 
 
