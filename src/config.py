@@ -120,7 +120,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'path': 'MediaTek MT7961_79X2\\Bluetooth',
         'url': functools.partial(
                 url.gigabyte,
-                url='https://www.gigabyte.com/hk/Motherboard/B850M-FORCE-WIFI6E/support#dl',
+                url='https://www.gigabyte.com/hk/Motherboard/B850M-FORCE-WIFI6E-rev-10/support',
                 dri_name='MediaTek Wi-Fi 6E Bluetooth Driver'
         ),
         'file_type': 'zip/exe',
@@ -131,7 +131,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'path': 'MediaTek MT7961_79X2\\WIFI',
         'url': functools.partial(
                 url.gigabyte,
-                url='https://www.gigabyte.com/hk/Motherboard/B850M-FORCE-WIFI6E/support#dl',
+                url='https://www.gigabyte.com/hk/Motherboard/B850M-FORCE-WIFI6E-rev-10/support',
                 dri_name='MediaTek Wi-Fi 6E WIFI Driver'
         ),
         'file_type': 'zip/exe',
@@ -141,9 +141,9 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'group': 'miscellaneous',
         'path': 'MediaTek MT7952_7927\\Bluetooth',
         'url': functools.partial(
-                url.gigabyte_wifi_card,
-                dri_type='GC-WIFI7 1.1',
-                dri_name='Bluetooth'
+                url.gigabyte,
+                url='https://www.gigabyte.com/PC-Accessory/GC-WIFI7-rev-11/support',
+                dri_name='MediaTek Wi-Fi 7 Bluetooth Driver'
         ),
         'file_type': 'zip/exe',
         'rename_as': 'mb_driver_2683_mtk'
@@ -152,9 +152,9 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'group': 'miscellaneous',
         'path': 'MediaTek MT7952_7927\\WIFI',
         'url': functools.partial(
-                url.gigabyte_wifi_card,
-                dri_type='GC-WIFI7 1.1',
-                dri_name='WIFI'
+                url.gigabyte,
+                url='https://www.gigabyte.com/PC-Accessory/GC-WIFI7-rev-11/support',
+                dri_name='MediaTek Wi-Fi 7 WIFI Driver'
         ),
         'file_type': 'zip/exe',
         'rename_as': 'mb_driver_2682_mtk'
@@ -163,9 +163,9 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'group': 'miscellaneous',
         'path': 'Qualcomm NCM865\\Bluetooth',
         'url': functools.partial(
-                url.gigabyte_wifi_card,
-                dri_type='GC-WIFI7 1.0',
-                dri_name='Bluetooth'
+                url.gigabyte,
+                url='https://www.gigabyte.com/PC-Accessory/GC-WIFI7-rev-10/support',
+                dri_name='Qualcomm Wi-Fi 7 Bluetooth Driver'
         ),
         'file_type': 'zip/exe',
         'rename_as': 'mb_driver_2687_qualcomm'
@@ -174,9 +174,9 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'group': 'miscellaneous',
         'path': 'Qualcomm NCM865\\WIFI',
         'url': functools.partial(
-                url.gigabyte_wifi_card,
-                dri_type='GC-WIFI7 1.0',
-                dri_name='WIFI'
+                url.gigabyte,
+                url='https://www.gigabyte.com/PC-Accessory/GC-WIFI7-rev-10/support',
+                dri_name='Qualcomm Wi-Fi 7 WIFI driver'
         ),
         'file_type': 'zip/exe',
         'rename_as': 'mb_driver_2686_qualcomm'

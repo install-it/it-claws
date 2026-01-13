@@ -70,41 +70,6 @@ def gigabyte(remote: webdriver.Remote, url: str, dri_name: str) -> str:
             .get_attribute('href'))
 
 
-def gigabyte_wifi_card(remote: webdriver.Remote, dri_type: str, dri_name: str) -> str:
-    """Fetch Gigabyte GC-WIFI7 card driver download URL.
-
-    Args:
-        remote (webdriver.Remote): Selenium WebDriver instance.
-        dri_type (str): Wi-Fi card version.
-        dri_name (str): Driver name to locate.
-
-    Returns:
-        str: Direct download URL for the driver.
-
-    Raises:
-        ValueError: If no visible version element is found.
-    """
-    if ('https://www.gigabyte.com/PC-Accessory/GC-WIFI7/support' in remote.current_url):
-        remote.refresh()
-    else:
-        remote.get(
-            'https://www.gigabyte.com/PC-Accessory/GC-WIFI7/support#support-childModelsMenu')
-
-    time.sleep(3)
-
-    for anchor in remote.find_elements(By.XPATH, f'//a[.//p[text()="{dri_type}"]]'):
-        if anchor.is_displayed():
-            anchor.click()
-            break
-    else:
-        raise ValueError('No visible element found')
-
-    time.sleep(2)
-
-    # going to the same URL, browser will not refresh
-    return gigabyte(remote, 'https://www.gigabyte.com/PC-Accessory/GC-WIFI7/support#support-dl', dri_name)
-
-
 def msi(remote: webdriver.Remote, url: str, dri_type: str, dri_name: str) -> str:
     """Fetch MSI driver download URL.
 
