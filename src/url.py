@@ -86,14 +86,17 @@ def msi(remote: webdriver.Remote, url: str, dri_type: str, dri_name: str) -> str
 
     try:
         # close cookie consent overlay
-        remote.find_element(value='ccc-notify-dismiss').click()
+        time.sleep(0.5)
+        remote.execute_script(
+            'window.scrollTo({ top: document.body.scrollHeight / 3, behavior: "smooth" })')
+        time.sleep(0.5)
     except:
         pass
 
     remote.find_element(
         By.XPATH, f'//div[@class="badges"]//button[text()="{dri_type}"]').click()
 
-    time.sleep(1)
+    time.sleep(0.5)
 
     return remote\
         .find_element(By.XPATH, f'//div[@class="card card--web"][.//text()[contains(., "{dri_name}")]]//a')\
