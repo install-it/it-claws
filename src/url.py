@@ -83,10 +83,9 @@ def msi(remote: webdriver.Remote, url: str, dri_type: str, dri_name: str) -> str
         str: Direct download URL for the driver.
     """
     remote.get(url)
-
     try:
+        time.sleep(1)
         # close cookie consent overlay
-        time.sleep(0.5)
         remote.execute_script(
             'window.scrollTo({ top: document.body.scrollHeight / 3, behavior: "smooth" })')
         time.sleep(0.5)
