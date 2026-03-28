@@ -223,7 +223,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'path': 'Realtek RTL8892AE\\Bluetooth',
         'url': functools.partial(
                 url.gigabyte,
-                url='https://www.gigabyte.com/Motherboard/X870-AORUS-ELITE-WIFI7/support#support-dl-driver-wlanbt',
+                url='https://www.gigabyte.com/Motherboard/X870-AORUS-ELITE-WIFI7-rev-10-11/support',
                 dri_name='Realtek Bluetooth'
         ),
         'file_type': 'zip/exe',
@@ -234,7 +234,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'path': 'Realtek RTL8892AE\\WIFI',
         'url': functools.partial(
                 url.gigabyte,
-                url='https://www.gigabyte.com/Motherboard/X870-AORUS-ELITE-WIFI7/support#support-dl-driver-wlanbt',
+                url='https://www.gigabyte.com/Motherboard/X870-AORUS-ELITE-WIFI7-rev-10-11/support',
                 dri_name='Realtek WIFI'
         ),
         'file_type': 'zip/exe',
