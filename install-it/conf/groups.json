@@ -155,8 +155,8 @@
                 "type": "",
                 "path": "drivers\\miscellaneous\\Intel Chipset INF Utility\\SetupChipset.exe",
                 "flags": [
-                    "-s",
-                    "-norestart"
+                    "/qn",
+                    "/norestart"
                 ],
                 "minExeTime": 5,
                 "allowRtCodes": [
