@@ -86,17 +86,6 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     },
     {
         'group': 'miscellaneous',
-        'path': 'Intel® PPM',
-        'url': functools.partial(
-                url.gigabyte,
-                url='https://www.gigabyte.com/Motherboard/B860M-AORUS-ELITE-WIFI6E/support#support-dl-driver-wlanbt',
-                dri_name='Platform Power Management(PPM)'
-        ),
-        'file_type': 'zip/exe',
-        'rename_as': 'mb_driver_3713_ppm'
-    },
-    {
-        'group': 'miscellaneous',
         'path': 'Intel® Wireless',
         'url': functools.partial(
                 url.intel,

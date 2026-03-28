@@ -406,23 +406,6 @@
         ]
     },
     {
-        "id": "32b8db3d",
-        "name": "Intel PPM ",
-        "type": "miscellaneous",
-        "drivers": [
-            {
-                "id": "ae660ad7",
-                "name": "",
-                "type": "",
-                "path": "drivers\\miscellaneous\\Intel® PPM\\mb_driver_3713_ppm.exe",
-                "flags": [],
-                "minExeTime": 3,
-                "allowRtCodes": [],
-                "incompatibles": []
-            }
-        ]
-    },
-    {
         "id": "ac228047",
         "name": "7-Zip",
         "type": "miscellaneous",
