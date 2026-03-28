@@ -70,7 +70,7 @@ CLAW_PRIZES: tuple[ClawPrize] = (
         'url': functools.partial(
                 url.amd,
                 url='https://www.amd.com/en/support/downloads/drivers.html/chipsets/am5/x870e.html',
-                dri_name='Chipset'),
+                dri_name='chipset'),
         'file_type': 'exe',
         'rename_as': 'AMD_Chipset_Software'
     },
