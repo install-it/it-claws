@@ -100,28 +100,6 @@
         ]
     },
     {
-        "id": "2ceb7f10",
-        "name": "Intel® 7th-10th Gen Processor Graphics",
-        "type": "display",
-        "drivers": [
-            {
-                "id": "e5cd41e5",
-                "name": "",
-                "type": "",
-                "path": "drivers\\display\\Intel® 7th-10th Gen Processor Graphics\\Installer.exe",
-                "flags": [
-                    "-s",
-                    "--noExtras"
-                ],
-                "minExeTime": 5,
-                "allowRtCodes": [
-                    14
-                ],
-                "incompatibles": []
-            }
-        ]
-    },
-    {
         "id": "405e109c",
         "name": "Intel® 11th-14th Gen Processor Graphics",
         "type": "display",
