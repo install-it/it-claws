@@ -86,20 +86,20 @@ CLAW_PRIZES: tuple[ClawPrize] = (
     },
     {
         'group': 'miscellaneous',
-        'path': 'Intel® Wireless',
+        'path': 'Intel® Wireless Wi-Fi',
         'url': functools.partial(
                 url.intel,
-                url='https://www.intel.com.tw/content/www/us/en/download/19351/intel-wireless-wi-fi-drivers-for-windows-10-and-windows-11.html'
+                url='https://www.intel.com/content/www/us/en/download/19351/intel-wireless-wi-fi-drivers-for-windows-10-and-windows-11.html'
         ),
         'file_type': 'exe',
         'rename_as': 'WiFi-Driver64-Win10-Win11'
     },
     {
         'group': 'miscellaneous',
-        'path': 'Intel® Wireless',
+        'path': 'Intel® Wireless Bluetooth®',
         'url': functools.partial(
                 url.intel,
-                url='https://www.intel.com.tw/content/www/us/en/download/18649/intel-wireless-bluetooth-drivers-for-windows-10-and-windows-11.html'
+                url='https://www.intel.com/content/www/us/en/download/18649/intel-wireless-bluetooth-drivers-for-windows-10-and-windows-11.html'
         ),
         'file_type': 'exe',
         'rename_as': 'BT-UWD-Win10-Win11'
