@@ -10,9 +10,14 @@ from urllib.parse import urlparse
 
 import httpx
 from selectolax.parser import HTMLParser
+from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
 logger = logging.getLogger(__name__)
+
+
+async def resolve_direct_url(client: Any, url: str, **_: Any) -> str:
+    return url
 
 
 async def resolve_static_download(
@@ -24,17 +29,12 @@ async def resolve_static_download(
 ) -> str | None:
     response = await client.get(url)
     response.raise_for_status()
-
     node = HTMLParser(response.text).css_first(selector)
     if node is None:
-        logger.warning("Static selector '%s' matched nothing on %s", selector, url)
         return None
-
     link = node.attributes.get(attribute)
     if not link:
-        logger.warning("Attribute '%s' not found on matched node at %s", attribute, url)
         return None
-
     if link.startswith("//"):
         return f"https:{link}"
     if link.startswith("/"):
@@ -43,33 +43,83 @@ async def resolve_static_download(
     return link
 
 
-def resolve_dynamic_download(
-    driver: WebDriver,
-    url: str,
-    xpath: str,
-    attribute: str = "href",
-    scroll_to_load: bool = False,
-    **_: Any,
+def resolve_intel_dynamic(driver: WebDriver, url: str) -> str | None:
+    driver.get(url)
+    try:
+        return driver.find_element(
+            By.CSS_SELECTOR, "button.dc-page-available-downloads-hero-button__cta"
+        ).get_attribute("data-href")
+    except Exception:
+        return None
+
+
+def resolve_nvidia_grd(driver: WebDriver, url: str) -> str | None:
+    driver.get(url)
+    try:
+        landing_url = driver.find_element(By.XPATH, '//a[@id="DsktpGrdDwnldBtn"]').get_attribute(
+            "href"
+        )
+        driver.get(landing_url)
+        return driver.find_element(By.XPATH, '//a[contains(@id, "agreeDownload")]').get_attribute(
+            "href"
+        )
+    except Exception:
+        return None
+
+
+def resolve_gigabyte_dynamic(driver: WebDriver, url: str, driver_name: str) -> str | None:
+    driver.get(url)
+    time.sleep(2)
+    try:
+        xpath = (
+            f'//tr[contains(@class, "item-group")][.//text()[contains(., "{driver_name}")]][1]//a'
+        )
+        return driver.find_element(By.XPATH, xpath).get_attribute("href")
+    except Exception:
+        return None
+
+
+def resolve_msi_dynamic(
+    driver: WebDriver, url: str, driver_type: str, driver_name: str
 ) -> str | None:
     driver.get(url)
-
-    if scroll_to_load:
-        try:
-            driver.execute_script(
-                "window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })"
-            )
-            time.sleep(2)
-        except Exception as exc:
-            logger.error("Scroll execution failed on %s: %s", url, exc)
-
     try:
-        value = driver.find_element("xpath", xpath).get_attribute(attribute)
-        if not value:
-            logger.warning("Dynamic attribute '%s' not found via xpath on %s", attribute, url)
-            return None
-        return value
-    except Exception as exc:
-        logger.error("Dynamic resolution failed on %s: %s", url, exc)
+        time.sleep(1)
+        driver.execute_script("window.scrollTo({ top: document.body.scrollHeight / 3 })")
+        time.sleep(1)
+    except Exception:
+        pass
+    try:
+        driver.find_element(
+            By.XPATH, f'//div[@class="badges"]//button[text()="{driver_type}"]'
+        ).click()
+        time.sleep(0.5)
+        xpath = f'//div[@class="card card--web"][.//text()[contains(., "{driver_name}")]]//a'
+        return driver.find_element(By.XPATH, xpath).get_attribute("href")
+    except Exception:
+        return None
+
+
+def resolve_furmark_dynamic(driver: WebDriver, url: str, variant: str) -> str | None:
+    driver.get(url)
+    try:
+        xpath = f'//a[contains(., "{variant} - (ZIP)") or contains(., "{variant} - (7ZIP)")]'
+        landing_url = driver.find_element(By.XPATH, xpath).get_attribute("href")
+        driver.get(landing_url)
+        time.sleep(5)
+        return driver.find_element(By.XPATH, '//a[contains(., "Geeks3D server")]').get_attribute(
+            "href"
+        )
+    except Exception:
+        return None
+
+
+def resolve_y_cruncher_dynamic(driver: WebDriver, url: str, variant: str) -> str | None:
+    driver.get(url)
+    try:
+        xpath = f'//table[contains(., "Download Link")]//tr[contains(., "{variant}")]//a'
+        return driver.find_element(By.XPATH, xpath).get_attribute("href")
+    except Exception:
         return None
 
 
@@ -79,20 +129,15 @@ async def download_file(
     destination: Path,
     semaphore: asyncio.Semaphore | None = None,
 ) -> Path:
-    cm = semaphore if semaphore else asyncio.nullcontext()
-    async with cm:
+    async with semaphore or asyncio.nullcontext():
         async with client.stream("GET", url) as response:
             response.raise_for_status()
-
-            content_type = response.headers.get("content-type", "")
-            if "text/html" in content_type:
-                raise RuntimeError(f"Expected binary content but received HTML from {url}")
-
+            if "text/html" in response.headers.get("content-type", ""):
+                raise RuntimeError(f"Expected binary stream but received HTML from {url}")
             destination.parent.mkdir(parents=True, exist_ok=True)
             with open(destination, "wb") as f:
                 async for chunk in response.aiter_bytes():
                     f.write(chunk)
-
     return destination
 
 
@@ -103,7 +148,6 @@ def extract_installer_from_zip(
     rename_as: str | None = None,
 ) -> Path:
     target_dir.mkdir(parents=True, exist_ok=True)
-
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
         with zipfile.ZipFile(zip_path, "r") as zf:
@@ -112,8 +156,7 @@ def extract_installer_from_zip(
         if file_type in ("zip/exe", "zip/folder"):
             exe_files = list(tmp_path.rglob("*.exe"))
             if not exe_files:
-                raise RuntimeError(f"No .exe found inside archive {zip_path}")
-
+                raise RuntimeError(f"No execution binary discovered inside zip archive {zip_path}")
             installer = exe_files[0]
             shutil.move(
                 str(installer),
@@ -128,10 +171,7 @@ def extract_installer_from_zip(
                     str(target_dir / (f"{rename_as}{src.suffix}" if rename_as else src.name)),
                 )
             else:
-                raise RuntimeError(
-                    f"Unexpected archive structure in {zip_path}: multiple top-level items"
-                )
-
+                raise RuntimeError(f"Unexpected compound structure inside zip archive {zip_path}")
     zip_path.unlink(missing_ok=True)
     return target_dir
 
