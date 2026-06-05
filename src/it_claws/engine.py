@@ -1,0 +1,110 @@
+import asyncio
+import logging
+from pathlib import Path
+
+import httpx
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options as ChromeOptions
+
+from .models import DownloadJob
+from .scrapers import (
+    cleanup_empty_directories,
+    download_file,
+    extract_installer_from_zip,
+    resolve_static_download,
+)
+
+logger = logging.getLogger(__name__)
+
+MAX_CONCURRENT_DOWNLOADS = 5
+
+
+class ConcurrentPipeline:
+    def __init__(self, max_downloads: int = MAX_CONCURRENT_DOWNLOADS) -> None:
+        self._semaphore = asyncio.Semaphore(max_downloads)
+        self._driver_lock = asyncio.Lock()
+        self._results: list[tuple[DownloadJob, bool, str]] = []
+
+    async def run(
+        self,
+        jobs: list[DownloadJob],
+        output_root: Path,
+    ) -> list[tuple[DownloadJob, bool, str]]:
+        output_root.mkdir(parents=True, exist_ok=True)
+
+        driver = None
+        if any(j.target.resolver_type == "dynamic" for j in jobs):
+            driver = await asyncio.to_thread(self._create_driver)
+
+        try:
+            async with httpx.AsyncClient(follow_redirects=True, timeout=30.0) as client:
+                tasks = [self._process_job(job, client, driver) for job in jobs]
+                await asyncio.gather(*tasks, return_exceptions=True)
+        finally:
+            if driver:
+                await asyncio.to_thread(driver.quit)
+
+        cleanup_empty_directories(output_root)
+        return self._results
+
+    async def _process_job(
+        self,
+        job: DownloadJob,
+        client: httpx.AsyncClient,
+        driver: webdriver.Chrome | None,
+    ) -> None:
+        try:
+            job.destination_directory.mkdir(parents=True, exist_ok=True)
+
+            if job.target.resolver_type == "static":
+                download_url = await resolve_static_download(
+                    client,
+                    **job.target.resolver_kwargs,
+                )
+            elif job.target.resolver_type == "dynamic":
+                if driver is None:
+                    raise RuntimeError("Dynamic resolver requested but no driver available")
+                async with self._driver_lock:
+                    download_url = await asyncio.to_thread(
+                        job.target.resolver,
+                        driver,
+                        **job.target.resolver_kwargs,
+                    )
+            else:
+                raise RuntimeError(f"Unknown resolver type: {job.target.resolver_type}")
+
+            if not download_url:
+                raise RuntimeError(f"Failed to resolve download URL for {job.target.name}")
+
+            if job.target.file_type == "exe":
+                name = job.target.rename_as or download_url.split("/")[-1]
+                dest = job.destination_directory / f"{name}.exe"
+                await download_file(client, download_url, dest, self._semaphore)
+            elif job.target.file_type in ("zip", "zip/exe", "zip/folder"):
+                zip_path = job.destination_directory / download_url.split("/")[-1]
+                await download_file(client, download_url, zip_path, self._semaphore)
+                await asyncio.to_thread(
+                    extract_installer_from_zip,
+                    zip_path,
+                    job.destination_directory,
+                    job.target.file_type,
+                    job.target.rename_as,
+                )
+            else:
+                raise RuntimeError(f"Unsupported file type: {job.target.file_type}")
+
+            self._results.append((job, True, f"Successfully downloaded {job.target.name}"))
+            logger.info("Completed: %s", job.target.name)
+
+        except Exception as exc:
+            error_msg = f"Failed {job.target.name}: {exc}"
+            logger.error(error_msg)
+            self._results.append((job, False, error_msg))
+
+    @staticmethod
+    def _create_driver() -> webdriver.Chrome:
+        options = ChromeOptions()
+        options.add_argument("--headless=new")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        return webdriver.Chrome(options=options)
