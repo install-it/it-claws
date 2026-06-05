@@ -1,9 +1,6 @@
 {
     "recommendations": [
-        "ms-python.autopep8",
-        "ms-python.isort",
-        "ms-python.vscode-pylance",
-        "njpwerner.autodocstring",
-        "ms-python.python"
+        "ms-python.python",
+        "charliermarsh.ruff"
     ]
 }
