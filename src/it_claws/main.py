@@ -14,56 +14,50 @@ logger = logging.getLogger(__name__)
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="it-claws",
-        description="Automated concurrent companion scraper for staging PC deployment environments",
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        type=Path,
-        default=Path.cwd() / "downloads",
-        help="Output directory for downloaded files (default: ./downloads)",
-    )
-    parser.add_argument(
-        "-t",
-        "--targets",
-        nargs="+",
-        choices=get_target_names(),
-        help="Specific targets to download (space-separated)",
-    )
-    parser.add_argument(
-        "-i",
-        "--interactive",
-        action="store_true",
-        help="Launch interactive target selection prompt",
-    )
-    parser.add_argument(
-        "-f",
-        "--folder",
-        type=str,
-        default=None,
-        help="Custom folder name for all downloads",
-    )
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="Enable verbose logging output",
-    )
-    parser.add_argument(
-        "--max-concurrent",
-        type=int,
-        default=5,
-        help="Maximum concurrent downloads (default: 5)",
-    )
+    parser = argparse.ArgumentParser(prog="it-claws")
+    dl = parser.add_argument_group("Download Options")
+    dl.add_argument("-o", "--output", type=Path, default=Path.cwd() / "downloads")
+    dl.add_argument("-f", "--folder", type=str, default=None)
+    dl.add_argument("--max-concurrent", type=int, default=5)
+
+    tg = parser.add_argument_group("Target Options")
+    mexcl = tg.add_mutually_exclusive_group()
+    mexcl.add_argument("-t", "--targets", nargs="+", choices=get_target_names())
+    mexcl.add_argument("--all", action="store_true", help="Select all available targets")
+    tg.add_argument("-i", "--interactive", action="store_true")
+
+    ra = parser.add_argument_group("Resilience & Archiving Options")
+    ra.add_argument("--retries", type=int, default=1)
+    ra.add_argument("-a", "--archive-path", type=Path, default=None)
+    ra.add_argument("-l", "--compress-level", type=int, choices=range(10), default=5)
+
+    parser.add_argument("-v", "--verbose", action="store_true")
     return parser
 
 
 def resolve_selected_targets(
     target_names: list[str] | None,
     interactive: bool,
+    all_targets: bool = False,
 ) -> list[ScrapeTarget]:
+    if all_targets and interactive:
+        answers = inquirer.prompt(
+            [
+                inquirer.Checkbox(
+                    "targets",
+                    message="Select drivers and utilities to download",
+                    choices=[(n, n, True) for n in get_target_names()],
+                ),
+            ]
+        )
+        if not answers or not answers.get("targets"):
+            logger.warning("No targets selected interactively")
+            return []
+        return [t for t in ALL_TARGETS if t.name in answers["targets"]]
+
+    if all_targets:
+        return ALL_TARGETS
+
     if interactive:
         answers = inquirer.prompt(
             [
@@ -97,11 +91,16 @@ async def run_pipeline(
     output_root: Path,
     custom_folder: str | None,
     max_concurrent: int,
+    retries: int,
+    archive_path: Path | None,
+    compress_level: int,
 ) -> list[tuple[DownloadJob, bool, str]]:
     jobs = [
         DownloadJob(target=t, output_root=output_root, custom_folder=custom_folder) for t in targets
     ]
-    return await ConcurrentPipeline(max_downloads=max_concurrent).run(jobs, output_root)
+    return await ConcurrentPipeline(
+        max_downloads=max_concurrent, retries=retries, compress_level=compress_level
+    ).run(jobs, output_root, archive_path)
 
 
 def run() -> None:
@@ -113,7 +112,7 @@ def run() -> None:
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
 
-    targets = resolve_selected_targets(args.targets, args.interactive)
+    targets = resolve_selected_targets(args.targets, args.interactive, args.all)
     if not targets:
         logger.error("No valid targets to process")
         sys.exit(1)
@@ -127,6 +126,9 @@ def run() -> None:
             output_root=args.output,
             custom_folder=args.folder,
             max_concurrent=args.max_concurrent,
+            retries=args.retries,
+            archive_path=args.archive_path,
+            compress_level=args.compress_level,
         )
     )
 

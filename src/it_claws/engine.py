@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import subprocess
 from pathlib import Path
 
 import httpx
@@ -20,15 +21,23 @@ MAX_CONCURRENT_DOWNLOADS = 5
 
 
 class ConcurrentPipeline:
-    def __init__(self, max_downloads: int = MAX_CONCURRENT_DOWNLOADS) -> None:
+    def __init__(
+        self,
+        max_downloads: int = MAX_CONCURRENT_DOWNLOADS,
+        retries: int = 1,
+        compress_level: int = 5,
+    ) -> None:
         self._semaphore = asyncio.Semaphore(max_downloads)
         self._driver_lock = asyncio.Lock()
         self._results: list[tuple[DownloadJob, bool, str]] = []
+        self._retries = retries
+        self._compress_level = compress_level
 
     async def run(
         self,
         jobs: list[DownloadJob],
         output_root: Path,
+        archive_path: Path | None = None,
     ) -> list[tuple[DownloadJob, bool, str]]:
         output_root.mkdir(parents=True, exist_ok=True)
 
@@ -45,6 +54,22 @@ class ConcurrentPipeline:
                 await asyncio.to_thread(driver.quit)
 
         cleanup_empty_directories(output_root)
+
+        if archive_path and not any(not s for _, s, _ in self._results):
+            await asyncio.to_thread(
+                subprocess.run,
+                [
+                    "7z", "a", "-tzip",
+                    f"-mx={self._compress_level}",
+                    str(archive_path),
+                    f"{output_root}/*",
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            logger.info("Archive created: %s", archive_path)
+
         return self._results
 
     async def _process_job(
@@ -76,22 +101,31 @@ class ConcurrentPipeline:
             if not download_url:
                 raise RuntimeError(f"Failed to resolve download URL for {job.target.name}")
 
-            if job.target.file_type == "exe":
-                name = job.target.rename_as or download_url.split("/")[-1]
-                dest = job.destination_directory / f"{name}.exe"
-                await download_file(client, download_url, dest, self._semaphore)
-            elif job.target.file_type in ("zip", "zip/exe", "zip/folder"):
-                zip_path = job.destination_directory / download_url.split("/")[-1]
-                await download_file(client, download_url, zip_path, self._semaphore)
-                await asyncio.to_thread(
-                    extract_installer_from_zip,
-                    zip_path,
-                    job.destination_directory,
-                    job.target.file_type,
-                    job.target.rename_as,
-                )
-            else:
-                raise RuntimeError(f"Unsupported file type: {job.target.file_type}")
+            for attempt in range(self._retries + 1):
+                try:
+                    if job.target.file_type == "exe":
+                        name = job.target.rename_as or download_url.split("/")[-1]
+                        dest = job.destination_directory / f"{name}.exe"
+                        await download_file(client, download_url, dest, self._semaphore)
+                    elif job.target.file_type in ("zip", "zip/exe", "zip/folder"):
+                        zip_path = job.destination_directory / download_url.split("/")[-1]
+                        await download_file(client, download_url, zip_path, self._semaphore)
+                        await asyncio.to_thread(
+                            extract_installer_from_zip,
+                            zip_path,
+                            job.destination_directory,
+                            job.target.file_type,
+                            job.target.rename_as,
+                        )
+                    else:
+                        raise RuntimeError(f"Unsupported file type: {job.target.file_type}")
+                    break
+                except Exception:
+                    if attempt < self._retries:
+                        logger.warning("Retry %d/%d for %s", attempt + 1, self._retries, job.target.name)
+                        await asyncio.sleep(5)
+                    else:
+                        raise
 
             self._results.append((job, True, f"Successfully downloaded {job.target.name}"))
             logger.info("Completed: %s", job.target.name)

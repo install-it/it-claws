@@ -1,0 +1,605 @@
+[
+    {
+        "id": "0d8ba9f6",
+        "name": "Intel",
+        "type": "network",
+        "drivers": [
+            {
+                "id": "46c2943d",
+                "name": "",
+                "type": "",
+                "path": "drivers\\network\\Intel® Ethernet Adapter Complete Driver Pack\\APPS\\SETUP\\SETUPBD\\Winx64\\SetupBD.exe",
+                "flags": [
+                    "/s"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "c692cdec",
+        "name": "Realtek",
+        "type": "network",
+        "drivers": [
+            {
+                "id": "ff043b65",
+                "name": "",
+                "type": "",
+                "path": "drivers\\network\\Realtek PCI-E Ethernet Drivers\\setup.exe",
+                "flags": [
+                    "-s"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "773c15c0",
+        "name": "AMD",
+        "type": "display",
+        "drivers": [
+            {
+                "id": "6eee74b2",
+                "name": "",
+                "type": "",
+                "path": "drivers\\display\\AMD Software\uA789 Adrenalin Edition\\Setup.exe",
+                "flags": [
+                    "-install"
+                ],
+                "minExeTime": 15,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "4367177b",
+        "name": "Nvidia",
+        "type": "display",
+        "drivers": [
+            {
+                "id": "fe8f8159",
+                "name": "",
+                "type": "",
+                "path": "drivers\\display\\GeForce Game Ready Driver\\setup.exe",
+                "flags": [
+                    "-s",
+                    "-noreboot",
+                    "Display.Driver"
+                ],
+                "minExeTime": 15,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "2803de64",
+        "name": "Intel® Arc™ \u0026 Iris® Xe Graphics",
+        "type": "display",
+        "drivers": [
+            {
+                "id": "4d06852a",
+                "name": "",
+                "type": "",
+                "path": "drivers\\display\\Intel® Arc™ \u0026 Iris® Xe Graphics\\Installer.exe",
+                "flags": [
+                    "-s",
+                    "--noExtras"
+                ],
+                "minExeTime": 15,
+                "allowRtCodes": [
+                    14
+                ],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "405e109c",
+        "name": "Intel® 11th-14th Gen Processor Graphics",
+        "type": "display",
+        "drivers": [
+            {
+                "id": "fbb949ae",
+                "name": "",
+                "type": "",
+                "path": "drivers\\display\\Intel® 11th-14th Gen Processor Graphics\\Installer.exe",
+                "flags": [
+                    "-s",
+                    "--noExtras"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [
+                    14
+                ],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "7880de62",
+        "name": "AMD Chipset",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "355efeee",
+                "name": "",
+                "type": "",
+                "path": "drivers\\miscellaneous\\AMD Chipset Drivers\\AMD_Chipset_Software.exe",
+                "flags": [
+                    "/S"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [
+                    2
+                ],
+                "incompatibles": [
+                    "6eee74b2"
+                ]
+            }
+        ]
+    },
+    {
+        "id": "8d266b32",
+        "name": "Intel® Chipset",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "eaef1751",
+                "name": "",
+                "type": "",
+                "path": "drivers\\miscellaneous\\Intel Chipset INF Utility\\SetupChipset.exe",
+                "flags": [
+                    "/qn",
+                    "/norestart"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [
+                    3010
+                ],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "f6e6ad60",
+        "name": "Intel® Wireless",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "c8a33499",
+                "name": "WiFi",
+                "type": "",
+                "path": "drivers\\miscellaneous\\Intel® Wireless\\WiFi-Driver64-Win10-Win11.exe",
+                "flags": [
+                    "-q"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": [
+                    "73e5ed49"
+                ]
+            },
+            {
+                "id": "73e5ed49",
+                "name": "Bluetooth",
+                "type": "",
+                "path": "drivers\\miscellaneous\\Intel® Wireless\\BT-UWD-Win10-Win11.exe",
+                "flags": [
+                    "/quiet",
+                    "/norestart"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": [
+                    "c8a33499"
+                ]
+            }
+        ]
+    },
+    {
+        "id": "755f7c87",
+        "name": "Realtek RTL8852CE",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "0d02b05d",
+                "name": "WiFi",
+                "type": "",
+                "path": "drivers\\miscellaneous\\Realtek RTL8852CE\\WIFI\\mb_driver_674_realtek8852wifi.exe",
+                "flags": [],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            },
+            {
+                "id": "0183076a",
+                "name": "Bluetooth",
+                "type": "",
+                "path": "drivers\\miscellaneous\\Realtek RTL8852CE\\Bluetooth\\mb_driver_675_realtek8852.exe",
+                "flags": [],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "4190a8b2",
+        "name": "Realtek RTL8892AE",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "9674966a",
+                "name": "WiFi",
+                "type": "",
+                "path": "drivers\\miscellaneous\\Realtek RTL8892AE\\WIFI\\mb_driver_3701_realtek8922wifi.exe",
+                "flags": [],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            },
+            {
+                "id": "af4545ce",
+                "name": "Bluetooth",
+                "type": "",
+                "path": "drivers\\miscellaneous\\Realtek RTL8892AE\\Bluetooth\\mb_driver_3702_realtek8922.exe",
+                "flags": [],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "bae42faf",
+        "name": "Realtek RTL8852BE",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "c25b852b",
+                "name": "WiFi",
+                "type": "",
+                "path": "drivers\\miscellaneous\\Realtek RTL8852BE\\wifi\\AsusSetup.exe",
+                "flags": [],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            },
+            {
+                "id": "35337e72",
+                "name": "Bluetooth",
+                "type": "",
+                "path": "drivers\\miscellaneous\\Realtek RTL8852BE\\bluetooth\\AsusSetup.exe",
+                "flags": [],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "1a577f34",
+        "name": "MediaTek Wireless (WiFi 6/6E)",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "a1718aca",
+                "name": "WiFi",
+                "type": "",
+                "path": "drivers\\miscellaneous\\MediaTek MT7961_79X2\\WIFI\\mb_driver_4716_mtk6ewifi.exe",
+                "flags": [],
+                "minExeTime": 2,
+                "allowRtCodes": [],
+                "incompatibles": []
+            },
+            {
+                "id": "8d2f6a2b",
+                "name": "Bluetooth",
+                "type": "",
+                "path": "drivers\\miscellaneous\\MediaTek MT7961_79X2\\Bluetooth\\mb_driver_4717_mtk6e.exe",
+                "flags": [],
+                "minExeTime": 2,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "fb1e99eb",
+        "name": "MediaTek Wireless (WiFi 7)",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "7d1e2b6a",
+                "name": "WiFi",
+                "type": "",
+                "path": "drivers\\miscellaneous\\MediaTek MT7952_7927\\WIFI\\mb_driver_2682_mtk.exe",
+                "flags": [],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            },
+            {
+                "id": "249d3ed4",
+                "name": "Bluetooth",
+                "type": "",
+                "path": "drivers\\miscellaneous\\MediaTek MT7952_7927\\Bluetooth\\mb_driver_2683_mtk.exe",
+                "flags": [],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "2235fe87",
+        "name": "Qualcomm Wireless (WiFi 7)",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "c6500b40",
+                "name": "WiFi",
+                "type": "",
+                "path": "drivers\\miscellaneous\\Qualcomm NCM865\\WIFI\\mb_driver_2686_qualcomm.exe",
+                "flags": [],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            },
+            {
+                "id": "a389d6a7",
+                "name": "Bluetooth",
+                "type": "",
+                "path": "drivers\\miscellaneous\\Qualcomm NCM865\\Bluetooth\\mb_driver_2687_qualcomm.exe",
+                "flags": [],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "57eae068",
+        "name": "Realtek Audio",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "9494aef9",
+                "name": "",
+                "type": "",
+                "path": "drivers\\miscellaneous\\Realtek HD Universal\\setup.exe",
+                "flags": [
+                    "-s"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "ac228047",
+        "name": "7-Zip",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "ce46c778",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\7zip\\7zip_Setup.exe",
+                "flags": [
+                    "/S"
+                ],
+                "minExeTime": 0.1,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "354af0bc",
+        "name": "Discord",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "368a31a1",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Discord\\DiscordSetup.exe",
+                "flags": [
+                    "-s"
+                ],
+                "minExeTime": 0.2,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "98789362",
+        "name": "Mozilla Firefox",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "0a84c92c",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Firefox\\Firefox_Setup.exe",
+                "flags": [
+                    "/S",
+                    "/PreventRebootRequired=true"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "5df26561",
+        "name": "iTunes",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "7c59a225",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\iTunes\\iTunes64Setup.exe",
+                "flags": [
+                    "/qn",
+                    "/norestart"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "d3e38222",
+        "name": "Steam",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "3676455f",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Steam\\SteamSetup.exe",
+                "flags": [
+                    "/S"
+                ],
+                "minExeTime": 1,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "8328e675",
+        "name": "Surfshark",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "e4e56974",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Surfshark\\SurfsharkSetup.exe",
+                "flags": [
+                    "/exenoui",
+                    "/qn"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "cde23eeb",
+        "name": "VLC Player",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "37b0c27d",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\VLC Player\\vlc-win64.exe",
+                "flags": [
+                    "/S"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "22e5a998",
+        "name": "Zoom Workplace",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "4829303a",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Zoom Workplace\\ZoomInstallerFull.msi",
+                "flags": [
+                    "/qn",
+                    "/norestart"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "a8090e7b",
+        "name": "Github Desktop",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "c39b4883",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Github Desktop\\GitHubDesktopSetup-x64.exe",
+                "flags": [
+                    "/allusers",
+                    "/silent",
+                    "/norestart"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "2b2ec01b",
+        "name": "Miniconda",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "48d7ebd7",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Miniconda\\Miniconda3-latest-Windows-x86_64.exe",
+                "flags": [
+                    "/InstallationType=JustMe",
+                    "/AddToPath=1",
+                    "/RegisterPython=1",
+                    "/S"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    },
+    {
+        "id": "e5b7b006",
+        "name": "Visual Studio Code",
+        "type": "miscellaneous",
+        "drivers": [
+            {
+                "id": "cc6a4a4f",
+                "name": "",
+                "type": "",
+                "path": "drivers\\software\\Visual Studio Code\\VSCodeUserSetup-x64.exe",
+                "flags": [
+                    "/VERYSILENT",
+                    "/MERGETASKS=!runcode"
+                ],
+                "minExeTime": 5,
+                "allowRtCodes": [],
+                "incompatibles": []
+            }
+        ]
+    }
+]

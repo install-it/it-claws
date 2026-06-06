@@ -1,27 +1,30 @@
 # it-claws
-<a id="readme-top"></a>
 
+<a id="readme-top"></a>
 
 <!-- PROJECT SHIELDS -->
 <div align="center">
 
-  [![Tag][tag-shield]][tag-url]
-  [![Contributors][contributors-shield]][contributors-url]
-  [![Forks][forks-shield]][forks-url]
-  [![Stargazers][stars-shield]][stars-url]
-  [![Issues][issues-shield]][issues-url]
-  [![License][license-shield]][license-url]
-  
-</div>
+[![Tag][tag-shield]][tag-url]
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![License][license-shield]][license-url]
 
+</div>
 
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
+  <a href="https://github.com/install-it/it-claws">
+    <img src="https://github.com/user-attachments/assets/83d46686-2893-41c1-9077-ef0fede26dcc" alt="Logo" width="892" height="552">
+  </a>
+
   <h3 align="center">it-claws</h3>
 
   <p align="center">
-    A common-line tool that automates the process of find and download the latest common hardware drivers, and diagnostic tool.
+    Automated concurrent scraper for staging PC driver deployment environments
     <br />
     <a href="https://github.com/install-it/it-claws/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
     ·
@@ -29,195 +32,138 @@
   </p>
 </div>
 
-
 <!-- ABOUT THE PROJECT -->
+
 ## About The Project
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/83d46686-2893-41c1-9077-ef0fede26dcc" width="892" height="552">
-</p>
+it-claws is a Python-based tool that automatically downloads the latest PC hardware drivers, diagnostic tools, and common software from official vendor websites. Using Selenium for browser automation and httpx for static requests, it navigates vendor sites to retrieve up-to-date installation packages — suitable for staging driver packs for enterprise deployment.
 
-it-claws is a Python-based command-line tool for downloading the latest PC hardware drivers, diagnostic tools and more. Leveraging Selenium, it is able to automatically navigate official websites to locate and retrieve the most up-to-date versions of the target software.
+Unlike simple download utilities, it-claws runs concurrently with configurable retry logic, supports dynamic and static page scraping, and can pack everything into a compressed ZIP archive via 7z.
 
-This tool also serves as a companion to [install-it](https://github.com/install-it/install-it/). Refer to the [Usage](#including-extra-files-in-the-archive) section for more information.
+The tool serves as a companion to [install-it](https://github.com/install-it/install-it/). See the [Usage](#usage) section for more information.
+
+it-claws also supports **Docker** deployment with tmpfs RAM disk and automated cloud upload via rclone. See [scripts](scripts/) for the automation pipeline.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Built With
 
 [<img src="https://img.shields.io/badge/7zip-000?style=for-the-badge&logo=7zip&logoColor=white">](https://www.7-zip.org/)
-[<img src="https://img.shields.io/badge/python-306998?style=for-the-badge&logo=python&logoColor=white">](https://www.python.org/)
-[<img src="https://img.shields.io/badge/selenium-01a71c?style=for-the-badge&logo=selenium&logoColor=white">](https://www.selenium.dev/)
+[<img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white">](https://www.python.org/)
+[<img src="https://img.shields.io/badge/Selenium-01a71c?style=for-the-badge&logo=selenium&logoColor=white">](https://www.selenium.dev/)
+[<img src="https://img.shields.io/badge/httpx-FF6600?style=for-the-badge&logo=python&logoColor=white">](https://www.python-httpx.org/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- USAGE -->
+
+## Usage
+
+### Basic flow
+
+1. **Select targets**
+   - Use `-t` to specify space-separated target names
+   - Or use `-i` for interactive selection
+
+2. **Download**
+   - The tool resolves download URLs (static or dynamic)
+   - Files are downloaded concurrently with configurable retries
+
+3. **Archive & output**
+   - Results are staged in the output directory
+   - Optionally pack into a compressed ZIP archive
+
+### Selecting targets
+
+```sh
+python src/main.py -t "AMD Chipset Drivers" "Realtek HD Universal Audio"
+python src/main.py -i
+```
+
+### Output options
+
+```sh
+python src/main.py -o ./my-drivers -f my-custom-folder --max-concurrent 10
+```
+
+### Resilience & archiving
+
+```sh
+python src/main.py -o ./downloads -a ./driver-pack.zip --retries 2 -l 9
+```
+
+- `--retries`: retry attempts per failed download (default: `1`)
+- `-a` / `--archive-path`: destination for the output ZIP archive
+- `-l` / `--compress-level`: 7z compression level `0`–`9` (default: `5`)
+
+### Extract RAR files on Linux
+
+The `7z` package may not support RAR format. Install `p7zip-full p7zip-rar` as an alternative.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- DEPLOYMENT -->
+
+## Deployment
+
+This project can be deployed via Docker with tmpfs RAM disk and automated rclone upload. See [`scripts/`](scripts/) for the automation pipeline and environment variable reference.
+
+```bash
+docker run --rm --privileged \
+  -v /my/host/config:/config \
+  -e RC_REMOTE_PATH="onedrive:PC_Deployments" \
+  -e RETRIES="2" \
+  -e COMPRESS_LEVEL="9" \
+  it-claws
+```
+
+Override the default command:
+
+```bash
+docker run --name=it-claws \
+  -v /path/to/config:/config \
+  ghcr.io/install-it/it-claws:latest \
+  python src/main.py -t "AMD Chipset Drivers" "Realtek HD Universal Audio"
+```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- GETTING STARTED -->
+
 ## Getting Started
 
 ### Prerequisites
 
-- [Python](https://www.python.org/downloads/) >= 3.12
+- [uv](https://docs.astral.sh/uv/)
 - [7zip](https://www.7-zip.org/download.html)
-- [Google Chrome](https://www.google.com/chrome/), [Microsoft Edge](https://www.microsoft.com/en-us/edge/download), or [Mozilla Firefox](https://www.firefox.com/en-US/)
+- A supported web browser (Chrome, Edge, or Firefox)
 
-### Setup
+### Install dependencies
 
-#### Install Python Dependencies
-```sh
-pip install -r requirements.txt
+```bash
+uv sync
+
+uv sync --group dev # install dev dependencies
 ```
 
-### Commands
+### Common commands
 
-- Run the script
-  ```sh
-  python src/main.py
-  ```
+**Run the scraper**
 
-- Display help message
-  ```sh
-  python src/main.py -h
-  ```
+```bash
+python src/main.py
+```
+
+**Display help**
+
+```bash
+python src/main.py -h
+```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-<!-- USAGE EXAMPLES -->
-## Usage
-
-### Customising Scraping Configurations
-
-#### Creating configuration
-
-it-claws comes with a brunch of software scraping preset (see: [`src/config.py`](https://github.com/install-it/it-claws/blob/main/src/config.py)), which includes a curated list of common hardware drivers, diagnostic tools and common software.
-
-Run the following command to configure your scraping list:
-
-```sh
-python src/main.py --configure
-```
-
-#### Providing your custom configuration
-
-To use a custom configuration file, specify it with the `-c` or `--claw-config` option.
-
-The module [`src/url.py`](https://github.com/install-it/it-claws/blob/main/src/url.py) provides helper methods to extract download URLs from various websites. You can leverage those when drafting your own scraping configuration.
-
-it-claw accepts Python pickle files, Python source files, and JSON files. Details are as follow.
-
-#### Python Pickle File
-
-The expected type is `Iterable[ClawPrize]`.
-
-```sh
-python src/main.py -c ./custom-config.pkl
-```
-
-#### Python Source File
-
-it-claws will look for the `CLAW_CONFIG` variable defined in the specified `.py` file.
-
-```python
-# custom-config.py
-
-CLAW_CONFIG: Iterable[ClawPrize] = [
-  # define your configuration here
-]
-```
-
-```sh
-python src/main.py -c ./custom-config.py
-```
-
-#### JSON File
-
-Refer to the [JSON Schema](https://raw.githubusercontent.com/install-it/it-claws/main/claw-prize-schema.json) for guidance on constructing a valid scraping configuration.
-
-```sh
-python src/main.py -c ./custom-config.json
-```
-
-### Specific the Browser for Scraping
-
-it-claws required a web browser to scrape the download URL. You can use any one of Google Chrome, Microsoft Edge, or Mozilla Firefox (default).
-
-To specific a browser, use `-w` or `--web-driver` with the name of the browser choice. 
-
-```sh
-python src/main.py -w Chrome
-```
-
-###  Including Extra Files in the Archive
-
-Use `-i` or `--include-files` to specify the file(s) or directory path(s) you want to include in the output archive.
-To include multiple paths, either separate them with spaces or provide the option multiple times.
-
-```sh
-python src/main.py -i foo/ bar/ -i README.md
-```
-
-The `install-it/conf` directory contains configuration files of the scraping preset for [install-it](https://github.com/install-it/install-it).
-To use this tool to download drivers and utilities for install-it, include the directory:
-
-```sh
-python src/main.py -i ./install-it/conf
-```
-
-Then, you can import the output archive into install-it using its import function.
-
-### Extract RAR Files in Linux
-
-`7z` or the binaries from [7-zip.org](https://www.7-zip.org/download.html) does not seem to support RAR format.
-
-To extract RAR files, consider to use the package `p7zip-full p7zip-rar` instead of `7z`.
-
-### Docker Deployment
-
-it-claws provided container images for you to run it in containerised enviroments.
-Get the docker image details at [Packages](https://github.com/install-it/it-claws/pkgs/container/it-claws).
-
-You can deploy the docker image via docker CLI with:
-
-```sh
-docker run \
-  --name=it-claws \
-  -v /path/to/rclone-config:/config/rclone \
-  -v /path/to/config:/config/app \
-  -v /path/to/downloads:/app/downloads \ `#optional, supply to presist downloads`
-  ghcr.io/install-it/it-claws:latest
-```
-
-#### Configuration
-
-If you want to use the built-in configurator to create the scraping configuration
-inside the container environment, you may use docker's interactive mode. 
-
-```sh
-# run the container in an interactive terminal session with container auto remove enabled 
-docker run -it --rm ghcr.io/install-it/it-claws:latest bash
-
-python src/main.py --configure
-
-# leave the interactive terminal session
-exit
-```
-
-#### Customisation
-
-Override the default `CMD` ([how-to](https://docs.docker.com/get-started/docker-concepts/running-containers/overriding-container-defaults/#override-the-default-cmd-and-entrypoint-with-docker-run)) to alternate how it-claws should be executed.
-
-```sh
-docker run --name=it-claws <other options> python src/main.py -d /foo/downloads -e ignore
-```
-
-A few scripts for automation are provided. See [scripts](https://github.com/install-it/it-claws/tree/main/scripts) for more information.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 <!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+
 [tag-url]: https://github.com/install-it/it-claws/releases
 [tag-shield]: https://img.shields.io/github/v/tag/install-it/it-claws?style=for-the-badge&label=LATEST&color=%23B1B1B1
 [contributors-shield]: https://img.shields.io/github/contributors/install-it/it-claws.svg?style=for-the-badge
