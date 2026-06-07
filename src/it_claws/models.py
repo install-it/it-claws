@@ -11,6 +11,7 @@ class ScrapeTarget:
     resolver: Callable[..., Any]
     resolver_kwargs: dict[str, Any]
     file_type: Literal["exe", "zip", "zip/exe", "zip/folder", "sfx"]
+    include_cookies: list[str] | None = None
     request_headers: dict[str, str] | None = None
     rename_as: str | None = None
     default_folder: str | None = None

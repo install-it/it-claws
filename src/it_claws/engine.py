@@ -13,6 +13,7 @@ from .scrapers import (
     download_file,
     extract_installer_from_zip,
     extract_sfx,
+    resolve_cookies,
     resolve_static_download,
 )
 
@@ -40,8 +41,12 @@ class ConcurrentPipeline:
     ) -> list[tuple[DownloadJob, bool, str]]:
         output_root.mkdir(parents=True, exist_ok=True)
 
+        needs_driver = any(
+            j.target.resolver_type == "dynamic" or j.target.include_cookies is not None
+            for j in jobs
+        )
         driver = None
-        if any(j.target.resolver_type == "dynamic" for j in jobs):
+        if needs_driver:
             driver = await asyncio.to_thread(self._create_driver, user_agent)
 
         try:
@@ -86,76 +91,77 @@ class ConcurrentPipeline:
         try:
             job.destination_directory.mkdir(parents=True, exist_ok=True)
 
-            if job.target.resolver_type == "static":
-                download_url = await resolve_static_download(
-                    client,
-                    **job.target.resolver_kwargs,
-                )
-            elif job.target.resolver_type == "dynamic":
-                if driver is None:
-                    raise RuntimeError("Dynamic resolver requested but no driver available")
-                async with self._driver_lock:
-                    download_url = await asyncio.to_thread(
-                        job.target.resolver,
-                        driver,
-                        **job.target.resolver_kwargs,
+            if job.target.include_cookies is None:
+                if job.target.resolver_type == "static":
+                    download_url = await resolve_static_download(
+                        client, **job.target.resolver_kwargs,
                     )
+                elif job.target.resolver_type == "dynamic":
+                    if driver is None:
+                        raise RuntimeError("Dynamic resolver requested but no driver available")
+                    async with self._driver_lock:
+                        download_url = await asyncio.to_thread(
+                            job.target.resolver, driver, **job.target.resolver_kwargs,
+                        )
+                if not download_url:
+                    raise RuntimeError(f"Failed to resolve download URL for {job.target.name}")
             else:
-                raise RuntimeError(f"Unknown resolver type: {job.target.resolver_type}")
-
-            if not download_url:
-                raise RuntimeError(f"Failed to resolve download URL for {job.target.name}")
+                download_url = None
 
             headers = job.target.request_headers
 
             for attempt in range(self._retries + 1):
                 try:
+                    if job.target.include_cookies is not None:
+                        if driver is None:
+                            raise RuntimeError(
+                                "Cookie resolution requested but no driver available"
+                            )
+                        async with self._driver_lock:
+                            download_url = await asyncio.to_thread(
+                                job.target.resolver, driver, **job.target.resolver_kwargs,
+                            )
+                            if not download_url:
+                                raise RuntimeError(
+                                    f"Failed to resolve download URL for {job.target.name}"
+                                )
+                            cookies = await asyncio.to_thread(
+                                resolve_cookies, driver, download_url, job.target.include_cookies,
+                            )
+
+                    if not download_url:
+                        raise RuntimeError(
+                            f"Failed to resolve download URL for {job.target.name}"
+                        )
+
                     if job.target.file_type == "exe":
                         name = job.target.rename_as or download_url.split("/")[-1]
-                        dest = job.destination_directory / f"{name}.exe"
-                        await download_file(
-                            client,
-                            download_url,
-                            dest,
-                            self._semaphore,
-                            position=position,
-                            headers=headers,
-                        )
-                    elif job.target.file_type in ("zip", "zip/exe", "zip/folder"):
-                        zip_path = job.destination_directory / download_url.split("/")[-1]
-                        await download_file(
-                            client,
-                            download_url,
-                            zip_path,
-                            self._semaphore,
-                            position=position,
-                            headers=headers,
-                        )
-                        await asyncio.to_thread(
-                            extract_installer_from_zip,
-                            zip_path,
-                            job.destination_directory,
-                            job.target.file_type,
-                            job.target.rename_as,
-                        )
-                    elif job.target.file_type == "sfx":
-                        sfx_path = job.destination_directory / download_url.split("/")[-1]
-                        await download_file(
-                            client,
-                            download_url,
-                            sfx_path,
-                            self._semaphore,
-                            position=position,
-                            headers=headers,
-                        )
-                        await asyncio.to_thread(
-                            extract_sfx,
-                            sfx_path,
-                            job.destination_directory,
-                            job.target.rename_as,
-                        )
+                        if not name.lower().endswith(".exe"):
+                            name += ".exe"
+                        dest = job.destination_directory / name
+                    elif job.target.file_type in ("zip", "zip/exe", "zip/folder", "sfx"):
+                        dest = job.destination_directory / download_url.split("/")[-1]
                     else:
                         raise RuntimeError(f"Unsupported file type: {job.target.file_type}")
+
+                    dl_cookies = cookies if job.target.include_cookies is not None else None
+                    await download_file(
+                        client, download_url, dest, self._semaphore,
+                        position=position, headers=headers, cookies=dl_cookies,
+                    )
+
+                    if job.target.file_type in ("zip", "zip/exe", "zip/folder"):
+                        await asyncio.to_thread(
+                            extract_installer_from_zip,
+                            dest, job.destination_directory,
+                            job.target.file_type, job.target.rename_as,
+                        )
+                    elif job.target.file_type == "sfx":
+                        await asyncio.to_thread(
+                            extract_sfx,
+                            dest, job.destination_directory, job.target.rename_as,
+                        )
+
                     break
                 except Exception:
                     if attempt < self._retries:

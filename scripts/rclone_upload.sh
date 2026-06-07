@@ -16,7 +16,7 @@ if [ "$TMPFS" = "1" ]; then
     fi
 fi
 
-python /app/src/main.py \
+it-claws \
     -o "$DOWNLOAD_DIR" \
     -a "$ARCHIVE_PATH" \
     --retries "${RETRIES:-1}" \

@@ -128,6 +128,20 @@ def resolve_y_cruncher_dynamic(driver: WebDriver, url: str, variant: str) -> str
         return None
 
 
+def resolve_cookies(
+    driver: WebDriver, url: str, required_cookies: list[str], timeout: int = 60
+) -> dict[str, str]:
+    driver.execute_cdp_cmd("Browser.setDownloadBehavior", {"behavior": "deny"})
+    driver.get(url)
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        time.sleep(1)
+        cookies = {c["name"]: c["value"] for c in driver.get_cookies()}
+        if all(name in cookies for name in required_cookies):
+            return {name: cookies[name] for name in required_cookies}
+    raise RuntimeError(f"Required cookies {required_cookies} not set within {timeout}s for {url}")
+
+
 async def download_file(
     client: httpx.AsyncClient,
     url: str,
@@ -136,9 +150,10 @@ async def download_file(
     *,
     position: int = 0,
     headers: dict[str, str] | None = None,
+    cookies: dict[str, str] | None = None,
 ) -> Path:
     async with semaphore or asyncio.nullcontext():
-        async with client.stream("GET", url, headers=headers) as response:
+        async with client.stream("GET", url, headers=headers, cookies=cookies) as response:
             response.raise_for_status()
             if "text/html" in response.headers.get("content-type", ""):
                 raise RuntimeError(f"Expected binary stream but received HTML from {url}")

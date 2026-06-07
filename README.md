@@ -78,33 +78,33 @@ it-claws also supports **Docker** deployment with tmpfs RAM disk and automated c
 ### Selecting targets
 
 ```sh
-python src/main.py -t "AMD Chipset Drivers" "Realtek HD Universal Audio"
-python src/main.py -i
-python src/main.py --all
+it-claws -t "AMD Chipset Drivers" "Realtek HD Universal Audio"
+it-claws -i
+it-claws --all
 ```
 
 Use a preset file (one target per line, `#` for comments):
 
 ```sh
-python src/main.py --target-from presets/default.txt
+it-claws --target-from presets/default.txt
 ```
 
 Combine with interactive to tweak the preset before running:
 
 ```sh
-python src/main.py --target-from presets/default.txt -i
+it-claws --target-from presets/default.txt -i
 ```
 
 ### Output options
 
 ```sh
-python src/main.py -o ./my-drivers -f my-custom-folder --max-concurrent 10
+it-claws -o ./my-drivers -f my-custom-folder --max-concurrent 10
 ```
 
 ### Resilience & archiving
 
 ```sh
-python src/main.py -o ./downloads -a ./driver-pack.zip --retries 2 -l 9
+it-claws -o ./downloads -a ./driver-pack.zip --retries 2 -l 9
 ```
 
 - `--retries`: retry attempts per failed download (default: `1`)
@@ -138,7 +138,7 @@ Override the default command:
 docker run --name=it-claws \
   -v /path/to/config:/config \
   ghcr.io/install-it/it-claws:latest \
-  python src/main.py -t "AMD Chipset Drivers" "Realtek HD Universal Audio"
+  it-claws -t "AMD Chipset Drivers" "Realtek HD Universal Audio"
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -166,13 +166,13 @@ uv sync --group dev # install dev dependencies
 **Run the scraper**
 
 ```bash
-python src/main.py
+it-claws
 ```
 
 **Display help**
 
 ```bash
-python src/main.py -h
+it-claws -h
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

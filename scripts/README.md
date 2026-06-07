@@ -20,7 +20,7 @@ Docker-based automation scripts for headless driver scraping and cloud upload.
 | `RETRIES` | `1` | Number of in-memory retry attempts per failed download. |
 | `COMPRESS_LEVEL` | `5` | 7z compression level (`0`–`9`) for the output ZIP. |
 | `RC_REMOTE_PATH` | _(required)_ | rclone remote destination (e.g. `my_remote:bucket/drivers`). |
-| `ARGUMENTS` | _(optional)_ | Additional flags passed to `python src/main.py`. |
+| `ARGUMENTS` | _(optional)_ | Additional flags passed to `it-claws`. |
 
 ## Docker Deployment
 
@@ -67,5 +67,5 @@ The file is one target name per line; lines starting with `#` are ignored.
 docker run --name=it-claws \
   -v /path/to/config:/config \
   ghcr.io/install-it/it-claws:latest \
-  python src/main.py -t "AMD Chipset Drivers" "Realtek HD Universal Audio"
+  it-claws -t "AMD Chipset Drivers" "Realtek HD Universal Audio"
 ```
