@@ -63,7 +63,9 @@ it-claws also supports **Docker** deployment with tmpfs RAM disk and automated c
 
 1. **Select targets**
    - Use `-t` to specify space-separated target names
-   - Or use `-i` for interactive selection
+   - Use `-i` for interactive selection
+   - Use `--all` to select all targets
+   - Use `--target-from <file>` to load a preset text file
 
 2. **Download**
    - The tool resolves download URLs (static or dynamic)
@@ -78,6 +80,19 @@ it-claws also supports **Docker** deployment with tmpfs RAM disk and automated c
 ```sh
 python src/main.py -t "AMD Chipset Drivers" "Realtek HD Universal Audio"
 python src/main.py -i
+python src/main.py --all
+```
+
+Use a preset file (one target per line, `#` for comments):
+
+```sh
+python src/main.py --target-from presets/default.txt
+```
+
+Combine with interactive to tweak the preset before running:
+
+```sh
+python src/main.py --target-from presets/default.txt -i
 ```
 
 ### Output options

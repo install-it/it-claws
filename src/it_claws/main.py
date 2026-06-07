@@ -24,6 +24,8 @@ def build_parser() -> argparse.ArgumentParser:
     mexcl = tg.add_mutually_exclusive_group()
     mexcl.add_argument("-t", "--targets", nargs="+", choices=get_target_names())
     mexcl.add_argument("--all", action="store_true", help="Select all available targets")
+    mexcl.add_argument("--target-from", type=Path, metavar="FILE",
+                       help="Read target names from a text file (one per line, # for comments)")
     tg.add_argument("-i", "--interactive", action="store_true")
 
     ra = parser.add_argument_group("Resilience & Archiving Options")
@@ -35,11 +37,52 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _parse_target_file(path: Path) -> list[str]:
+    names = []
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        names.append(line)
+    return names
+
+
+def _resolve_names(names: list[str]) -> list[ScrapeTarget]:
+    targets = []
+    for name in names:
+        target = next((t for t in ALL_TARGETS if t.name == name), None)
+        if target is None:
+            logger.error("Unknown target: %s", name)
+            sys.exit(1)
+        targets.append(target)
+    return targets
+
+
 def resolve_selected_targets(
     target_names: list[str] | None,
     interactive: bool,
     all_targets: bool = False,
+    target_from: Path | None = None,
 ) -> list[ScrapeTarget]:
+    if target_from and interactive:
+        names = _parse_target_file(target_from)
+        answers = inquirer.prompt(
+            [
+                inquirer.Checkbox(
+                    "targets",
+                    message="Select drivers and utilities to download",
+                    choices=[(n, n, True) for n in names],
+                ),
+            ]
+        )
+        if not answers or not answers.get("targets"):
+            logger.warning("No targets selected interactively")
+            return []
+        return _resolve_names(answers["targets"])
+
+    if target_from:
+        return _resolve_names(_parse_target_file(target_from))
+
     if all_targets and interactive:
         answers = inquirer.prompt(
             [
@@ -74,14 +117,7 @@ def resolve_selected_targets(
         return [t for t in ALL_TARGETS if t.name in answers["targets"]]
 
     if target_names:
-        targets = []
-        for name in target_names:
-            target = next((t for t in ALL_TARGETS if t.name == name), None)
-            if target is None:
-                logger.error("Unknown target: %s", name)
-                sys.exit(1)
-            targets.append(target)
-        return targets
+        return _resolve_names(target_names)
 
     return ALL_TARGETS
 
@@ -112,7 +148,7 @@ def run() -> None:
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
 
-    targets = resolve_selected_targets(args.targets, args.interactive, args.all)
+    targets = resolve_selected_targets(args.targets, args.interactive, args.all, args.target_from)
     if not targets:
         logger.error("No valid targets to process")
         sys.exit(1)

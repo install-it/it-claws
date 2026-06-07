@@ -46,6 +46,21 @@ docker run --rm --privileged \
 
 > **Note:** The `--privileged` flag is required when `TMPFS=1` to allow the container to mount a RAM disk.
 
+### Using a persistent preset file
+
+Copy `presets/default.txt` to your host config dir, edit it (comment out or remove lines), then bind-mount it:
+
+```bash
+docker run --rm --privileged \
+  -v /my/host/config:/config \
+  -v /my/host/presets/my-preset.txt:/app/presets/my-preset.txt \
+  -e RC_REMOTE_PATH="onedrive:PC_Deployments" \
+  -e ARGUMENTS="--target-from /app/presets/my-preset.txt" \
+  it-claws
+```
+
+The file is one target name per line; lines starting with `#` are ignored.
+
 ### Overriding the default command
 
 ```bash
