@@ -30,8 +30,6 @@ async def resolve_static_download(
 ) -> str | None:
     response = await client.get(url)
     response.raise_for_status()
-
-    print(response.text)
     tree = lh.fromstring(response.text)
     if selector_type == "xpath":
         nodes = tree.xpath(selector)

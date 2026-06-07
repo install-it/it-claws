@@ -24,5 +24,6 @@ class DownloadJob:
 
     @property
     def destination_directory(self) -> Path:
-        folder = self.custom_folder or self.target.default_folder
-        return self.output_root / folder if folder else self.output_root
+        if self.custom_folder:
+            return self.output_root / self.custom_folder
+        return self.output_root / self.target.default_folder / self.target.name
