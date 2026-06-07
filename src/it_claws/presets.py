@@ -20,6 +20,7 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
             "selector": 'a[href*="win11-"][href$=".exe"]',
         },
         file_type="exe",
+        request_headers={"referer": "https://www.amd.com"},
         default_folder="display",
     ),
     ScrapeTarget(
@@ -70,6 +71,7 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
         },
         file_type="exe",
         rename_as="AMD_Chipset_Software",
+        request_headers={"referer": "https://www.amd.com"},
         default_folder="miscellaneous",
     ),
     ScrapeTarget(

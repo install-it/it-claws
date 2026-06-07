@@ -130,9 +130,10 @@ async def download_file(
     semaphore: asyncio.Semaphore | None = None,
     *,
     position: int = 0,
+    headers: dict[str, str] | None = None,
 ) -> Path:
     async with semaphore or asyncio.nullcontext():
-        async with client.stream("GET", url) as response:
+        async with client.stream("GET", url, headers=headers) as response:
             response.raise_for_status()
             if "text/html" in response.headers.get("content-type", ""):
                 raise RuntimeError(f"Expected binary stream but received HTML from {url}")

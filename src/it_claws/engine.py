@@ -102,18 +102,30 @@ class ConcurrentPipeline:
             if not download_url:
                 raise RuntimeError(f"Failed to resolve download URL for {job.target.name}")
 
+            headers = job.target.request_headers
+
             for attempt in range(self._retries + 1):
                 try:
                     if job.target.file_type == "exe":
                         name = job.target.rename_as or download_url.split("/")[-1]
                         dest = job.destination_directory / f"{name}.exe"
                         await download_file(
-                            client, download_url, dest, self._semaphore, position=position
+                            client,
+                            download_url,
+                            dest,
+                            self._semaphore,
+                            position=position,
+                            headers=headers,
                         )
                     elif job.target.file_type in ("zip", "zip/exe", "zip/folder"):
                         zip_path = job.destination_directory / download_url.split("/")[-1]
                         await download_file(
-                            client, download_url, zip_path, self._semaphore, position=position
+                            client,
+                            download_url,
+                            zip_path,
+                            self._semaphore,
+                            position=position,
+                            headers=headers,
                         )
                         await asyncio.to_thread(
                             extract_installer_from_zip,
@@ -125,7 +137,12 @@ class ConcurrentPipeline:
                     elif job.target.file_type == "sfx":
                         sfx_path = job.destination_directory / download_url.split("/")[-1]
                         await download_file(
-                            client, download_url, sfx_path, self._semaphore, position=position
+                            client,
+                            download_url,
+                            sfx_path,
+                            self._semaphore,
+                            position=position,
+                            headers=headers,
                         )
                         await asyncio.to_thread(
                             extract_sfx,
