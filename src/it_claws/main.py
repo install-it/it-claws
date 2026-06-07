@@ -1,16 +1,14 @@
 import argparse
 import asyncio
-import logging
 import sys
 from pathlib import Path
 
 import inquirer
+from tqdm import tqdm
 
 from .engine import ConcurrentPipeline
 from .models import DownloadJob, ScrapeTarget
 from .presets import ALL_TARGETS, get_target_names
-
-logger = logging.getLogger(__name__)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -24,8 +22,12 @@ def build_parser() -> argparse.ArgumentParser:
     mexcl = tg.add_mutually_exclusive_group()
     mexcl.add_argument("-t", "--targets", nargs="+", choices=get_target_names())
     mexcl.add_argument("--all", action="store_true", help="Select all available targets")
-    mexcl.add_argument("--target-from", type=Path, metavar="FILE",
-                       help="Read target names from a text file (one per line, # for comments)")
+    mexcl.add_argument(
+        "--target-from",
+        type=Path,
+        metavar="FILE",
+        help="Read target names from a text file (one per line, # for comments)",
+    )
     tg.add_argument("-i", "--interactive", action="store_true")
 
     ra = parser.add_argument_group("Resilience & Archiving Options")
@@ -52,7 +54,7 @@ def _resolve_names(names: list[str]) -> list[ScrapeTarget]:
     for name in names:
         target = next((t for t in ALL_TARGETS if t.name == name), None)
         if target is None:
-            logger.error("Unknown target: %s", name)
+            print(f"Unknown target: {name}", file=sys.stderr)
             sys.exit(1)
         targets.append(target)
     return targets
@@ -76,7 +78,7 @@ def resolve_selected_targets(
             ]
         )
         if not answers or not answers.get("targets"):
-            logger.warning("No targets selected interactively")
+            tqdm.write("No targets selected interactively")
             return []
         return _resolve_names(answers["targets"])
 
@@ -94,7 +96,7 @@ def resolve_selected_targets(
             ]
         )
         if not answers or not answers.get("targets"):
-            logger.warning("No targets selected interactively")
+            tqdm.write("No targets selected interactively")
             return []
         return [t for t in ALL_TARGETS if t.name in answers["targets"]]
 
@@ -112,7 +114,7 @@ def resolve_selected_targets(
             ]
         )
         if not answers or not answers.get("targets"):
-            logger.warning("No targets selected interactively")
+            tqdm.write("No targets selected interactively")
             return []
         return [t for t in ALL_TARGETS if t.name in answers["targets"]]
 
@@ -143,18 +145,10 @@ def run() -> None:
     parser = build_parser()
     args = parser.parse_args()
 
-    logging.basicConfig(
-        level=logging.DEBUG if args.verbose else logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    )
-
     targets = resolve_selected_targets(args.targets, args.interactive, args.all, args.target_from)
     if not targets:
-        logger.error("No valid targets to process")
+        print("No valid targets to process", file=sys.stderr)
         sys.exit(1)
-
-    logger.info("Starting pipeline with %d target(s)", len(targets))
-    logger.info("Output directory: %s", args.output)
 
     results = asyncio.run(
         run_pipeline(
@@ -169,11 +163,6 @@ def run() -> None:
     )
 
     failed = [msg for _, success, msg in results if not success]
-    logger.info(
-        "Pipeline complete: %d succeeded, %d failed",
-        len(results) - len(failed),
-        len(failed),
-    )
 
     if failed:
         for msg in failed:

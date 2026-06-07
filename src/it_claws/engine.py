@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import subprocess
 from pathlib import Path
 
@@ -7,6 +6,7 @@ import httpx
 from fake_useragent import UserAgent
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
+from tqdm import tqdm
 
 from .models import DownloadJob
 from .scrapers import (
@@ -16,8 +16,6 @@ from .scrapers import (
     extract_sfx,
     resolve_static_download,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class ConcurrentPipeline:
@@ -47,7 +45,7 @@ class ConcurrentPipeline:
 
         try:
             async with httpx.AsyncClient(follow_redirects=True, timeout=30.0) as client:
-                tasks = [self._process_job(job, client, driver) for job in jobs]
+                tasks = [self._process_job(job, client, driver, i) for i, job in enumerate(jobs)]
                 await asyncio.gather(*tasks, return_exceptions=True)
         finally:
             if driver:
@@ -70,7 +68,7 @@ class ConcurrentPipeline:
                 text=True,
                 check=True,
             )
-            logger.info("Archive created: %s", archive_path)
+            tqdm.write(f"Archive created: {archive_path}")
 
         return self._results
 
@@ -79,6 +77,7 @@ class ConcurrentPipeline:
         job: DownloadJob,
         client: httpx.AsyncClient,
         driver: webdriver.Chrome | None,
+        position: int = 0,
     ) -> None:
         try:
             job.destination_directory.mkdir(parents=True, exist_ok=True)
@@ -108,10 +107,14 @@ class ConcurrentPipeline:
                     if job.target.file_type == "exe":
                         name = job.target.rename_as or download_url.split("/")[-1]
                         dest = job.destination_directory / f"{name}.exe"
-                        await download_file(client, download_url, dest, self._semaphore)
+                        await download_file(
+                            client, download_url, dest, self._semaphore, position=position
+                        )
                     elif job.target.file_type in ("zip", "zip/exe", "zip/folder"):
                         zip_path = job.destination_directory / download_url.split("/")[-1]
-                        await download_file(client, download_url, zip_path, self._semaphore)
+                        await download_file(
+                            client, download_url, zip_path, self._semaphore, position=position
+                        )
                         await asyncio.to_thread(
                             extract_installer_from_zip,
                             zip_path,
@@ -121,7 +124,9 @@ class ConcurrentPipeline:
                         )
                     elif job.target.file_type == "sfx":
                         sfx_path = job.destination_directory / download_url.split("/")[-1]
-                        await download_file(client, download_url, sfx_path, self._semaphore)
+                        await download_file(
+                            client, download_url, sfx_path, self._semaphore, position=position
+                        )
                         await asyncio.to_thread(
                             extract_sfx,
                             sfx_path,
@@ -133,19 +138,17 @@ class ConcurrentPipeline:
                     break
                 except Exception:
                     if attempt < self._retries:
-                        logger.warning(
-                            "Retry %d/%d for %s", attempt + 1, self._retries, job.target.name
-                        )
+                        tqdm.write(f"Retry {attempt + 1}/{self._retries} for {job.target.name}")
                         await asyncio.sleep(5)
                     else:
                         raise
 
             self._results.append((job, True, f"Successfully downloaded {job.target.name}"))
-            logger.info("Completed: %s", job.target.name)
+            tqdm.write(f"Completed {job.target.name}")
 
         except Exception as exc:
             error_msg = f"Failed {job.target.name}: {exc}"
-            logger.error(error_msg)
+            tqdm.write(error_msg)
             self._results.append((job, False, error_msg))
 
     @staticmethod

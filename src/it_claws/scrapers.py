@@ -1,7 +1,7 @@
 import asyncio
-import logging
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 import zipfile
@@ -13,8 +13,7 @@ import httpx
 from selectolax.parser import HTMLParser
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
-
-logger = logging.getLogger(__name__)
+from tqdm import tqdm
 
 
 async def resolve_direct_url(client: Any, url: str, **_: Any) -> str:
@@ -129,16 +128,29 @@ async def download_file(
     url: str,
     destination: Path,
     semaphore: asyncio.Semaphore | None = None,
+    *,
+    position: int = 0,
 ) -> Path:
     async with semaphore or asyncio.nullcontext():
         async with client.stream("GET", url) as response:
             response.raise_for_status()
             if "text/html" in response.headers.get("content-type", ""):
                 raise RuntimeError(f"Expected binary stream but received HTML from {url}")
+            total = int(response.headers.get("content-length", 0))
             destination.parent.mkdir(parents=True, exist_ok=True)
             with open(destination, "wb") as f:
-                async for chunk in response.aiter_bytes():
-                    f.write(chunk)
+                with tqdm(
+                    total=total,
+                    unit="B",
+                    unit_scale=True,
+                    desc=destination.name,
+                    position=position,
+                    leave=False,
+                    disable=not sys.stderr.isatty(),
+                ) as pbar:
+                    async for chunk in response.aiter_bytes():
+                        f.write(chunk)
+                        pbar.update(len(chunk))
     return destination
 
 
