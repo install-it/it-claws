@@ -1,13 +1,11 @@
 from .models import ScrapeTarget
 from .scrapers import (
     resolve_direct_url,
-    resolve_furmark_dynamic,
-    resolve_gigabyte_dynamic,
+    resolve_furmark_static,
     resolve_intel_dynamic,
     resolve_msi_dynamic,
     resolve_nvidia_grd,
     resolve_static_download,
-    resolve_y_cruncher_dynamic,
 )
 
 HARDWARE_CATALOG: list[ScrapeTarget] = [
@@ -114,11 +112,15 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
     ),
     ScrapeTarget(
         name="MediaTek MT7961_79X2 Bluetooth",
-        resolver_type="dynamic",
-        resolver=resolve_gigabyte_dynamic,
+        resolver_type="static",
+        resolver=resolve_static_download,
         resolver_kwargs={
             "url": "https://www.gigabyte.com/hk/Motherboard/B850M-FORCE-WIFI6E-rev-10/support",
-            "driver_name": "MediaTek Wi-Fi 6E Bluetooth Driver",
+            "selector": (
+                '//tr[contains(@class, "item-group")]'
+                '[.//text()[contains(., "MediaTek Wi-Fi 6E Bluetooth Driver")]][1]//a'
+            ),
+            "selector_type": "xpath",
         },
         file_type="zip/exe",
         rename_as="mb_driver_4717_mtk6e",
@@ -126,11 +128,15 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
     ),
     ScrapeTarget(
         name="MediaTek MT7961_79X2 WIFI",
-        resolver_type="dynamic",
-        resolver=resolve_gigabyte_dynamic,
+        resolver_type="static",
+        resolver=resolve_static_download,
         resolver_kwargs={
             "url": "https://www.gigabyte.com/hk/Motherboard/B850M-FORCE-WIFI6E-rev-10/support",
-            "driver_name": "MediaTek Wi-Fi 6E WIFI Driver",
+            "selector": (
+                '//tr[contains(@class, "item-group")]'
+                '[.//text()[contains(., "MediaTek Wi-Fi 6E WIFI Driver")]][1]//a'
+            ),
+            "selector_type": "xpath",
         },
         file_type="zip/exe",
         rename_as="mb_driver_4716_mtk6ewifi",
@@ -218,8 +224,8 @@ UTILITY_CATALOG: list[ScrapeTarget] = [
     ),
     ScrapeTarget(
         name="FurMark",
-        resolver_type="dynamic",
-        resolver=resolve_furmark_dynamic,
+        resolver_type="static",
+        resolver=resolve_furmark_static,
         resolver_kwargs={
             "url": "https://www.geeks3d.com/furmark/downloads/",
             "variant": "win64",
@@ -248,11 +254,12 @@ UTILITY_CATALOG: list[ScrapeTarget] = [
     ),
     ScrapeTarget(
         name="y-cruncher",
-        resolver_type="dynamic",
-        resolver=resolve_y_cruncher_dynamic,
+        resolver_type="static",
+        resolver=resolve_static_download,
         resolver_kwargs={
             "url": "https://www.numberworld.org/y-cruncher/#Download",
-            "variant": "Windows",
+            "selector": '//table[contains(., "Download Link")]//tr[contains(., "Windows")]//a',
+            "selector_type": "xpath",
         },
         file_type="zip/folder",
         default_folder="tool",

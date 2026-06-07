@@ -14,7 +14,6 @@ from .scrapers import (
     extract_installer_from_zip,
     extract_sfx,
     resolve_cookies,
-    resolve_static_download,
 )
 
 
@@ -93,7 +92,7 @@ class ConcurrentPipeline:
 
             if job.target.include_cookies is None:
                 if job.target.resolver_type == "static":
-                    download_url = await resolve_static_download(
+                    download_url = await job.target.resolver(
                         client, **job.target.resolver_kwargs,
                     )
                 elif job.target.resolver_type == "dynamic":
@@ -135,12 +134,12 @@ class ConcurrentPipeline:
                         )
 
                     if job.target.file_type == "exe":
-                        name = job.target.rename_as or download_url.split("/")[-1]
-                        if not name.lower().endswith(".exe"):
+                        name = job.target.rename_as or download_url.split("/")[-1].split("?")[0]
+                        if not name.lower().endswith(".exe") and "." not in name:
                             name += ".exe"
                         dest = job.destination_directory / name
                     elif job.target.file_type in ("zip", "zip/exe", "zip/folder", "sfx"):
-                        dest = job.destination_directory / download_url.split("/")[-1]
+                        dest = job.destination_directory / download_url.split("/")[-1].split("?")[0]
                     else:
                         raise RuntimeError(f"Unsupported file type: {job.target.file_type}")
 

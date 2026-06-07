@@ -7,7 +7,7 @@ import time
 import zipfile
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urljoin
 
 import httpx
 import lxml.html as lh
@@ -40,12 +40,7 @@ async def resolve_static_download(
     link = nodes[0].get(attribute)
     if not link:
         return None
-    if link.startswith("//"):
-        return f"https:{link}"
-    if link.startswith("/"):
-        parsed = urlparse(url)
-        return f"{parsed.scheme}://{parsed.netloc}{link}"
-    return link
+    return urljoin(url, link)
 
 
 def resolve_intel_dynamic(driver: WebDriver, url: str) -> str | None:
@@ -72,18 +67,6 @@ def resolve_nvidia_grd(driver: WebDriver, url: str) -> str | None:
         return None
 
 
-def resolve_gigabyte_dynamic(driver: WebDriver, url: str, driver_name: str) -> str | None:
-    driver.get(url)
-    time.sleep(2)
-    try:
-        xpath = (
-            f'//tr[contains(@class, "item-group")][.//text()[contains(., "{driver_name}")]][1]//a'
-        )
-        return driver.find_element(By.XPATH, xpath).get_attribute("href")
-    except Exception:
-        return None
-
-
 def resolve_msi_dynamic(
     driver: WebDriver, url: str, driver_type: str, driver_name: str
 ) -> str | None:
@@ -105,31 +88,25 @@ def resolve_msi_dynamic(
         return None
 
 
-def resolve_furmark_dynamic(driver: WebDriver, url: str, variant: str) -> str | None:
-    driver.get(url)
-    try:
-        xpath = f'//a[contains(., "{variant} - (ZIP)") or contains(., "{variant} - (7ZIP)")]'
-        landing_url = driver.find_element(By.XPATH, xpath).get_attribute("href")
-        driver.get(landing_url)
-        time.sleep(5)
-        return driver.find_element(By.XPATH, '//a[contains(., "Geeks3D server")]').get_attribute(
-            "href"
-        )
-    except Exception:
+async def resolve_furmark_static(
+    client: httpx.AsyncClient, url: str, variant: str = "win64"
+) -> str | None:
+    response = await client.get(url)
+    response.raise_for_status()
+    tree = lh.fromstring(response.text)
+    xpath = f'//a[contains(., "{variant} - (ZIP)") or contains(., "{variant} - (7ZIP)")]'
+    nodes = tree.xpath(xpath)
+    if not nodes:
         return None
-
-
-def resolve_y_cruncher_dynamic(driver: WebDriver, url: str, variant: str) -> str | None:
-    driver.get(url)
-    try:
-        xpath = f'//table[contains(., "Download Link")]//tr[contains(., "{variant}")]//a'
-        return driver.find_element(By.XPATH, xpath).get_attribute("href")
-    except Exception:
+    show_path = nodes[0].get("href")
+    if not show_path:
         return None
+    get_path = show_path.replace("/dl/show/", "/dl/get/")
+    return f"https://www.geeks3d.com{get_path}"
 
 
 def resolve_cookies(
-    driver: WebDriver, url: str, required_cookies: list[str], timeout: int = 60
+    driver: WebDriver, url: str, required_cookies: list[str], timeout: int = 10
 ) -> dict[str, str]:
     driver.execute_cdp_cmd("Browser.setDownloadBehavior", {"behavior": "deny"})
     driver.get(url)
