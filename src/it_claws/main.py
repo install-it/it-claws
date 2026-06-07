@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 import inquirer
+from fake_useragent import UserAgent
 from tqdm import tqdm
 
 from .engine import ConcurrentPipeline
@@ -132,13 +133,14 @@ async def run_pipeline(
     retries: int,
     archive_path: Path | None,
     compress_level: int,
+    user_agent: str | None = None,
 ) -> list[tuple[DownloadJob, bool, str]]:
     jobs = [
         DownloadJob(target=t, output_root=output_root, custom_folder=custom_folder) for t in targets
     ]
     return await ConcurrentPipeline(
         max_downloads=max_concurrent, retries=retries, compress_level=compress_level
-    ).run(jobs, output_root, archive_path)
+    ).run(jobs, output_root, archive_path, user_agent=user_agent)
 
 
 def run() -> None:
@@ -150,6 +152,8 @@ def run() -> None:
         print("No valid targets to process", file=sys.stderr)
         sys.exit(1)
 
+    ua = UserAgent().random
+
     results = asyncio.run(
         run_pipeline(
             targets=targets,
@@ -159,6 +163,7 @@ def run() -> None:
             retries=args.retries,
             archive_path=args.archive_path,
             compress_level=args.compress_level,
+            user_agent=ua,
         )
     )
 

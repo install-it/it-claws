@@ -3,7 +3,6 @@ import subprocess
 from pathlib import Path
 
 import httpx
-from fake_useragent import UserAgent
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from tqdm import tqdm
@@ -36,15 +35,20 @@ class ConcurrentPipeline:
         jobs: list[DownloadJob],
         output_root: Path,
         archive_path: Path | None = None,
+        *,
+        user_agent: str | None = None,
     ) -> list[tuple[DownloadJob, bool, str]]:
         output_root.mkdir(parents=True, exist_ok=True)
 
         driver = None
         if any(j.target.resolver_type == "dynamic" for j in jobs):
-            driver = await asyncio.to_thread(self._create_driver)
+            driver = await asyncio.to_thread(self._create_driver, user_agent)
 
         try:
-            async with httpx.AsyncClient(follow_redirects=True, timeout=30.0) as client:
+            async with httpx.AsyncClient(
+                follow_redirects=True, timeout=120.0,
+                headers={"User-Agent": user_agent} if user_agent else None,
+            ) as client:
                 tasks = [self._process_job(job, client, driver, i) for i, job in enumerate(jobs)]
                 await asyncio.gather(*tasks, return_exceptions=True)
         finally:
@@ -169,10 +173,11 @@ class ConcurrentPipeline:
             self._results.append((job, False, error_msg))
 
     @staticmethod
-    def _create_driver() -> webdriver.Chrome:
+    def _create_driver(user_agent: str | None = None) -> webdriver.Chrome:
         options = ChromeOptions()
         options.add_argument("--headless=new")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
-        options.add_argument(f"user-agent={UserAgent().random}")
+        if user_agent:
+            options.add_argument(f"user-agent={user_agent}")
         return webdriver.Chrome(options=options)

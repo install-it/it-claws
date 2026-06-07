@@ -10,7 +10,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 import httpx
-from selectolax.parser import HTMLParser
+import lxml.html as lh
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from tqdm import tqdm
@@ -25,14 +25,21 @@ async def resolve_static_download(
     url: str,
     selector: str,
     attribute: str = "href",
+    selector_type: str = "css",
     **_: Any,
 ) -> str | None:
     response = await client.get(url)
     response.raise_for_status()
-    node = HTMLParser(response.text).css_first(selector)
-    if node is None:
+
+    print(response.text)
+    tree = lh.fromstring(response.text)
+    if selector_type == "xpath":
+        nodes = tree.xpath(selector)
+    else:
+        nodes = tree.cssselect(selector)
+    if not nodes:
         return None
-    link = node.attributes.get(attribute)
+    link = nodes[0].get(attribute)
     if not link:
         return None
     if link.startswith("//"):
