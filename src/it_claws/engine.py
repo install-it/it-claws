@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 
 import httpx
+from fake_useragent import UserAgent
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 
@@ -59,7 +60,9 @@ class ConcurrentPipeline:
             await asyncio.to_thread(
                 subprocess.run,
                 [
-                    "7z", "a", "-tzip",
+                    "7z",
+                    "a",
+                    "-tzip",
                     f"-mx={self._compress_level}",
                     str(archive_path),
                     f"{output_root}/*",
@@ -122,7 +125,9 @@ class ConcurrentPipeline:
                     break
                 except Exception:
                     if attempt < self._retries:
-                        logger.warning("Retry %d/%d for %s", attempt + 1, self._retries, job.target.name)
+                        logger.warning(
+                            "Retry %d/%d for %s", attempt + 1, self._retries, job.target.name
+                        )
                         await asyncio.sleep(5)
                     else:
                         raise
@@ -141,4 +146,5 @@ class ConcurrentPipeline:
         options.add_argument("--headless=new")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
+        options.add_argument(f"user-agent={UserAgent().random}")
         return webdriver.Chrome(options=options)
