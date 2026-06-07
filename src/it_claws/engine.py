@@ -13,6 +13,7 @@ from .scrapers import (
     cleanup_empty_directories,
     download_file,
     extract_installer_from_zip,
+    extract_sfx,
     resolve_static_download,
 )
 
@@ -118,6 +119,15 @@ class ConcurrentPipeline:
                             zip_path,
                             job.destination_directory,
                             job.target.file_type,
+                            job.target.rename_as,
+                        )
+                    elif job.target.file_type == "sfx":
+                        sfx_path = job.destination_directory / download_url.split("/")[-1]
+                        await download_file(client, download_url, sfx_path, self._semaphore)
+                        await asyncio.to_thread(
+                            extract_sfx,
+                            sfx_path,
+                            job.destination_directory,
                             job.target.rename_as,
                         )
                     else:

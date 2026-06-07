@@ -19,7 +19,7 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
             "url": "https://www.amd.com/en/support/downloads/drivers.html/graphics/radeon-rx/radeon-rx-9000-series/amd-radeon-rx-9070-xt.html",
             "selector": 'a[href*="win11-"][href$=".exe"]',
         },
-        file_type="zip",
+        file_type="exe",
         default_folder="display",
     ),
     ScrapeTarget(
@@ -57,7 +57,7 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
         resolver_type="dynamic",
         resolver=resolve_nvidia_grd,
         resolver_kwargs={"url": "https://www.nvidia.com/zh-tw/geforce/game-ready-drivers/"},
-        file_type="zip",
+        file_type="exe",
         default_folder="display",
     ),
     ScrapeTarget(

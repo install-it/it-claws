@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import shutil
+import subprocess
 import tempfile
 import time
 import zipfile
@@ -173,6 +174,32 @@ def extract_installer_from_zip(
             else:
                 raise RuntimeError(f"Unexpected compound structure inside zip archive {zip_path}")
     zip_path.unlink(missing_ok=True)
+    return target_dir
+
+
+def extract_sfx(
+    sfx_path: Path,
+    target_dir: Path,
+    rename_as: str | None = None,
+) -> Path:
+    target_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        subprocess.run(
+            ["7z", "x", str(sfx_path), f"-o{tmp_path}", "-y"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        exe_files = list(tmp_path.rglob("*.exe"))
+        if not exe_files:
+            raise RuntimeError(f"No executable found in SFX archive {sfx_path}")
+        installer = exe_files[0]
+        shutil.move(
+            str(installer),
+            str(target_dir / (f"{rename_as}.exe" if rename_as else installer.name)),
+        )
+    sfx_path.unlink(missing_ok=True)
     return target_dir
 
 

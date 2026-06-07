@@ -10,7 +10,7 @@ class ScrapeTarget:
     resolver_type: Literal["static", "dynamic"]
     resolver: Callable[..., Any]
     resolver_kwargs: dict[str, Any]
-    file_type: Literal["exe", "zip", "zip/exe", "zip/folder"]
+    file_type: Literal["exe", "zip", "zip/exe", "zip/folder", "sfx"]
     rename_as: str | None = None
     default_folder: str | None = None
 
