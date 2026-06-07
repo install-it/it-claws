@@ -19,13 +19,11 @@ from .scrapers import (
 
 logger = logging.getLogger(__name__)
 
-MAX_CONCURRENT_DOWNLOADS = 5
-
 
 class ConcurrentPipeline:
     def __init__(
         self,
-        max_downloads: int = MAX_CONCURRENT_DOWNLOADS,
+        max_downloads: int = 5,
         retries: int = 1,
         compress_level: int = 5,
     ) -> None:
