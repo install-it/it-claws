@@ -27,6 +27,7 @@ class ConcurrentPipeline:
     ) -> None:
         self._semaphore = asyncio.Semaphore(max_downloads)
         self._driver_lock = asyncio.Lock()
+        self._driver: webdriver.Firefox | None = None
         self._results: list[tuple[DownloadJob, bool, str]] = []
         self._retries = retries
         self._compress_level = compress_level
@@ -41,20 +42,13 @@ class ConcurrentPipeline:
     ) -> list[tuple[DownloadJob, bool, str]]:
         output_root.mkdir(parents=True, exist_ok=True)
 
-        needs_driver = any(
-            j.target.resolver_type == "dynamic" or j.target.include_cookies is not None
-            for j in jobs
-        )
-        driver = None
-        if needs_driver:
-            driver = await asyncio.to_thread(self._create_driver, user_agent)
+        self._user_agent = user_agent
 
         try:
-            tasks = [self._process_job(job, driver, i, user_agent) for i, job in enumerate(jobs)]
+            tasks = [self._process_job(job, i) for i, job in enumerate(jobs)]
             await asyncio.gather(*tasks, return_exceptions=True)
         finally:
-            if driver:
-                await asyncio.to_thread(driver.quit)
+            self._destroy_driver()
 
         cleanup_empty_directories(output_root)
 
@@ -80,16 +74,16 @@ class ConcurrentPipeline:
     async def _process_job(
         self,
         job: DownloadJob,
-        driver: webdriver.Firefox | None,
         position: int = 0,
-        user_agent: str | None = None,
     ) -> None:
         try:
             job.destination_directory.mkdir(parents=True, exist_ok=True)
             async with httpx.AsyncClient(
                 follow_redirects=True,
                 timeout=120.0,
-                headers={"User-Agent": user_agent} if job.target.random_ua and user_agent else None,
+                headers={"User-Agent": self._user_agent}
+                if job.target.random_ua and self._user_agent
+                else None,
             ) as client:
                 if job.target.include_cookies is None:
                     if job.target.resolver_type == "static":
@@ -98,8 +92,7 @@ class ConcurrentPipeline:
                             **job.target.resolver_kwargs,
                         )
                     elif job.target.resolver_type == "dynamic":
-                        if driver is None:
-                            raise RuntimeError("Dynamic resolver requested but no driver available")
+                        driver = await self._ensure_driver()
                         async with self._driver_lock:
                             download_url = await asyncio.to_thread(
                                 job.target.resolver,
@@ -116,10 +109,7 @@ class ConcurrentPipeline:
                 for attempt in range(self._retries + 1):
                     try:
                         if job.target.include_cookies is not None:
-                            if driver is None:
-                                raise RuntimeError(
-                                    "Cookie resolution requested but no driver available"
-                                )
+                            driver = await self._ensure_driver()
                             async with self._driver_lock:
                                 download_url = await asyncio.to_thread(
                                     job.target.resolver,
@@ -195,6 +185,20 @@ class ConcurrentPipeline:
             error_msg = f"Failed {job.target.name}: {exc}"
             tqdm.write(error_msg)
             self._results.append((job, False, error_msg))
+
+    async def _ensure_driver(self) -> webdriver.Firefox:
+        if self._driver is not None:
+            return self._driver
+        async with self._driver_lock:
+            if self._driver is not None:
+                return self._driver
+            self._driver = await asyncio.to_thread(self._create_driver, self._user_agent)
+        return self._driver
+
+    def _destroy_driver(self) -> None:
+        if self._driver:
+            self._driver.quit()
+            self._driver = None
 
     @staticmethod
     def _create_driver(user_agent: str | None = None) -> webdriver.Firefox:
