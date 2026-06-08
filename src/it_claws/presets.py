@@ -5,6 +5,7 @@ from .scrapers import (
     resolve_intel_dynamic,
     resolve_msi_dynamic,
     resolve_nvidia_grd,
+    resolve_sourceforge_static,
     resolve_static_download,
 )
 
@@ -203,11 +204,8 @@ UTILITY_CATALOG: list[ScrapeTarget] = [
     ScrapeTarget(
         name="CrystalDiskInfo",
         resolver_type="static",
-        resolver=resolve_static_download,
-        resolver_kwargs={
-            "url": "https://sourceforge.net/projects/crystaldiskinfo/files/",
-            "selector": 'a[title*="Download Latest Version"]',
-        },
+        resolver=resolve_sourceforge_static,
+        resolver_kwargs={"project_name": "crystaldiskinfo"},
         file_type="zip/exe",
         default_folder="tool",
         random_ua=False,
@@ -215,11 +213,8 @@ UTILITY_CATALOG: list[ScrapeTarget] = [
     ScrapeTarget(
         name="CrystalDiskMark",
         resolver_type="static",
-        resolver=resolve_static_download,
-        resolver_kwargs={
-            "url": "https://sourceforge.net/projects/crystalmarkretro/files/",
-            "selector": 'a[title*="Download Latest Version"]',
-        },
+        resolver=resolve_sourceforge_static,
+        resolver_kwargs={"project_name": "crystalmarkretro"},
         file_type="zip/exe",
         default_folder="tool",
         random_ua=False,
@@ -238,11 +233,8 @@ UTILITY_CATALOG: list[ScrapeTarget] = [
     ScrapeTarget(
         name="HWInfo",
         resolver_type="static",
-        resolver=resolve_static_download,
-        resolver_kwargs={
-            "url": "https://sourceforge.net/projects/hwinfo/files/",
-            "selector": 'a[title*="Download Latest Version"]',
-        },
+        resolver=resolve_sourceforge_static,
+        resolver_kwargs={"project_name": "hwinfo"},
         file_type="zip/exe",
         default_folder="tool",
         random_ua=False,
@@ -326,11 +318,8 @@ SOFTWARE_CATALOG: list[ScrapeTarget] = [
     ScrapeTarget(
         name="7-Zip",
         resolver_type="static",
-        resolver=resolve_static_download,
-        resolver_kwargs={
-            "url": "https://sourceforge.net/projects/sevenzip/files/",
-            "selector": 'a[title*="Download Latest Version"]',
-        },
+        resolver=resolve_sourceforge_static,
+        resolver_kwargs={"project_name": "sevenzip"},
         file_type="exe",
         rename_as="7zip_Setup",
         default_folder="software",

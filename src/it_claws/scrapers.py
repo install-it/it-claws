@@ -88,6 +88,22 @@ def resolve_msi_dynamic(
         return None
 
 
+async def resolve_sourceforge_static(
+    client: httpx.AsyncClient,
+    project_name: str,
+) -> str | None:
+    response = await client.get(
+        f"https://sourceforge.net/projects/{project_name}/files/",
+    )
+    response.raise_for_status()
+    tree = lh.fromstring(response.text)
+    el = tree.xpath('//a[contains(., "Download Latest Version")]')
+    if not el:
+        return None
+    version = el[0].get("title", "").split(":")[0]
+    return f"https://download.sourceforge.net/{project_name}{version}"
+
+
 async def resolve_furmark_static(
     client: httpx.AsyncClient, url: str, variant: str = "win64"
 ) -> str | None:
