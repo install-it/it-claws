@@ -15,6 +15,7 @@ class ScrapeTarget:
     request_headers: dict[str, str] | None = None
     rename_as: str | None = None
     default_folder: str | None = None
+    random_ua: bool = True
 
 
 @dataclass

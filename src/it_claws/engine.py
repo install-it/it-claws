@@ -4,7 +4,8 @@ from pathlib import Path
 
 import httpx
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from tqdm import tqdm
 
 from .models import DownloadJob
@@ -49,12 +50,8 @@ class ConcurrentPipeline:
             driver = await asyncio.to_thread(self._create_driver, user_agent)
 
         try:
-            async with httpx.AsyncClient(
-                follow_redirects=True, timeout=120.0,
-                headers={"User-Agent": user_agent} if user_agent else None,
-            ) as client:
-                tasks = [self._process_job(job, client, driver, i) for i, job in enumerate(jobs)]
-                await asyncio.gather(*tasks, return_exceptions=True)
+            tasks = [self._process_job(job, driver, i, user_agent) for i, job in enumerate(jobs)]
+            await asyncio.gather(*tasks, return_exceptions=True)
         finally:
             if driver:
                 await asyncio.to_thread(driver.quit)
@@ -83,94 +80,116 @@ class ConcurrentPipeline:
     async def _process_job(
         self,
         job: DownloadJob,
-        client: httpx.AsyncClient,
-        driver: webdriver.Chrome | None,
+        driver: webdriver.Firefox | None,
         position: int = 0,
+        user_agent: str | None = None,
     ) -> None:
         try:
             job.destination_directory.mkdir(parents=True, exist_ok=True)
-
-            if job.target.include_cookies is None:
-                if job.target.resolver_type == "static":
-                    download_url = await job.target.resolver(
-                        client, **job.target.resolver_kwargs,
-                    )
-                elif job.target.resolver_type == "dynamic":
-                    if driver is None:
-                        raise RuntimeError("Dynamic resolver requested but no driver available")
-                    async with self._driver_lock:
-                        download_url = await asyncio.to_thread(
-                            job.target.resolver, driver, **job.target.resolver_kwargs,
+            async with httpx.AsyncClient(
+                follow_redirects=True,
+                timeout=120.0,
+                headers={"User-Agent": user_agent} if job.target.random_ua and user_agent else None,
+            ) as client:
+                if job.target.include_cookies is None:
+                    if job.target.resolver_type == "static":
+                        download_url = await job.target.resolver(
+                            client,
+                            **job.target.resolver_kwargs,
                         )
-                if not download_url:
-                    raise RuntimeError(f"Failed to resolve download URL for {job.target.name}")
-            else:
-                download_url = None
-
-            headers = job.target.request_headers
-
-            for attempt in range(self._retries + 1):
-                try:
-                    if job.target.include_cookies is not None:
+                    elif job.target.resolver_type == "dynamic":
                         if driver is None:
-                            raise RuntimeError(
-                                "Cookie resolution requested but no driver available"
-                            )
+                            raise RuntimeError("Dynamic resolver requested but no driver available")
                         async with self._driver_lock:
                             download_url = await asyncio.to_thread(
-                                job.target.resolver, driver, **job.target.resolver_kwargs,
+                                job.target.resolver,
+                                driver,
+                                **job.target.resolver_kwargs,
                             )
-                            if not download_url:
-                                raise RuntimeError(
-                                    f"Failed to resolve download URL for {job.target.name}"
-                                )
-                            cookies = await asyncio.to_thread(
-                                resolve_cookies, driver, download_url, job.target.include_cookies,
-                            )
-
                     if not download_url:
-                        raise RuntimeError(
-                            f"Failed to resolve download URL for {job.target.name}"
+                        raise RuntimeError(f"Failed to resolve download URL for {job.target.name}")
+                else:
+                    download_url = None
+
+                headers = job.target.request_headers
+
+                for attempt in range(self._retries + 1):
+                    try:
+                        if job.target.include_cookies is not None:
+                            if driver is None:
+                                raise RuntimeError(
+                                    "Cookie resolution requested but no driver available"
+                                )
+                            async with self._driver_lock:
+                                download_url = await asyncio.to_thread(
+                                    job.target.resolver,
+                                    driver,
+                                    **job.target.resolver_kwargs,
+                                )
+                                if not download_url:
+                                    raise RuntimeError(
+                                        f"Failed to resolve download URL for {job.target.name}"
+                                    )
+                                cookies = await asyncio.to_thread(
+                                    resolve_cookies,
+                                    driver,
+                                    download_url,
+                                    job.target.include_cookies,
+                                )
+
+                        if not download_url:
+                            raise RuntimeError(
+                                f"Failed to resolve download URL for {job.target.name}"
+                            )
+
+                        if job.target.file_type == "exe":
+                            name = job.target.rename_as or download_url.split("/")[-1].split("?")[0]
+                            if not name.lower().endswith(".exe") and "." not in name:
+                                name += ".exe"
+                            dest = job.destination_directory / name
+                        elif job.target.file_type in ("zip", "zip/exe", "zip/folder", "sfx"):
+                            fname = download_url.split("/")[-1].split("?")[0]
+                            dest = job.destination_directory / fname
+                        else:
+                            raise RuntimeError(f"Unsupported file type: {job.target.file_type}")
+
+                        dl_cookies = cookies if job.target.include_cookies is not None else None
+                        await download_file(
+                            client,
+                            download_url,
+                            dest,
+                            self._semaphore,
+                            position=position,
+                            headers=headers,
+                            cookies=dl_cookies,
                         )
 
-                    if job.target.file_type == "exe":
-                        name = job.target.rename_as or download_url.split("/")[-1].split("?")[0]
-                        if not name.lower().endswith(".exe") and "." not in name:
-                            name += ".exe"
-                        dest = job.destination_directory / name
-                    elif job.target.file_type in ("zip", "zip/exe", "zip/folder", "sfx"):
-                        dest = job.destination_directory / download_url.split("/")[-1].split("?")[0]
-                    else:
-                        raise RuntimeError(f"Unsupported file type: {job.target.file_type}")
+                        if job.target.file_type in ("zip", "zip/exe", "zip/folder"):
+                            await asyncio.to_thread(
+                                extract_installer_from_zip,
+                                dest,
+                                job.destination_directory,
+                                job.target.file_type,
+                                job.target.rename_as,
+                            )
+                        elif job.target.file_type == "sfx":
+                            await asyncio.to_thread(
+                                extract_sfx,
+                                dest,
+                                job.destination_directory,
+                                job.target.rename_as,
+                            )
 
-                    dl_cookies = cookies if job.target.include_cookies is not None else None
-                    await download_file(
-                        client, download_url, dest, self._semaphore,
-                        position=position, headers=headers, cookies=dl_cookies,
-                    )
+                        break
+                    except Exception:
+                        if attempt < self._retries:
+                            tqdm.write(f"Retry {attempt + 1}/{self._retries} for {job.target.name}")
+                            await asyncio.sleep(5)
+                        else:
+                            raise
 
-                    if job.target.file_type in ("zip", "zip/exe", "zip/folder"):
-                        await asyncio.to_thread(
-                            extract_installer_from_zip,
-                            dest, job.destination_directory,
-                            job.target.file_type, job.target.rename_as,
-                        )
-                    elif job.target.file_type == "sfx":
-                        await asyncio.to_thread(
-                            extract_sfx,
-                            dest, job.destination_directory, job.target.rename_as,
-                        )
-
-                    break
-                except Exception:
-                    if attempt < self._retries:
-                        tqdm.write(f"Retry {attempt + 1}/{self._retries} for {job.target.name}")
-                        await asyncio.sleep(5)
-                    else:
-                        raise
-
-            self._results.append((job, True, f"Successfully downloaded {job.target.name}"))
-            tqdm.write(f"Completed {job.target.name}")
+                self._results.append((job, True, f"Successfully downloaded {job.target.name}"))
+                tqdm.write(f"Completed {job.target.name}")
 
         except Exception as exc:
             error_msg = f"Failed {job.target.name}: {exc}"
@@ -178,11 +197,11 @@ class ConcurrentPipeline:
             self._results.append((job, False, error_msg))
 
     @staticmethod
-    def _create_driver(user_agent: str | None = None) -> webdriver.Chrome:
-        options = ChromeOptions()
-        options.add_argument("--headless=new")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
+    def _create_driver(user_agent: str | None = None) -> webdriver.Firefox:
+        options = FirefoxOptions()
+        options.add_argument("--headless")
         if user_agent:
-            options.add_argument(f"user-agent={user_agent}")
-        return webdriver.Chrome(options=options)
+            profile = FirefoxProfile()
+            profile.set_preference("general.useragent.override", user_agent)
+            options.profile = profile
+        return webdriver.Firefox(options=options)

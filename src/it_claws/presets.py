@@ -210,6 +210,7 @@ UTILITY_CATALOG: list[ScrapeTarget] = [
         },
         file_type="zip/exe",
         default_folder="tool",
+        random_ua=False,
     ),
     ScrapeTarget(
         name="CrystalDiskMark",
@@ -221,6 +222,7 @@ UTILITY_CATALOG: list[ScrapeTarget] = [
         },
         file_type="zip/exe",
         default_folder="tool",
+        random_ua=False,
     ),
     ScrapeTarget(
         name="FurMark",
@@ -243,6 +245,7 @@ UTILITY_CATALOG: list[ScrapeTarget] = [
         },
         file_type="zip/exe",
         default_folder="tool",
+        random_ua=False,
     ),
     ScrapeTarget(
         name="OCCT",
@@ -331,6 +334,7 @@ SOFTWARE_CATALOG: list[ScrapeTarget] = [
         file_type="exe",
         rename_as="7zip_Setup",
         default_folder="software",
+        random_ua=False,
     ),
     ScrapeTarget(
         name="iTunes",
