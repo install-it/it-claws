@@ -2,7 +2,7 @@ from .models import ScrapeTarget
 from .scrapers import (
     resolve_direct_url,
     resolve_furmark_static,
-    resolve_intel_dynamic,
+    resolve_intel_static,
     resolve_msi_dynamic,
     resolve_nvidia_grd,
     resolve_sourceforge_static,
@@ -24,35 +24,32 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
     ),
     ScrapeTarget(
         name="Intel 7th-10th Gen Processor Graphics",
-        resolver_type="dynamic",
-        resolver=resolve_intel_dynamic,
+        resolver_type="static",
+        resolver=resolve_intel_static,
         resolver_kwargs={
             "url": "https://www.intel.com/content/www/us/en/download/776137/intel-7th-10th-gen-processor-graphics-windows.html"
         },
         file_type="exe",
-        include_cookies=["aws-waf-token"],
         default_folder="display",
     ),
     ScrapeTarget(
         name="Intel 11th-14th Gen Processor Graphics",
-        resolver_type="dynamic",
-        resolver=resolve_intel_dynamic,
+        resolver_type="static",
+        resolver=resolve_intel_static,
         resolver_kwargs={
             "url": "https://www.intel.com/content/www/us/en/download/864990/intel-11th-14th-gen-processor-graphics-windows.html"
         },
         file_type="exe",
-        include_cookies=["aws-waf-token"],
         default_folder="display",
     ),
     ScrapeTarget(
         name="Intel Arc & Iris Xe Graphics",
-        resolver_type="dynamic",
-        resolver=resolve_intel_dynamic,
+        resolver_type="static",
+        resolver=resolve_intel_static,
         resolver_kwargs={
             "url": "https://www.intel.com/content/www/us/en/download/785597/intel-arc-iris-xe-graphics-windows.html"
         },
         file_type="exe",
-        include_cookies=["aws-waf-token"],
         default_folder="display",
     ),
     ScrapeTarget(
@@ -78,36 +75,33 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
     ),
     ScrapeTarget(
         name="Intel Chipset INF Utility",
-        resolver_type="dynamic",
-        resolver=resolve_intel_dynamic,
+        resolver_type="static",
+        resolver=resolve_intel_static,
         resolver_kwargs={
             "url": "https://www.intel.com/content/www/us/en/download/19347/chipset-inf-utility.html"
         },
         file_type="exe",
-        include_cookies=["aws-waf-token"],
         default_folder="miscellaneous",
     ),
     ScrapeTarget(
         name="Intel Wireless Wi-Fi",
-        resolver_type="dynamic",
-        resolver=resolve_intel_dynamic,
+        resolver_type="static",
+        resolver=resolve_intel_static,
         resolver_kwargs={
             "url": "https://www.intel.com/content/www/us/en/download/19351/intel-wireless-wi-fi-drivers-for-windows-10-and-windows-11.html"
         },
         file_type="exe",
-        include_cookies=["aws-waf-token"],
         rename_as="WiFi-Driver64-Win10-Win11",
         default_folder="miscellaneous",
     ),
     ScrapeTarget(
         name="Intel Wireless Bluetooth",
-        resolver_type="dynamic",
-        resolver=resolve_intel_dynamic,
+        resolver_type="static",
+        resolver=resolve_intel_static,
         resolver_kwargs={
             "url": "https://www.intel.com/content/www/us/en/download/18649/intel-wireless-bluetooth-drivers-for-windows-10-and-windows-11.html"
         },
         file_type="exe",
-        include_cookies=["aws-waf-token"],
         rename_as="BT-UWD-Win10-Win11",
         default_folder="miscellaneous",
     ),
@@ -177,13 +171,12 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
     ),
     ScrapeTarget(
         name="Intel Ethernet Complete Driver Pack",
-        resolver_type="dynamic",
-        resolver=resolve_intel_dynamic,
+        resolver_type="static",
+        resolver=resolve_intel_static,
         resolver_kwargs={
             "url": "https://www.intel.com/content/www/us/en/download/15084/intel-ethernet-adapter-complete-driver-pack.html"
         },
         file_type="zip",
-        include_cookies=["aws-waf-token"],
         default_folder="network",
     ),
     ScrapeTarget(

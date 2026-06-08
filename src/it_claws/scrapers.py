@@ -43,14 +43,18 @@ async def resolve_static_download(
     return urljoin(url, link)
 
 
-def resolve_intel_dynamic(driver: WebDriver, url: str) -> str | None:
-    driver.get(url)
-    try:
-        return driver.find_element(
-            By.CSS_SELECTOR, "button.dc-page-available-downloads-hero-button__cta"
-        ).get_attribute("data-href")
-    except Exception:
+async def resolve_intel_static(
+    client: httpx.AsyncClient,
+    url: str,
+    **_: Any,
+) -> str | None:
+    response = await client.get(url)
+    response.raise_for_status()
+    tree = lh.fromstring(response.text)
+    node = tree.xpath('//meta[@name="RecommendedDownloadUrl"]')
+    if not node:
         return None
+    return node[0].get("content")
 
 
 def resolve_nvidia_grd(driver: WebDriver, url: str) -> str | None:
