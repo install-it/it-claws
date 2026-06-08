@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 
 import httpx
+from fake_useragent import UserAgent
 from selenium import webdriver
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
@@ -37,12 +38,10 @@ class ConcurrentPipeline:
         jobs: list[DownloadJob],
         output_root: Path,
         archive_path: Path | None = None,
-        *,
-        user_agent: str | None = None,
     ) -> list[tuple[DownloadJob, bool, str]]:
         output_root.mkdir(parents=True, exist_ok=True)
 
-        self._user_agent = user_agent
+        self._user_agent = UserAgent().firefox
 
         try:
             tasks = [self._process_job(job, i) for i, job in enumerate(jobs)]
@@ -192,7 +191,7 @@ class ConcurrentPipeline:
         async with self._driver_lock:
             if self._driver is not None:
                 return self._driver
-            self._driver = await asyncio.to_thread(self._create_driver, self._user_agent)
+            self._driver = await asyncio.to_thread(self._create_driver)
         return self._driver
 
     def _destroy_driver(self) -> None:
@@ -200,12 +199,11 @@ class ConcurrentPipeline:
             self._driver.quit()
             self._driver = None
 
-    @staticmethod
-    def _create_driver(user_agent: str | None = None) -> webdriver.Firefox:
+    def _create_driver(self) -> webdriver.Firefox:
         options = FirefoxOptions()
         options.add_argument("--headless")
-        if user_agent:
+        if self._user_agent:
             profile = FirefoxProfile()
-            profile.set_preference("general.useragent.override", user_agent)
+            profile.set_preference("general.useragent.override", self._user_agent)
             options.profile = profile
         return webdriver.Firefox(options=options)
