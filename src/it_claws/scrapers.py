@@ -1,4 +1,3 @@
-import asyncio
 import shutil
 import subprocess
 import sys
@@ -16,19 +15,19 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from tqdm import tqdm
 
 
-async def resolve_direct_url(client: Any, url: str, **_: Any) -> str:
+def resolve_direct_url(_client: Any, url: str, **_: Any) -> str:
     return url
 
 
-async def resolve_static_download(
-    client: httpx.AsyncClient,
+def resolve_static_download(
+    client: httpx.Client,
     url: str,
     selector: str,
     attribute: str = "href",
     selector_type: str = "css",
     **_: Any,
 ) -> str | None:
-    response = await client.get(url)
+    response = client.get(url)
     response.raise_for_status()
     tree = lh.fromstring(response.text)
     if selector_type == "xpath":
@@ -43,12 +42,12 @@ async def resolve_static_download(
     return urljoin(url, link)
 
 
-async def resolve_intel_static(
-    client: httpx.AsyncClient,
+def resolve_intel_static(
+    client: httpx.Client,
     url: str,
     **_: Any,
 ) -> str | None:
-    response = await client.get(url)
+    response = client.get(url)
     response.raise_for_status()
     tree = lh.fromstring(response.text)
     node = tree.xpath('//meta[@name="RecommendedDownloadUrl"]')
@@ -92,11 +91,11 @@ def resolve_msi_dynamic(
         return None
 
 
-async def resolve_sourceforge_static(
-    client: httpx.AsyncClient,
+def resolve_sourceforge_static(
+    client: httpx.Client,
     project_name: str,
 ) -> str | None:
-    response = await client.get(
+    response = client.get(
         f"https://sourceforge.net/projects/{project_name}/files/",
     )
     response.raise_for_status()
@@ -108,10 +107,10 @@ async def resolve_sourceforge_static(
     return f"https://download.sourceforge.net/{project_name}{version}"
 
 
-async def resolve_furmark_static(
-    client: httpx.AsyncClient, url: str, variant: str = "win64"
+def resolve_furmark_static(
+    client: httpx.Client, url: str, variant: str = "win64"
 ) -> str | None:
-    response = await client.get(url)
+    response = client.get(url)
     response.raise_for_status()
     tree = lh.fromstring(response.text)
     xpath = f'//a[contains(., "{variant} - (ZIP)") or contains(., "{variant} - (7ZIP)")]'
@@ -139,36 +138,32 @@ def resolve_cookies(
     raise RuntimeError(f"Required cookies {required_cookies} not set within {timeout}s for {url}")
 
 
-async def download_file(
-    client: httpx.AsyncClient,
+def download_file(
+    client: httpx.Client,
     url: str,
     destination: Path,
-    semaphore: asyncio.Semaphore | None = None,
     *,
-    position: int = 0,
     headers: dict[str, str] | None = None,
     cookies: dict[str, str] | None = None,
 ) -> Path:
-    async with semaphore or asyncio.nullcontext():
-        async with client.stream("GET", url, headers=headers, cookies=cookies) as response:
-            response.raise_for_status()
-            if "text/html" in response.headers.get("content-type", ""):
-                raise RuntimeError(f"Expected binary stream but received HTML from {url}")
-            total = int(response.headers.get("content-length", 0))
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            with open(destination, "wb") as f:
-                with tqdm(
-                    total=total,
-                    unit="B",
-                    unit_scale=True,
-                    desc=destination.name,
-                    position=position,
-                    leave=False,
-                    disable=not sys.stderr.isatty(),
-                ) as pbar:
-                    async for chunk in response.aiter_bytes():
-                        f.write(chunk)
-                        pbar.update(len(chunk))
+    with client.stream("GET", url, headers=headers, cookies=cookies) as response:
+        response.raise_for_status()
+        if "text/html" in response.headers.get("content-type", ""):
+            raise RuntimeError(f"Expected binary stream but received HTML from {url}")
+        total = int(response.headers.get("content-length", 0))
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        with open(destination, "wb") as f:
+            with tqdm(
+                total=total,
+                unit="B",
+                unit_scale=True,
+                desc=destination.name,
+                leave=False,
+                disable=not sys.stderr.isatty(),
+            ) as pbar:
+                for chunk in response.iter_bytes():
+                    f.write(chunk)
+                    pbar.update(len(chunk))
     return destination
 
 

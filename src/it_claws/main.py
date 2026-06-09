@@ -1,5 +1,4 @@
 import argparse
-import asyncio
 import sys
 from pathlib import Path
 
@@ -16,7 +15,9 @@ def build_parser() -> argparse.ArgumentParser:
     dl = parser.add_argument_group("Download Options")
     dl.add_argument("-o", "--output", type=Path, default=Path.cwd() / "downloads")
     dl.add_argument("-f", "--folder", type=str, default=None)
-    dl.add_argument("--max-concurrent", type=int, default=5)
+    dl.add_argument(
+        "--max-concurrent", type=int, default=1, help="Max concurrent downloads (default: 1)"
+    )
 
     tg = parser.add_argument_group("Target Options")
     mexcl = tg.add_mutually_exclusive_group()
@@ -31,7 +32,12 @@ def build_parser() -> argparse.ArgumentParser:
     tg.add_argument("-i", "--interactive", action="store_true")
 
     ra = parser.add_argument_group("Resilience & Archiving Options")
-    ra.add_argument("--retries", type=int, default=1)
+    ra.add_argument(
+        "--retries",
+        type=int,
+        default=1,
+        help="Full re-scrape passes for failed entries (0 = run once, no retry)",
+    )
     ra.add_argument("-a", "--archive-path", type=Path, default=None)
     ra.add_argument("-l", "--compress-level", type=int, choices=range(10), default=5)
 
@@ -124,7 +130,7 @@ def resolve_selected_targets(
     return ALL_TARGETS
 
 
-async def run_pipeline(
+def run_pipeline(
     targets: list[ScrapeTarget],
     output_root: Path,
     custom_folder: str | None,
@@ -136,7 +142,7 @@ async def run_pipeline(
     jobs = [
         DownloadJob(target=t, output_root=output_root, custom_folder=custom_folder) for t in targets
     ]
-    return await ConcurrentPipeline(
+    return ConcurrentPipeline(
         max_downloads=max_concurrent, retries=retries, compress_level=compress_level
     ).run(jobs, output_root, archive_path)
 
@@ -150,16 +156,14 @@ def run() -> None:
         print("No valid targets to process", file=sys.stderr)
         sys.exit(1)
 
-    results = asyncio.run(
-        run_pipeline(
-            targets=targets,
-            output_root=args.output,
-            custom_folder=args.folder,
-            max_concurrent=args.max_concurrent,
-            retries=args.retries,
-            archive_path=args.archive_path,
-            compress_level=args.compress_level,
-        )
+    results = run_pipeline(
+        targets=targets,
+        output_root=args.output,
+        custom_folder=args.folder,
+        max_concurrent=args.max_concurrent,
+        retries=args.retries,
+        archive_path=args.archive_path,
+        compress_level=args.compress_level,
     )
 
     failed = [msg for _, success, msg in results if not success]
