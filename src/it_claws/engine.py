@@ -1,4 +1,5 @@
 import asyncio
+import os
 import subprocess
 from pathlib import Path
 
@@ -84,52 +85,36 @@ class ConcurrentPipeline:
                 if job.target.random_ua and self._user_agent
                 else None,
             ) as client:
-                if job.target.include_cookies is None:
-                    if job.target.resolver_type == "static":
-                        download_url = await job.target.resolver(
-                            client,
+                if job.target.resolver_type == "static":
+                    download_url = await job.target.resolver(
+                        client,
+                        **job.target.resolver_kwargs,
+                    )
+                elif job.target.resolver_type == "dynamic":
+                    driver = await self._ensure_driver()
+                    async with self._driver_lock:
+                        download_url = await asyncio.to_thread(
+                            job.target.resolver,
+                            driver,
                             **job.target.resolver_kwargs,
                         )
-                    elif job.target.resolver_type == "dynamic":
-                        driver = await self._ensure_driver()
-                        async with self._driver_lock:
-                            download_url = await asyncio.to_thread(
-                                job.target.resolver,
-                                driver,
-                                **job.target.resolver_kwargs,
-                            )
-                    if not download_url:
-                        raise RuntimeError(f"Failed to resolve download URL for {job.target.name}")
-                else:
-                    download_url = None
+                if not download_url:
+                    raise RuntimeError(f"Failed to resolve download URL for {job.target.name}")
 
                 headers = job.target.request_headers
 
                 for attempt in range(self._retries + 1):
                     try:
+                        cookies = None
                         if job.target.include_cookies is not None:
                             driver = await self._ensure_driver()
                             async with self._driver_lock:
-                                download_url = await asyncio.to_thread(
-                                    job.target.resolver,
-                                    driver,
-                                    **job.target.resolver_kwargs,
-                                )
-                                if not download_url:
-                                    raise RuntimeError(
-                                        f"Failed to resolve download URL for {job.target.name}"
-                                    )
                                 cookies = await asyncio.to_thread(
                                     resolve_cookies,
                                     driver,
                                     download_url,
                                     job.target.include_cookies,
                                 )
-
-                        if not download_url:
-                            raise RuntimeError(
-                                f"Failed to resolve download URL for {job.target.name}"
-                            )
 
                         if job.target.file_type == "exe":
                             name = job.target.rename_as or download_url.split("/")[-1].split("?")[0]
@@ -142,7 +127,6 @@ class ConcurrentPipeline:
                         else:
                             raise RuntimeError(f"Unsupported file type: {job.target.file_type}")
 
-                        dl_cookies = cookies if job.target.include_cookies is not None else None
                         await download_file(
                             client,
                             download_url,
@@ -150,7 +134,7 @@ class ConcurrentPipeline:
                             self._semaphore,
                             position=position,
                             headers=headers,
-                            cookies=dl_cookies,
+                            cookies=cookies,
                         )
 
                         if job.target.file_type in ("zip", "zip/exe", "zip/folder"):
@@ -202,8 +186,14 @@ class ConcurrentPipeline:
     def _create_driver(self) -> webdriver.Firefox:
         options = FirefoxOptions()
         options.add_argument("--headless")
+
+        profile = FirefoxProfile()
+        profile.set_preference("browser.download.folderList", 2)
+        profile.set_preference("browser.download.dir", os.devnull)
+        profile.set_preference("browser.download.manager.showWhenStarting", False)
+        profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "")
+
         if self._user_agent:
-            profile = FirefoxProfile()
             profile.set_preference("general.useragent.override", self._user_agent)
-            options.profile = profile
+        options.profile = profile
         return webdriver.Firefox(options=options)

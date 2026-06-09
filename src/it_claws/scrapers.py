@@ -128,7 +128,7 @@ async def resolve_furmark_static(
 def resolve_cookies(
     driver: WebDriver, url: str, required_cookies: list[str], timeout: int = 10
 ) -> dict[str, str]:
-    driver.execute_cdp_cmd("Browser.setDownloadBehavior", {"behavior": "deny"})
+    driver.delete_all_cookies()
     driver.get(url)
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
