@@ -41,14 +41,6 @@ def build_parser() -> argparse.ArgumentParser:
     ra.add_argument("-a", "--archive-path", type=Path, default=None)
     ra.add_argument("-l", "--compress-level", type=int, choices=range(10), default=5)
 
-    br = parser.add_argument_group("Browser Options")
-    br.add_argument(
-        "--browser",
-        choices=["firefox", "chrome"],
-        default="firefox",
-        help="WebDriver to use for dynamic scraping (default: firefox)",
-    )
-
     parser.add_argument("-v", "--verbose", action="store_true")
     return parser
 
@@ -146,7 +138,6 @@ def run_pipeline(
     retries: int,
     archive_path: Path | None,
     compress_level: int,
-    browser: str = "firefox",
 ) -> list[tuple[DownloadJob, bool, str]]:
     jobs = [
         DownloadJob(target=t, output_root=output_root, custom_folder=custom_folder) for t in targets
@@ -155,7 +146,6 @@ def run_pipeline(
         max_downloads=max_concurrent,
         retries=retries,
         compress_level=compress_level,
-        browser=browser,
     ).run(jobs, output_root, archive_path)
 
 
@@ -176,7 +166,6 @@ def run() -> None:
         retries=args.retries,
         archive_path=args.archive_path,
         compress_level=args.compress_level,
-        browser=args.browser,
     )
 
     failed = [msg for _, success, msg in results if not success]
