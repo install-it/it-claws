@@ -177,6 +177,7 @@ class ConcurrentPipeline:
         headers: dict[str, str] | None,
         cookies: dict[str, str] | None,
     ) -> None:
+        return
         with httpx.Client(
             follow_redirects=True,
             timeout=120.0,
@@ -210,7 +211,7 @@ class ConcurrentPipeline:
     def _create_driver(self) -> WebDriver:
         if self._browser == "chrome":
             options = ChromeOptions()
-            options.add_argument("--headless")
+            # options.add_argument("--headless")
             options.add_experimental_option(
                 "prefs",
                 {

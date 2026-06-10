@@ -154,7 +154,7 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
         resolver_type="dynamic",
         resolver=resolve_msi_dynamic,
         resolver_kwargs={
-            "url": "https://hk.msi.com/Motherboard/MAG-X870-TOMAHAWK-WIFI/support#driver",
+            "url": "https://msi.com/Motherboard/MAG-X870-TOMAHAWK-WIFI/support#driver",
             "driver_type": "On-Board Audio Drivers",
             "driver_name": "Realtek HD Universal Driver",
         },
@@ -198,7 +198,7 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
         resolver_type="dynamic",
         resolver=resolve_msi_dynamic,
         resolver_kwargs={
-            "url": "https://hk.msi.com/Motherboard/MAG-X870-TOMAHAWK-WIFI/support#driver",
+            "url": "https://msi.com/Motherboard/MAG-X870-TOMAHAWK-WIFI/support#driver",
             "driver_type": "LAN Drivers",
             "driver_name": "Realtek PCI-E Ethernet Drivers",
         },

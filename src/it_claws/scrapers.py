@@ -12,6 +12,8 @@ import httpx
 import lxml.html as lh
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 from tqdm import tqdm
 
 
@@ -74,19 +76,25 @@ def resolve_msi_dynamic(
     driver: WebDriver, url: str, driver_type: str, driver_name: str
 ) -> str | None:
     driver.get(url)
+    wait = WebDriverWait(driver, 3)
+
     try:
-        time.sleep(1)
-        driver.execute_script("window.scrollTo({ top: document.body.scrollHeight / 3 })")
-        time.sleep(1)
+        wait.until(EC.element_to_be_clickable((By.ID, "ccc-notify-dismiss"))).click()
     except Exception:
         pass
+
+    xpath = f'//div[@class="card card--web"][.//text()[contains(., "{driver_name}")]]//a'
     try:
-        driver.find_element(
-            By.XPATH, f'//div[@class="badges"]//button[text()="{driver_type}"]'
+        wait.until(
+            EC.element_to_be_clickable(
+                (
+                    By.XPATH,
+                    f'//div[@class="badges"]//button[text()="{driver_type}"]',
+                )
+            )
         ).click()
-        time.sleep(0.5)
-        xpath = f'//div[@class="card card--web"][.//text()[contains(., "{driver_name}")]]//a'
-        return driver.find_element(By.XPATH, xpath).get_attribute("href")
+
+        return wait.until(EC.presence_of_element_located((By.XPATH, xpath))).get_attribute("href")
     except Exception:
         return None
 
@@ -107,9 +115,7 @@ def resolve_sourceforge_static(
     return f"https://download.sourceforge.net/{project_name}{version}"
 
 
-def resolve_furmark_static(
-    client: httpx.Client, url: str, variant: str = "win64"
-) -> str | None:
+def resolve_furmark_static(client: httpx.Client, url: str, variant: str = "win64") -> str | None:
     response = client.get(url)
     response.raise_for_status()
     tree = lh.fromstring(response.text)
