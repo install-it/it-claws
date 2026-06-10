@@ -2,6 +2,7 @@ from .models import ScrapeTarget
 from .scrapers import (
     resolve_direct_url,
     resolve_furmark_static,
+    resolve_gigabyte_dynamic,
     resolve_intel_static,
     resolve_msi_dynamic,
     resolve_nvidia_grd,
@@ -119,15 +120,14 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
     ),
     ScrapeTarget(
         name="MediaTek MT7961_79X2 Bluetooth",
-        resolver_type="static",
-        resolver=resolve_static_download,
+        resolver_type="dynamic",
+        resolver=resolve_gigabyte_dynamic,
         resolver_kwargs={
-            "url": "https://www.gigabyte.com/hk/Motherboard/B850M-FORCE-WIFI6E-rev-10/support",
+            "url": "https://www.gigabyte.com/Motherboard/B850M-FORCE-WIFI6E-rev-10/support",
             "selector": (
                 '//tr[contains(@class, "item-group")]'
                 '[.//text()[contains(., "MediaTek Wi-Fi 6E Bluetooth Driver")]][1]//a'
             ),
-            "selector_type": "xpath",
         },
         file_type="zip/exe",
         rename_as="mb_driver_4717_mtk6e",
@@ -135,15 +135,14 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
     ),
     ScrapeTarget(
         name="MediaTek MT7961_79X2 WIFI",
-        resolver_type="static",
-        resolver=resolve_static_download,
+        resolver_type="dynamic",
+        resolver=resolve_gigabyte_dynamic,
         resolver_kwargs={
-            "url": "https://www.gigabyte.com/hk/Motherboard/B850M-FORCE-WIFI6E-rev-10/support",
+            "url": "https://www.gigabyte.com/Motherboard/B850M-FORCE-WIFI6E-rev-10/support",
             "selector": (
                 '//tr[contains(@class, "item-group")]'
                 '[.//text()[contains(., "MediaTek Wi-Fi 6E WIFI Driver")]][1]//a'
             ),
-            "selector_type": "xpath",
         },
         file_type="zip/exe",
         rename_as="mb_driver_4716_mtk6ewifi",

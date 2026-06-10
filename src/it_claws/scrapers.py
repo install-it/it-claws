@@ -44,6 +44,15 @@ def resolve_static_download(
     return urljoin(url, link)
 
 
+def resolve_gigabyte_dynamic(driver: WebDriver, url: str, selector: str, **_: Any) -> str | None:
+    driver.get(url)
+    try:
+        el = WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.XPATH, selector)))
+    except Exception:
+        return None
+    return el.get_attribute("href")
+
+
 def resolve_intel_static(
     client: httpx.Client,
     url: str,
