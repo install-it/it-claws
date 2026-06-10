@@ -88,8 +88,7 @@ class ConcurrentPipeline:
                 remaining_retries -= 1
                 self._destroy_driver()
                 tqdm.write(
-                    f"Retrying {len(pending)} failed job(s)... "
-                    f"({remaining_retries} retries left)"
+                    f"Retrying {len(pending)} failed job(s)... ({remaining_retries} retries left)"
                 )
             elif pending:
                 for job in pending:
@@ -119,40 +118,38 @@ class ConcurrentPipeline:
 
         return self._results
 
-    def _scrape(
-        self, job: DownloadJob
-    ) -> tuple[str, dict[str, str] | None, dict[str, str] | None]:
-        with httpx.Client(
-            follow_redirects=True,
-            timeout=120.0,
-            headers={"User-Agent": self._user_agent}
-            if job.target.random_ua and self._user_agent
-            else None,
-        ) as client:
-            if job.target.resolver_type == "static":
+    def _scrape(self, job: DownloadJob) -> tuple[str, dict[str, str] | None, dict[str, str] | None]:
+        if job.target.resolver_type == "static":
+            with httpx.Client(
+                follow_redirects=True,
+                timeout=120.0,
+                headers={"User-Agent": self._user_agent}
+                if job.target.random_ua and self._user_agent
+                else None,
+            ) as client:
                 download_url = job.target.resolver(
                     client,
                     **job.target.resolver_kwargs,
                 )
-            elif job.target.resolver_type == "dynamic":
-                driver = self._ensure_driver()
-                download_url = job.target.resolver(
-                    driver,
-                    **job.target.resolver_kwargs,
-                )
-            else:
-                raise RuntimeError(f"Unknown resolver type: {job.target.resolver_type}")
+        elif job.target.resolver_type == "dynamic":
+            driver = self._ensure_driver()
+            download_url = job.target.resolver(
+                driver,
+                **job.target.resolver_kwargs,
+            )
+        else:
+            raise RuntimeError(f"Unknown resolver type: {job.target.resolver_type}")
 
-            if not download_url:
-                raise RuntimeError(f"Failed to resolve download URL for {job.target.name}")
+        if not download_url:
+            raise RuntimeError(f"Failed to resolve download URL for {job.target.name}")
 
-            headers = job.target.request_headers
-            cookies = None
-            if job.target.include_cookies is not None:
-                driver = self._ensure_driver()
-                cookies = resolve_cookies(driver, download_url, job.target.include_cookies)
+        headers = job.target.request_headers
+        cookies = None
+        if job.target.include_cookies is not None:
+            driver = self._ensure_driver()
+            cookies = resolve_cookies(driver, download_url, job.target.include_cookies)
 
-            return download_url, headers, cookies
+        return download_url, headers, cookies
 
     def _build_dest_path(self, job: DownloadJob, download_url: str) -> Path:
         if job.target.file_type == "exe":
