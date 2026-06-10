@@ -58,13 +58,14 @@ def resolve_intel_static(
     url: str,
     **_: Any,
 ) -> str | None:
-    response = client.get(url)
-    response.raise_for_status()
-    tree = lh.fromstring(response.text)
-    node = tree.xpath('//meta[@name="RecommendedDownloadUrl"]')
-    if not node:
-        return None
-    return node[0].get("content")
+    tree = lh.fromstring(client.get(url).content)
+    for path, attr in (
+        ('//meta[@name="RecommendedDownloadUrl"]', "content"),
+        ('//button[contains(@class, "dc-page-available-downloads-hero-button_cta")]', "data-href"),
+    ):
+        node = tree.xpath(path)
+        if node:
+            return node[0].get(attr)
 
 
 def resolve_nvidia_grd(driver: WebDriver, url: str) -> str | None:
