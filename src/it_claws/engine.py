@@ -6,8 +6,10 @@ from pathlib import Path
 import httpx
 from fake_useragent import UserAgent
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.remote.webdriver import WebDriver
 from tqdm import tqdm
 
 from .models import DownloadJob
@@ -26,11 +28,13 @@ class ConcurrentPipeline:
         max_downloads: int = 5,
         retries: int = 1,
         compress_level: int = 5,
+        browser: str = "firefox",
     ) -> None:
         self._max_downloads = max_downloads
         self._retries = retries
         self._compress_level = compress_level
-        self._driver: webdriver.Firefox | None = None
+        self._browser = browser
+        self._driver: WebDriver | None = None
         self._results: list[tuple[DownloadJob, bool, str]] = []
         self._user_agent: str | None = None
 
@@ -41,7 +45,8 @@ class ConcurrentPipeline:
         archive_path: Path | None = None,
     ) -> list[tuple[DownloadJob, bool, str]]:
         output_root.mkdir(parents=True, exist_ok=True)
-        self._user_agent = UserAgent().firefox
+        ua = UserAgent()
+        self._user_agent = ua.chrome if self._browser == "chrome" else ua.firefox
         self._results.clear()
 
         pending = list(jobs)
@@ -191,7 +196,7 @@ class ConcurrentPipeline:
             elif job.target.file_type == "sfx":
                 extract_sfx(dest, job.destination_directory, job.target.rename_as)
 
-    def _ensure_driver(self) -> webdriver.Firefox:
+    def _ensure_driver(self) -> WebDriver:
         if self._driver is not None:
             return self._driver
         self._driver = self._create_driver()
@@ -202,17 +207,35 @@ class ConcurrentPipeline:
             self._driver.quit()
             self._driver = None
 
-    def _create_driver(self) -> webdriver.Firefox:
-        options = FirefoxOptions()
-        options.add_argument("--headless")
+    def _create_driver(self) -> WebDriver:
+        if self._browser == "chrome":
+            options = ChromeOptions()
+            options.add_argument("--headless")
+            options.add_experimental_option(
+                "prefs",
+                {
+                    "download.default_directory": os.devnull,
+                    "download.prompt_for_download": False,
+                    "download.directory_upgrade": True,
+                },
+            )
 
-        profile = FirefoxProfile()
-        profile.set_preference("browser.download.folderList", 2)
-        profile.set_preference("browser.download.dir", os.devnull)
-        profile.set_preference("browser.download.manager.showWhenStarting", False)
-        profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "")
+            if self._user_agent:
+                options.add_argument(f"--user-agent={self._user_agent}")
 
-        if self._user_agent:
-            profile.set_preference("general.useragent.override", self._user_agent)
-        options.profile = profile
-        return webdriver.Firefox(options=options)
+            return webdriver.Chrome(options=options)
+        else:
+            options = FirefoxOptions()
+            options.add_argument("--headless")
+
+            profile = FirefoxProfile()
+            profile.set_preference("browser.download.folderList", 2)
+            profile.set_preference("browser.download.dir", os.devnull)
+            profile.set_preference("browser.download.manager.showWhenStarting", False)
+            profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "")
+
+            if self._user_agent:
+                profile.set_preference("general.useragent.override", self._user_agent)
+
+            options.profile = profile
+            return webdriver.Firefox(options=options)
