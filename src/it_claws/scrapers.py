@@ -141,7 +141,11 @@ def resolve_furmark_static(client: httpx.Client, url: str, variant: str = "win64
 
 
 def resolve_cookies(
-    driver: WebDriver, url: str, required_cookies: list[str], timeout: int = 10
+    driver: WebDriver,
+    url: str,
+    required_cookies: list[str],
+    timeout: int = 3,
+    fail_on_missing: bool = False,
 ) -> dict[str, str]:
     driver.delete_all_cookies()
     driver.get(url)
@@ -151,7 +155,12 @@ def resolve_cookies(
         cookies = {c["name"]: c["value"] for c in driver.get_cookies()}
         if all(name in cookies for name in required_cookies):
             return {name: cookies[name] for name in required_cookies}
-    raise RuntimeError(f"Required cookies {required_cookies} not set within {timeout}s for {url}")
+
+    if fail_on_missing:
+        raise RuntimeError(
+            f"Required cookies {required_cookies} not set within {timeout}s for {url}"
+        )
+    return {}
 
 
 def download_file(
