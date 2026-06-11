@@ -1,6 +1,7 @@
 import os
 import subprocess
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import sys
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import httpx
@@ -34,7 +35,7 @@ class ConcurrentPipeline:
         self._results: list[tuple[DownloadJob, bool, str]] = []
         self._user_agent: str | None = None
 
-    def run(
+    def execute(
         self,
         jobs: list[DownloadJob],
         output_root: Path,
@@ -49,7 +50,6 @@ class ConcurrentPipeline:
         remaining_retries = self._retries
 
         while pending:
-            # Phase 1: Sequential scraping (main thread, one job at a time)
             scraped: list = []
             for job in pending:
                 job.destination_directory.mkdir(parents=True, exist_ok=True)
@@ -60,29 +60,34 @@ class ConcurrentPipeline:
                 except Exception as exc:
                     tqdm.write(f"Failed to resolve {job.target.name}: {exc}")
 
-            # Phase 2: Concurrent download + extract
             if scraped:
                 pool = ThreadPoolExecutor(max_workers=self._max_downloads)
-                futures = {}
+                futures: dict[Future, DownloadJob] = {}
                 for entry in scraped:
                     future = pool.submit(self._download_job, *entry)
                     futures[future] = entry[0]
 
-                for future in as_completed(futures):
-                    job = futures[future]
-                    try:
-                        future.result()
-                        succeeded.append(job)
-                        self._results.append(
-                            (job, True, f"Successfully downloaded {job.target.name}")
-                        )
-                        tqdm.write(f"Completed {job.target.name}")
-                    except Exception as exc:
-                        tqdm.write(f"Failed {job.target.name}: {exc}")
+                try:
+                    for future in as_completed(futures):
+                        job = futures[future]
+                        try:
+                            future.result()
+                            succeeded.append(job)
+                            self._results.append(
+                                (job, True, f"Successfully downloaded {job.target.name}")
+                            )
+                            tqdm.write(f"Completed {job.target.name}")
+                        except Exception as exc:
+                            tqdm.write(f"Failed {job.target.name}: {exc}")
+                except KeyboardInterrupt:
+                    tqdm.write("\nInterrupted by user")
+                    for f in futures:
+                        f.cancel()
+                    pool.shutdown(wait=False)
+                    sys.exit(1)
+                else:
+                    pool.shutdown(wait=True)
 
-                pool.shutdown(wait=True)
-
-            # Check for pipeline-level retry
             pending = [j for j in pending if j not in succeeded]
             if pending and remaining_retries > 0:
                 remaining_retries -= 1

@@ -129,26 +129,6 @@ def resolve_selected_targets(
 
     return ALL_TARGETS
 
-
-def run_pipeline(
-    targets: list[ScrapeTarget],
-    output_root: Path,
-    custom_folder: str | None,
-    max_concurrent: int,
-    retries: int,
-    archive_path: Path | None,
-    compress_level: int,
-) -> list[tuple[DownloadJob, bool, str]]:
-    jobs = [
-        DownloadJob(target=t, output_root=output_root, custom_folder=custom_folder) for t in targets
-    ]
-    return ConcurrentPipeline(
-        max_downloads=max_concurrent,
-        retries=retries,
-        compress_level=compress_level,
-    ).run(jobs, output_root, archive_path)
-
-
 def run() -> None:
     parser = build_parser()
     args = parser.parse_args()
@@ -158,15 +138,15 @@ def run() -> None:
         print("No valid targets to process", file=sys.stderr)
         sys.exit(1)
 
-    results = run_pipeline(
-        targets=targets,
-        output_root=args.output,
-        custom_folder=args.folder,
-        max_concurrent=args.max_concurrent,
+    jobs = [
+        DownloadJob(target=t, output_root=args.output, custom_folder=args.folder)
+        for t in targets
+    ]
+    results = ConcurrentPipeline(
+        max_downloads=args.max_concurrent,
         retries=args.retries,
-        archive_path=args.archive_path,
         compress_level=args.compress_level,
-    )
+    ).execute(jobs, args.output, args.archive_path)
 
     failed = [msg for _, success, msg in results if not success]
 
