@@ -214,15 +214,12 @@ def extract_installer_from_zip(
                 str(target_dir / (f"{rename_as}.exe" if rename_as else installer.name)),
             )
         else:
-            extracted = list(tmp_path.iterdir())
-            if len(extracted) == 1 and extracted[0].is_file():
-                src = extracted[0]
-                shutil.move(
-                    str(src),
-                    str(target_dir / (f"{rename_as}{src.suffix}" if rename_as else src.name)),
-                )
-            else:
-                raise RuntimeError(f"Unexpected compound structure inside zip archive {zip_path}")
+            target_dir.mkdir(parents=True, exist_ok=True)
+            for item in tmp_path.iterdir():
+                dest = target_dir / item.name
+                if dest.exists():
+                    shutil.rmtree(dest) if dest.is_dir() else dest.unlink()
+                shutil.move(str(item), str(dest))
     zip_path.unlink(missing_ok=True)
     return target_dir
 
