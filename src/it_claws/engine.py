@@ -1,7 +1,5 @@
 import os
 import subprocess
-import sys
-from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import httpx
@@ -24,11 +22,9 @@ from .scrapers import (
 class ConcurrentPipeline:
     def __init__(
         self,
-        max_downloads: int = 5,
         retries: int = 1,
         compress_level: int = 5,
     ) -> None:
-        self._max_downloads = max_downloads
         self._retries = retries
         self._compress_level = compress_level
         self._driver: WebDriver | None = None
@@ -61,32 +57,16 @@ class ConcurrentPipeline:
                     tqdm.write(f"Failed to resolve {job.target.name}: {exc}")
 
             if scraped:
-                pool = ThreadPoolExecutor(max_workers=self._max_downloads)
-                futures: dict[Future, DownloadJob] = {}
                 for entry in scraped:
-                    future = pool.submit(self._download_job, *entry)
-                    futures[future] = entry[0]
-
-                try:
-                    for future in as_completed(futures):
-                        job = futures[future]
-                        try:
-                            future.result()
-                            succeeded.append(job)
-                            self._results.append(
-                                (job, True, f"Successfully downloaded {job.target.name}")
-                            )
-                            tqdm.write(f"Completed {job.target.name}")
-                        except Exception as exc:
-                            tqdm.write(f"Failed {job.target.name}: {exc}")
-                except KeyboardInterrupt:
-                    tqdm.write("\nInterrupted by user")
-                    for f in futures:
-                        f.cancel()
-                    pool.shutdown(wait=False)
-                    os._exit(1)
-                else:
-                    pool.shutdown(wait=True)
+                    try:
+                        self._download_job(*entry)
+                        succeeded.append(entry[0])
+                        self._results.append(
+                            (entry[0], True, f"Successfully downloaded {entry[0].target.name}")
+                        )
+                        tqdm.write(f"Completed {entry[0].target.name}")
+                    except Exception as exc:
+                        tqdm.write(f"Failed {entry[0].target.name}: {exc}")
 
             pending = [j for j in pending if j not in succeeded]
             if pending and remaining_retries > 0:

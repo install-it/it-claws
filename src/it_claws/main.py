@@ -15,9 +15,6 @@ def build_parser() -> argparse.ArgumentParser:
     dl = parser.add_argument_group("Download Options")
     dl.add_argument("-o", "--output", type=Path, default=Path.cwd() / "downloads")
     dl.add_argument("-f", "--folder", type=str, default=None)
-    dl.add_argument(
-        "--max-concurrent", type=int, default=1, help="Max concurrent downloads (default: 1)"
-    )
 
     tg = parser.add_argument_group("Target Options")
     mexcl = tg.add_mutually_exclusive_group()
@@ -143,7 +140,6 @@ def run() -> None:
         for t in targets
     ]
     results = ConcurrentPipeline(
-        max_downloads=args.max_concurrent,
         retries=args.retries,
         compress_level=args.compress_level,
     ).execute(jobs, args.output, args.archive_path)
