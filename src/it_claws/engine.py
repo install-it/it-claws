@@ -84,7 +84,7 @@ class ConcurrentPipeline:
                     for f in futures:
                         f.cancel()
                     pool.shutdown(wait=False)
-                    sys.exit(1)
+                    os._exit(1)
                 else:
                     pool.shutdown(wait=True)
 
