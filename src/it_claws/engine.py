@@ -50,9 +50,9 @@ class ConcurrentPipeline:
             for job in pending:
                 job.destination_directory.mkdir(parents=True, exist_ok=True)
                 try:
-                    download_url, headers, cookies = self._scrape(job)
+                    download_url, headers = self._scrape(job)
                     dest = self._build_dest_path(job, download_url)
-                    scraped.append((job, download_url, dest, headers, cookies))
+                    scraped.append((job, download_url, dest, headers))
                 except Exception as exc:
                     tqdm.write(f"Failed to resolve {job.target.name}: {exc}")
 
@@ -103,7 +103,7 @@ class ConcurrentPipeline:
 
         return self._results
 
-    def _scrape(self, job: DownloadJob) -> tuple[str, dict[str, str] | None, dict[str, str] | None]:
+    def _scrape(self, job: DownloadJob) -> tuple[str, dict[str, str] | None]:
         if job.target.resolver_type == "static":
             with httpx.Client(
                 follow_redirects=True,
@@ -128,13 +128,7 @@ class ConcurrentPipeline:
         if not download_url:
             raise RuntimeError(f"Failed to resolve download URL for {job.target.name}")
 
-        headers = job.target.request_headers
-        cookies = None
-        if job.target.include_cookies is not None:
-            driver = self._ensure_driver()
-            cookies = resolve_cookies(driver, download_url, job.target.include_cookies)
-
-        return download_url, headers, cookies
+        return download_url, job.target.request_headers
 
     def _build_dest_path(self, job: DownloadJob, download_url: str) -> Path:
         if job.target.file_type == "exe":
@@ -155,8 +149,12 @@ class ConcurrentPipeline:
         download_url: str,
         dest: Path,
         headers: dict[str, str] | None,
-        cookies: dict[str, str] | None,
     ) -> None:
+        cookies = None
+        if job.target.include_cookies is not None:
+            driver = self._ensure_driver()
+            cookies = resolve_cookies(driver, download_url, job.target.include_cookies)
+
         with httpx.Client(
             follow_redirects=True,
             timeout=120.0,
