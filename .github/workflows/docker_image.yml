@@ -3,18 +3,19 @@ name: Build and Push Docker Image
 on:
   push:
     tags:
-      - '*'
+      - 'v*'
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -30,10 +31,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set repo name to lower case
-        id: repo_lc
-        uses: ASzc/change-string-case-action@v6
-        with:
-          string: ${{ github.repository }}
+        run: echo "REPO_LC=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
 
       - name: Extract version from tag
         id: extract_version
@@ -51,10 +49,12 @@ jobs:
 
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ steps.repo_lc.outputs.lowercase }}:${{ env.VERSION }}
-            ${{ env.PRE_RELEASE == 'false' && format('ghcr.io/{0}:latest', steps.repo_lc.outputs.lowercase) || '' }}
+            ghcr.io/${{ env.REPO_LC }}:${{ env.VERSION }}
+            ${{ env.PRE_RELEASE == 'false' && format('ghcr.io/{0}:latest', env.REPO_LC) || '' }}
+          provenance: true
+          sbom: true

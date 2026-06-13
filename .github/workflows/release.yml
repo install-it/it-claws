@@ -11,6 +11,7 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    timeout-minutes: 15
     strategy:
       matrix:
         architecture: [i386, amd64]
@@ -24,20 +25,22 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
           architecture: ${{ matrix.build-arch }}
           cache: pip
-          cache-dependency-path: requirements.txt
+          cache-dependency-path: |
+            pyproject.toml
+            uv.lock
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r ./requirements.txt
+          pip install .
           pip install pyinstaller
 
       - name: Install UPX
@@ -65,7 +68,7 @@ jobs:
           7z a ${{ github.event.repository.name }}.${{ matrix.build-name }}.zip * -mx9
 
       - name: Upload updater artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}.${{ matrix.architecture }}
           path: dist/${{ github.event.repository.name }}.${{ matrix.build-name }}.zip
@@ -73,16 +76,19 @@ jobs:
   draft-release:
     needs: [build]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: dist/
           merge-multiple: true
 
       - name: Create GitHub release
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@v1.21.0
         with:
           artifacts: dist/*
-          draft: true
+          draft: false
+          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
+          generate_release_notes: true
