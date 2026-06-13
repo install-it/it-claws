@@ -1,13 +1,13 @@
 from .models import ScrapeTarget
 from .scrapers import (
     resolve_direct_url,
-    resolve_furmark_dynamic,
+    resolve_furmark_static,
     resolve_gigabyte_dynamic,
-    resolve_intel_dynamic,
+    resolve_intel_static,
     resolve_msi_dynamic,
     resolve_nvidia_grd,
+    resolve_sourceforge_static,
     resolve_static_download,
-    resolve_y_cruncher_dynamic,
 )
 
 HARDWARE_CATALOG: list[ScrapeTarget] = [
@@ -19,37 +19,44 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
             "url": "https://www.amd.com/en/support/downloads/drivers.html/graphics/radeon-rx/radeon-rx-9000-series/amd-radeon-rx-9070-xt.html",
             "selector": 'a[href*="win11-"][href$=".exe"]',
         },
-        file_type="zip",
+        file_type="exe",
+        request_headers={"referer": "https://www.amd.com"},
         default_folder="display",
     ),
     ScrapeTarget(
         name="Intel 7th-10th Gen Processor Graphics",
-        resolver_type="dynamic",
-        resolver=resolve_intel_dynamic,
+        resolver_type="static",
+        resolver=resolve_intel_static,
         resolver_kwargs={
             "url": "https://www.intel.com/content/www/us/en/download/776137/intel-7th-10th-gen-processor-graphics-windows.html"
         },
-        file_type="zip",
+        random_ua=False,
+        include_cookies=["aws-waf-token"],
+        file_type="exe",
         default_folder="display",
     ),
     ScrapeTarget(
         name="Intel 11th-14th Gen Processor Graphics",
-        resolver_type="dynamic",
-        resolver=resolve_intel_dynamic,
+        resolver_type="static",
+        resolver=resolve_intel_static,
         resolver_kwargs={
             "url": "https://www.intel.com/content/www/us/en/download/864990/intel-11th-14th-gen-processor-graphics-windows.html"
         },
-        file_type="zip",
+        random_ua=False,
+        include_cookies=["aws-waf-token"],
+        file_type="exe",
         default_folder="display",
     ),
     ScrapeTarget(
         name="Intel Arc & Iris Xe Graphics",
-        resolver_type="dynamic",
-        resolver=resolve_intel_dynamic,
+        resolver_type="static",
+        resolver=resolve_intel_static,
         resolver_kwargs={
             "url": "https://www.intel.com/content/www/us/en/download/785597/intel-arc-iris-xe-graphics-windows.html"
         },
-        file_type="zip",
+        random_ua=False,
+        include_cookies=["aws-waf-token"],
+        file_type="exe",
         default_folder="display",
     ),
     ScrapeTarget(
@@ -57,7 +64,7 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
         resolver_type="dynamic",
         resolver=resolve_nvidia_grd,
         resolver_kwargs={"url": "https://www.nvidia.com/zh-tw/geforce/game-ready-drivers/"},
-        file_type="zip",
+        file_type="exe",
         default_folder="display",
     ),
     ScrapeTarget(
@@ -70,36 +77,43 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
         },
         file_type="exe",
         rename_as="AMD_Chipset_Software",
+        request_headers={"referer": "https://www.amd.com"},
         default_folder="miscellaneous",
     ),
     ScrapeTarget(
         name="Intel Chipset INF Utility",
-        resolver_type="dynamic",
-        resolver=resolve_intel_dynamic,
+        resolver_type="static",
+        resolver=resolve_intel_static,
         resolver_kwargs={
             "url": "https://www.intel.com/content/www/us/en/download/19347/chipset-inf-utility.html"
         },
+        random_ua=False,
+        include_cookies=["aws-waf-token"],
         file_type="exe",
         default_folder="miscellaneous",
     ),
     ScrapeTarget(
         name="Intel Wireless Wi-Fi",
-        resolver_type="dynamic",
-        resolver=resolve_intel_dynamic,
+        resolver_type="static",
+        resolver=resolve_intel_static,
         resolver_kwargs={
             "url": "https://www.intel.com/content/www/us/en/download/19351/intel-wireless-wi-fi-drivers-for-windows-10-and-windows-11.html"
         },
+        random_ua=False,
+        include_cookies=["aws-waf-token"],
         file_type="exe",
         rename_as="WiFi-Driver64-Win10-Win11",
         default_folder="miscellaneous",
     ),
     ScrapeTarget(
         name="Intel Wireless Bluetooth",
-        resolver_type="dynamic",
-        resolver=resolve_intel_dynamic,
+        resolver_type="static",
+        resolver=resolve_intel_static,
         resolver_kwargs={
             "url": "https://www.intel.com/content/www/us/en/download/18649/intel-wireless-bluetooth-drivers-for-windows-10-and-windows-11.html"
         },
+        random_ua=False,
+        include_cookies=["aws-waf-token"],
         file_type="exe",
         rename_as="BT-UWD-Win10-Win11",
         default_folder="miscellaneous",
@@ -109,8 +123,11 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
         resolver_type="dynamic",
         resolver=resolve_gigabyte_dynamic,
         resolver_kwargs={
-            "url": "https://www.gigabyte.com/hk/Motherboard/B850M-FORCE-WIFI6E-rev-10/support",
-            "driver_name": "MediaTek Wi-Fi 6E Bluetooth Driver",
+            "url": "https://www.gigabyte.com/Motherboard/B850M-FORCE-WIFI6E-rev-10/support",
+            "selector": (
+                '//tr[contains(@class, "item-group")]'
+                '[.//text()[contains(., "MediaTek Wi-Fi 6E Bluetooth Driver")]][1]//a'
+            ),
         },
         file_type="zip/exe",
         rename_as="mb_driver_4717_mtk6e",
@@ -121,8 +138,11 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
         resolver_type="dynamic",
         resolver=resolve_gigabyte_dynamic,
         resolver_kwargs={
-            "url": "https://www.gigabyte.com/hk/Motherboard/B850M-FORCE-WIFI6E-rev-10/support",
-            "driver_name": "MediaTek Wi-Fi 6E WIFI Driver",
+            "url": "https://www.gigabyte.com/Motherboard/B850M-FORCE-WIFI6E-rev-10/support",
+            "selector": (
+                '//tr[contains(@class, "item-group")]'
+                '[.//text()[contains(., "MediaTek Wi-Fi 6E WIFI Driver")]][1]//a'
+            ),
         },
         file_type="zip/exe",
         rename_as="mb_driver_4716_mtk6ewifi",
@@ -133,7 +153,7 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
         resolver_type="dynamic",
         resolver=resolve_msi_dynamic,
         resolver_kwargs={
-            "url": "https://hk.msi.com/Motherboard/MAG-X870-TOMAHAWK-WIFI/support#driver",
+            "url": "https://msi.com/Motherboard/MAG-X870-TOMAHAWK-WIFI/support#driver",
             "driver_type": "On-Board Audio Drivers",
             "driver_name": "Realtek HD Universal Driver",
         },
@@ -162,11 +182,13 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
     ),
     ScrapeTarget(
         name="Intel Ethernet Complete Driver Pack",
-        resolver_type="dynamic",
-        resolver=resolve_intel_dynamic,
+        resolver_type="static",
+        resolver=resolve_intel_static,
         resolver_kwargs={
             "url": "https://www.intel.com/content/www/us/en/download/15084/intel-ethernet-adapter-complete-driver-pack.html"
         },
+        random_ua=False,
+        include_cookies=["aws-waf-token"],
         file_type="zip",
         default_folder="network",
     ),
@@ -175,7 +197,7 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
         resolver_type="dynamic",
         resolver=resolve_msi_dynamic,
         resolver_kwargs={
-            "url": "https://hk.msi.com/Motherboard/MAG-X870-TOMAHAWK-WIFI/support#driver",
+            "url": "https://msi.com/Motherboard/MAG-X870-TOMAHAWK-WIFI/support#driver",
             "driver_type": "LAN Drivers",
             "driver_name": "Realtek PCI-E Ethernet Drivers",
         },
@@ -188,29 +210,25 @@ UTILITY_CATALOG: list[ScrapeTarget] = [
     ScrapeTarget(
         name="CrystalDiskInfo",
         resolver_type="static",
-        resolver=resolve_static_download,
-        resolver_kwargs={
-            "url": "https://sourceforge.net/projects/crystaldiskinfo/files/",
-            "selector": 'a[title*="Download Latest Version"]',
-        },
+        resolver=resolve_sourceforge_static,
+        resolver_kwargs={"project_name": "crystaldiskinfo"},
         file_type="zip/exe",
         default_folder="tool",
+        random_ua=False,
     ),
     ScrapeTarget(
         name="CrystalDiskMark",
         resolver_type="static",
-        resolver=resolve_static_download,
-        resolver_kwargs={
-            "url": "https://sourceforge.net/projects/crystalmarkretro/files/",
-            "selector": 'a[title*="Download Latest Version"]',
-        },
+        resolver=resolve_sourceforge_static,
+        resolver_kwargs={"project_name": "crystalmarkretro"},
         file_type="zip/exe",
         default_folder="tool",
+        random_ua=False,
     ),
     ScrapeTarget(
         name="FurMark",
-        resolver_type="dynamic",
-        resolver=resolve_furmark_dynamic,
+        resolver_type="static",
+        resolver=resolve_furmark_static,
         resolver_kwargs={
             "url": "https://www.geeks3d.com/furmark/downloads/",
             "variant": "win64",
@@ -221,13 +239,11 @@ UTILITY_CATALOG: list[ScrapeTarget] = [
     ScrapeTarget(
         name="HWInfo",
         resolver_type="static",
-        resolver=resolve_static_download,
-        resolver_kwargs={
-            "url": "https://sourceforge.net/projects/hwinfo/files/",
-            "selector": 'a[title*="Download Latest Version"]',
-        },
+        resolver=resolve_sourceforge_static,
+        resolver_kwargs={"project_name": "hwinfo"},
         file_type="zip/exe",
         default_folder="tool",
+        random_ua=False,
     ),
     ScrapeTarget(
         name="OCCT",
@@ -239,11 +255,12 @@ UTILITY_CATALOG: list[ScrapeTarget] = [
     ),
     ScrapeTarget(
         name="y-cruncher",
-        resolver_type="dynamic",
-        resolver=resolve_y_cruncher_dynamic,
+        resolver_type="static",
+        resolver=resolve_static_download,
         resolver_kwargs={
             "url": "https://www.numberworld.org/y-cruncher/#Download",
-            "variant": "Windows",
+            "selector": '//table[contains(., "Download Link")]//tr[contains(., "Windows")]//a',
+            "selector_type": "xpath",
         },
         file_type="zip/folder",
         default_folder="tool",
@@ -307,14 +324,12 @@ SOFTWARE_CATALOG: list[ScrapeTarget] = [
     ScrapeTarget(
         name="7-Zip",
         resolver_type="static",
-        resolver=resolve_static_download,
-        resolver_kwargs={
-            "url": "https://sourceforge.net/projects/sevenzip/files/",
-            "selector": 'a[title*="Download Latest Version"]',
-        },
+        resolver=resolve_sourceforge_static,
+        resolver_kwargs={"project_name": "sevenzip"},
         file_type="exe",
         rename_as="7zip_Setup",
         default_folder="software",
+        random_ua=False,
     ),
     ScrapeTarget(
         name="iTunes",

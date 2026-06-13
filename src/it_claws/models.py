@@ -10,9 +10,12 @@ class ScrapeTarget:
     resolver_type: Literal["static", "dynamic"]
     resolver: Callable[..., Any]
     resolver_kwargs: dict[str, Any]
-    file_type: Literal["exe", "zip", "zip/exe", "zip/folder"]
+    file_type: Literal["exe", "zip", "zip/exe", "zip/folder", "sfx"]
+    include_cookies: list[str] | None = None
+    request_headers: dict[str, str] | None = None
     rename_as: str | None = None
     default_folder: str | None = None
+    random_ua: bool = True
 
 
 @dataclass
@@ -23,5 +26,6 @@ class DownloadJob:
 
     @property
     def destination_directory(self) -> Path:
-        folder = self.custom_folder or self.target.default_folder
-        return self.output_root / folder if folder else self.output_root
+        if self.custom_folder:
+            return self.output_root / self.custom_folder
+        return self.output_root / self.target.default_folder / self.target.name

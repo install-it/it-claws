@@ -19,7 +19,7 @@ classifiers = [
 ]
 dependencies = [
     "httpx>=0.27.0",
-    "selectolax>=0.3.21",
+    "lxml[cssselect]>=5.0.0",
     "selenium>=4.20.0",
     "fake-useragent>=1.5.1",
     "inquirer>=3.2.4",
@@ -31,6 +31,13 @@ it-claws = "it_claws.main:run"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/it_claws"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.25.0",
+]
 
 [tool.ruff]
 target-version = "py313"

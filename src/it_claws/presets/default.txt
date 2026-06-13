@@ -1,0 +1,42 @@
+# Display
+AMD Software Software - Adrenalin Edition
+Intel 7th-10th Gen Processor Graphics
+Intel 11th-14th Gen Processor Graphics
+Intel Arc & Iris Xe Graphics
+GeForce Game Ready Driver
+
+# Chipset / Miscellaneous
+AMD Chipset Drivers
+Intel Chipset INF Utility
+Intel Wireless Wi-Fi
+Intel Wireless Bluetooth
+MediaTek MT7961_79X2 Bluetooth
+MediaTek MT7961_79X2 WIFI
+Realtek HD Universal Audio
+Realtek RTL8852BE Bluetooth
+Realtek RTL8852BE WIFI
+
+# Network
+Intel Ethernet Complete Driver Pack
+Realtek PCI-E Ethernet Drivers
+
+# Utilities
+CrystalDiskInfo
+CrystalDiskMark
+FurMark
+HWInfo
+OCCT
+y-cruncher
+
+# Software
+Steam
+Firefox
+Discord
+VLC Player
+Surfshark
+7-Zip
+iTunes
+Zoom Workplace
+GitHub Desktop
+Miniconda
+Visual Studio Code
