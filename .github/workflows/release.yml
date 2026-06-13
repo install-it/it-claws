@@ -50,7 +50,7 @@ jobs:
 
       - name: Build the executable
         run: |
-          pyinstaller .\src\main.py -cDF -n ${{ github.event.repository.name }} `
+          pyinstaller .\src\it_claws\main.py -cDF -n ${{ github.event.repository.name }} `
             --collect-all selenium --collect-all inquirer --copy-metadata readchar
 
       - name: Download and extract 7zip binaries
