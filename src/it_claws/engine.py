@@ -1,5 +1,9 @@
 import os
+import queue
 import subprocess
+import sys
+import threading
+from concurrent.futures import Future, as_completed
 from pathlib import Path
 
 import httpx
@@ -19,14 +23,72 @@ from .scrapers import (
 )
 
 
+class DaemonThreadPool:
+    def __init__(self, max_workers: int) -> None:
+        self._work_queue: queue.Queue = queue.Queue()
+        self._futures: list[Future] = []
+        self._shutdown = False
+        self._threads = [
+            threading.Thread(target=self._worker_loop, daemon=True) for _ in range(max_workers)
+        ]
+        for t in self._threads:
+            t.start()
+
+    def submit(self, fn, /, *args, **kwargs) -> Future:
+        future: Future = Future()
+        self._work_queue.put((fn, args, kwargs, future))
+        self._futures.append(future)
+        return future
+
+    def shutdown(self, wait: bool = True, *, cancel_futures: bool = False) -> None:
+        self._shutdown = True
+        if cancel_futures:
+            while True:
+                try:
+                    _, _, _, future = self._work_queue.get_nowait()
+                except queue.Empty:
+                    break
+                future.cancel()
+        for _ in self._threads:
+            self._work_queue.put(None)
+        if wait:
+            for t in self._threads:
+                t.join()
+
+    def __enter__(self) -> "DaemonThreadPool":
+        return self
+
+    def __exit__(self, *args) -> None:
+        self.shutdown(wait=False)
+
+    def _worker_loop(self) -> None:
+        while not self._shutdown:
+            try:
+                item = self._work_queue.get(timeout=0.5)
+            except queue.Empty:
+                continue
+            if item is None:
+                break
+            fn, args, kwargs, future = item
+            if future.cancelled():
+                continue
+            try:
+                future.set_result(fn(*args, **kwargs))
+            except BaseException as e:
+                future.set_exception(e)
+
+
 class ConcurrentPipeline:
     def __init__(
         self,
+        max_concurrent: int = 3,
         retries: int = 1,
         compress_level: int = 5,
     ) -> None:
+        self._max_concurrent = max_concurrent
         self._retries = retries
         self._compress_level = compress_level
+        self._driver_lock = threading.Lock()
         self._driver: WebDriver | None = None
         self._results: list[tuple[DownloadJob, bool, str]] = []
         self._user_agent: str | None = None
@@ -57,16 +119,27 @@ class ConcurrentPipeline:
                     tqdm.write(f"Failed to resolve {job.target.name}: {exc}")
 
             if scraped:
-                for entry in scraped:
+                with DaemonThreadPool(max_workers=self._max_concurrent) as pool:
+                    futures: dict[Future, DownloadJob] = {
+                        pool.submit(self._download_job, *entry): entry[0] for entry in scraped
+                    }
+
                     try:
-                        self._download_job(*entry)
-                        succeeded.append(entry[0])
-                        self._results.append(
-                            (entry[0], True, f"Successfully downloaded {entry[0].target.name}")
-                        )
-                        tqdm.write(f"Completed {entry[0].target.name}")
-                    except Exception as exc:
-                        tqdm.write(f"Failed {entry[0].target.name}: {exc}")
+                        for future in as_completed(futures):
+                            job = futures[future]
+                            try:
+                                future.result()
+                                succeeded.append(job)
+                                self._results.append(
+                                    (job, True, f"Successfully downloaded {job.target.name}")
+                                )
+                                tqdm.write(f"Completed {job.target.name}")
+                            except Exception as exc:
+                                tqdm.write(f"Failed {job.target.name}: {exc}")
+                    except KeyboardInterrupt:
+                        pool.shutdown(wait=False, cancel_futures=True)
+                        self._destroy_driver()
+                        sys.exit(1)
 
             pending = [j for j in pending if j not in succeeded]
             if pending and remaining_retries > 0:
@@ -152,8 +225,9 @@ class ConcurrentPipeline:
     ) -> None:
         cookies = None
         if job.target.include_cookies is not None:
-            driver = self._ensure_driver()
-            cookies = resolve_cookies(driver, download_url, job.target.include_cookies)
+            with self._driver_lock:
+                driver = self._ensure_driver()
+                cookies = resolve_cookies(driver, download_url, job.target.include_cookies)
 
         with httpx.Client(
             follow_redirects=True,
@@ -162,17 +236,23 @@ class ConcurrentPipeline:
             if job.target.random_ua and self._user_agent
             else None,
         ) as client:
-            download_file(client, download_url, dest, headers=headers, cookies=cookies)
+            download_file(
+                client,
+                download_url,
+                dest,
+                headers=headers,
+                cookies=cookies,
+            )
 
-            if job.target.file_type in ("zip", "zip/exe", "zip/folder"):
-                extract_installer_from_zip(
-                    dest,
-                    job.destination_directory,
-                    job.target.file_type,
-                    job.target.rename_as,
-                )
-            elif job.target.file_type == "sfx":
-                extract_sfx(dest, job.destination_directory, job.target.rename_as)
+        if job.target.file_type in ("zip", "zip/exe", "zip/folder"):
+            extract_installer_from_zip(
+                dest,
+                job.destination_directory,
+                job.target.file_type,
+                job.target.rename_as,
+            )
+        elif job.target.file_type == "sfx":
+            extract_sfx(dest, job.destination_directory, job.target.rename_as)
 
     def _ensure_driver(self) -> WebDriver:
         if self._driver is not None:

@@ -30,6 +30,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     ra = parser.add_argument_group("Resilience & Archiving Options")
     ra.add_argument(
+        "--max-concurrent",
+        type=int,
+        default=3,
+        help="Max parallel downloads (default: 3, 1 = sequential)",
+    )
+    ra.add_argument(
         "--retries",
         type=int,
         default=1,
@@ -140,6 +146,7 @@ def run() -> None:
         for t in targets
     ]
     results = ConcurrentPipeline(
+        max_concurrent=args.max_concurrent,
         retries=args.retries,
         compress_level=args.compress_level,
     ).execute(jobs, args.output, args.archive_path)
