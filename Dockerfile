@@ -11,11 +11,8 @@ RUN echo "**** updating packages ****" && \
 RUN echo "**** installing runtime packages ****" && \
   apt install -y bash rclone p7zip-full p7zip-rar wget
 
-RUN echo "**** installing firefox ****" && \
-  wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | tee /etc/apt/keyrings/packages.mozilla.org.asc && \
-    echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null && \
-    apt update && \
-    apt install -y firefox
+RUN echo "**** installing chromium and dependencies ****" && \
+  apt install -y chromium
 
 COPY . /app
 
