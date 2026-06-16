@@ -24,6 +24,7 @@ dependencies = [
     "fake-useragent>=1.5.1",
     "inquirer>=3.2.4",
     "tqdm>=4.66.0",
+    "patool>=4.0.5",
 ]
 
 [project.scripts]

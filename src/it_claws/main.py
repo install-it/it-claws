@@ -43,6 +43,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ra.add_argument("-a", "--archive-path", type=Path, default=None)
     ra.add_argument("-l", "--compress-level", type=int, choices=range(10), default=5)
+    ra.add_argument(
+        "-I", "--archive-include",
+        nargs="+",
+        type=Path,
+        default=None,
+        metavar="FILE",
+        help="Additional files or directories to include in the archive",
+    )
 
     parser.add_argument("-v", "--verbose", action="store_true")
     return parser
@@ -141,6 +149,10 @@ def run() -> None:
         print("No valid targets to process", file=sys.stderr)
         sys.exit(1)
 
+    if args.archive_include and not args.archive_path:
+        print("error: --archive-include requires --archive-path", file=sys.stderr)
+        sys.exit(1)
+
     jobs = [
         DownloadJob(target=t, output_root=args.output, custom_folder=args.folder)
         for t in targets
@@ -149,7 +161,7 @@ def run() -> None:
         max_concurrent=args.max_concurrent,
         retries=args.retries,
         compress_level=args.compress_level,
-    ).execute(jobs, args.output, args.archive_path)
+    ).execute(jobs, args.output, args.archive_path, archive_include=args.archive_include)
 
     failed = [msg for _, success, msg in results if not success]
 
