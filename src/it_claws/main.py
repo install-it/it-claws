@@ -47,7 +47,7 @@ def build_parser() -> argparse.ArgumentParser:
         "-I",
         "--archive-include",
         nargs="+",
-        type=Path,
+        type=str,
         default=None,
         metavar="FILE",
         help="Additional files or directories to include in the archive",
