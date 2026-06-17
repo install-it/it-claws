@@ -73,7 +73,7 @@ jobs:
           name: ${{ github.event.repository.name }}.${{ matrix.architecture }}
           path: dist/${{ github.event.repository.name }}.${{ matrix.build-name }}.zip
 
-  draft-release:
+  create-release:
     needs: [build]
     runs-on: ubuntu-latest
     timeout-minutes: 5
