@@ -99,7 +99,7 @@ class ConcurrentPipeline:
         jobs: list[DownloadJob],
         output_root: Path,
         archive_path: Path | None = None,
-        archive_include: list[Path] | None = None,
+        archive_include: list[str] | None = None,
     ) -> list[tuple[DownloadJob, bool, str]]:
         output_root.mkdir(parents=True, exist_ok=True)
         self._user_agent = UserAgent().chrome
@@ -161,26 +161,13 @@ class ConcurrentPipeline:
         cleanup_empty_directories(output_root)
 
         if archive_path and all(s for _, s, _ in self._results):
-            subprocess.run(
-                [
-                    find_7z(),
-                    "a",
-                    "-tzip",
-                    f"-mx={self._compress_level}",
-                    str(archive_path),
-                    f"{output_root}/*",
-                ],
-                capture_output=True,
-                text=True,
-                check=True,
-            )
+            args = [
+                find_7z(), "a", "-tzip", f"-mx={self._compress_level}",
+                str(archive_path), str(output_root),
+            ]
             if archive_include:
-                subprocess.run(
-                    [find_7z(), "a", str(archive_path), *(str(p) for p in archive_include)],
-                    capture_output=True,
-                    text=True,
-                    check=True,
-                )
+                args.extend(archive_include)
+            subprocess.run(args, capture_output=True, text=True, check=True)
             tqdm.write(f"Archive created: {archive_path}")
 
         return self._results
