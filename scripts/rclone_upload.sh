@@ -18,7 +18,7 @@ fi
 
 it-claws \
     -o "$DOWNLOAD_DIR" \
-    -a "$ARCHIVE_PATH" \
+    -z "$ARCHIVE_PATH" \
     --retries "${RETRIES:-1}" \
     --compress-level "${COMPRESS_LEVEL:-5}" \
     $ARGUMENTS
