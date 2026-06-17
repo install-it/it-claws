@@ -44,7 +44,8 @@ def build_parser() -> argparse.ArgumentParser:
     ra.add_argument("-a", "--archive-path", type=Path, default=None)
     ra.add_argument("-l", "--compress-level", type=int, choices=range(10), default=5)
     ra.add_argument(
-        "-I", "--archive-include",
+        "-I",
+        "--archive-include",
         nargs="+",
         type=Path,
         default=None,
@@ -140,6 +141,7 @@ def resolve_selected_targets(
 
     return ALL_TARGETS
 
+
 def run() -> None:
     parser = build_parser()
     args = parser.parse_args()
@@ -154,8 +156,7 @@ def run() -> None:
         sys.exit(1)
 
     jobs = [
-        DownloadJob(target=t, output_root=args.output, custom_folder=args.folder)
-        for t in targets
+        DownloadJob(target=t, output_root=args.output, custom_folder=args.folder) for t in targets
     ]
     results = ConcurrentPipeline(
         max_concurrent=args.max_concurrent,

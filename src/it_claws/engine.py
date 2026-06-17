@@ -279,6 +279,19 @@ class ConcurrentPipeline:
         options.add_argument("--headless=new")
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--window-size=1920,1080")
+
+        if not os.environ.get("CHROME_SANDBOX", "").lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+            "enable",
+            "enabled",
+            "y",
+        ):
+            options.add_argument("--no-sandbox")
+            options.add_argument("--disable-dev-shm-usage")
+
         options.add_experimental_option(
             "prefs",
             {
