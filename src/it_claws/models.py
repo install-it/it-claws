@@ -22,10 +22,7 @@ class ScrapeTarget:
 class DownloadJob:
     target: ScrapeTarget
     output_root: Path
-    custom_folder: str | None = None
 
     @property
     def destination_directory(self) -> Path:
-        if self.custom_folder:
-            return self.output_root / self.custom_folder
         return self.output_root / self.target.default_folder / self.target.name

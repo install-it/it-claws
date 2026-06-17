@@ -14,7 +14,6 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="it-claws")
     dl = parser.add_argument_group("Download Options")
     dl.add_argument("-o", "--output", type=Path, default=Path.cwd() / "downloads")
-    dl.add_argument("-f", "--folder", type=str, default=None)
 
     tg = parser.add_argument_group("Target Options")
     mexcl = tg.add_mutually_exclusive_group()
@@ -155,9 +154,7 @@ def run() -> None:
         print("error: --archive-include requires --archive-path", file=sys.stderr)
         sys.exit(1)
 
-    jobs = [
-        DownloadJob(target=t, output_root=args.output, custom_folder=args.folder) for t in targets
-    ]
+    jobs = [DownloadJob(target=t, output_root=args.output) for t in targets]
     results = ConcurrentPipeline(
         max_concurrent=args.max_concurrent,
         retries=args.retries,
