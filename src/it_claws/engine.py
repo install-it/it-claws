@@ -14,7 +14,6 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from tqdm import tqdm
 
 from .models import DownloadJob
-from .sevenz import find_7z
 from .scrapers import (
     cleanup_empty_directories,
     download_file,
@@ -22,6 +21,7 @@ from .scrapers import (
     extract_sfx,
     resolve_cookies,
 )
+from .sevenz import find_7z
 
 
 class DaemonThreadPool:
@@ -98,8 +98,8 @@ class ConcurrentPipeline:
         self,
         jobs: list[DownloadJob],
         output_root: Path,
-        archive_path: Path | None = None,
-        archive_include: list[str] | None = None,
+        zip_path: Path | None = None,
+        zip_includes: list[str] | None = None,
     ) -> list[tuple[DownloadJob, bool, str]]:
         output_root.mkdir(parents=True, exist_ok=True)
         self._user_agent = UserAgent().chrome
@@ -160,15 +160,20 @@ class ConcurrentPipeline:
         self._destroy_driver()
         cleanup_empty_directories(output_root)
 
-        if archive_path and all(s for _, s, _ in self._results):
+        if zip_path and all(s for _, s, _ in self._results):
             args = [
-                find_7z(), "a", "-tzip", f"-mx={self._compress_level}",
-                str(archive_path), str(output_root),
+                find_7z(),
+                "a",
+                "-tzip",
+                f"-mx={self._compress_level}",
+                str(zip_path),
+                str(output_root),
             ]
-            if archive_include:
-                args.extend(archive_include)
+            if zip_includes:
+                for entry in zip_includes:
+                    args.extend(entry)
             subprocess.run(args, capture_output=True, text=True, check=True)
-            tqdm.write(f"Archive created: {archive_path}")
+            tqdm.write(f"Archive created: {zip_path}")
 
         return self._results
 
