@@ -3,7 +3,7 @@ FROM python:3.13-slim
 WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1
-ENV CHROME_SANDBOX=1
+ENV CHROME_NO_SANDBOX=1
 
 RUN echo "**** updating packages ****" && \
   echo "deb http://deb.debian.org/debian trixie non-free" >> /etc/apt/sources.list.d/non-free.list && \
