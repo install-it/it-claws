@@ -21,6 +21,7 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
         },
         file_type="exe",
         request_headers={"referer": "https://www.amd.com"},
+        rename_as="whql-amd-software-adrenalin-edition-win11-b",
         default_folder="display",
     ),
     ScrapeTarget(
@@ -32,7 +33,7 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
         },
         random_ua=False,
         include_cookies=["aws-waf-token"],
-        file_type="exe",
+        file_type="sfx",
         default_folder="display",
     ),
     ScrapeTarget(
@@ -44,7 +45,7 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
         },
         random_ua=False,
         include_cookies=["aws-waf-token"],
-        file_type="exe",
+        file_type="sfx",
         default_folder="display",
     ),
     ScrapeTarget(
@@ -56,7 +57,7 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
         },
         random_ua=False,
         include_cookies=["aws-waf-token"],
-        file_type="exe",
+        file_type="sfx",
         default_folder="display",
     ),
     ScrapeTarget(
@@ -65,6 +66,7 @@ HARDWARE_CATALOG: list[ScrapeTarget] = [
         resolver=resolve_nvidia_grd,
         resolver_kwargs={"url": "https://www.nvidia.com/zh-tw/geforce/game-ready-drivers/"},
         file_type="exe",
+        rename_as="desktop-win10-win11-64bit-international-dch-whql",
         default_folder="display",
     ),
     ScrapeTarget(
