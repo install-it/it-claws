@@ -274,7 +274,6 @@ class ConcurrentPipeline:
         options.add_experimental_option(
             "prefs",
             {
-                "download.default_directory": os.devnull,
                 "download.prompt_for_download": False,
                 "download.directory_upgrade": True,
             },
@@ -284,4 +283,6 @@ class ConcurrentPipeline:
         if self._user_agent:
             options.add_argument(f"--user-agent={self._user_agent}")
 
-        return webdriver.Chrome(options=options)
+        driver = webdriver.Chrome(options=options)
+        driver.execute_cdp_cmd("Page.setDownloadBehavior", {"behavior": "deny"})
+        return driver
