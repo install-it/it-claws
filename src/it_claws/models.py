@@ -30,6 +30,11 @@ class DownloadJob:
     target: ScrapeTarget
     output_root: Path
     custom_folder: str | None = None
+    name: str | None = None
+
+    @property
+    def display_name(self) -> str:
+        return self.name or self.target.name
 
     @property
     def destination_directory(self) -> Path:

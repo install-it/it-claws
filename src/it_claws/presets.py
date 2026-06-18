@@ -532,20 +532,22 @@ def get_selection_choices() -> list[str]:
     return [t.name for t in TARGETS]
 
 
-def expand_selection(names: list[str]) -> list[ScrapeTarget]:
+def expand_selection(names: list[str]) -> list[tuple[ScrapeTarget, str | None]]:
     group_map = {t.name: t for t in TARGETS if isinstance(t, TargetGroup)}
-    result: list[ScrapeTarget] = []
+    result: list[tuple[ScrapeTarget, str | None]] = []
     for name in names:
         if name in group_map:
             group = group_map[name]
             group_path = group.path.format(name=group.name)
             for member in group.members:
                 full_path = f"{group_path}/{member.path}"
-                result.append(replace(member, path=full_path))
+                result.append(
+                    (replace(member, path=full_path), f"{group.name} {member.name}")
+                )
         else:
             target = next(
                 (t for t in TARGETS if isinstance(t, ScrapeTarget) and t.name == name), None
             )
             if target:
-                result.append(target)
+                result.append((target, None))
     return result

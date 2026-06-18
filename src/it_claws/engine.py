@@ -116,7 +116,7 @@ class ConcurrentPipeline:
                     dest = self._build_dest_path(job, download_url)
                     scraped.append((job, download_url, dest, headers))
                 except Exception as exc:
-                    tqdm.write(f"Failed to resolve {job.target.name}: {exc}")
+                    tqdm.write(f"Failed to resolve {job.display_name}: {exc}")
 
             if scraped:
                 with DaemonThreadPool(max_workers=self._max_concurrent) as pool:
@@ -131,11 +131,11 @@ class ConcurrentPipeline:
                                 future.result()
                                 succeeded.append(job)
                                 self._results.append(
-                                    (job, True, f"Successfully downloaded {job.target.name}")
+                                    (job, True, f"Successfully downloaded {job.display_name}")
                                 )
-                                tqdm.write(f"Completed {job.target.name}")
+                                tqdm.write(f"Completed {job.display_name}")
                             except Exception as exc:
-                                tqdm.write(f"Failed {job.target.name}: {exc}")
+                                tqdm.write(f"Failed {job.display_name}: {exc}")
                     except KeyboardInterrupt:
                         pool.shutdown(wait=False, cancel_futures=True)
                         self._destroy_driver()
@@ -151,7 +151,7 @@ class ConcurrentPipeline:
             elif pending:
                 for job in pending:
                     self._results.append(
-                        (job, False, f"Failed {job.target.name}: retries exhausted")
+                        (job, False, f"Failed {job.display_name}: retries exhausted")
                     )
                 break
 
@@ -192,7 +192,7 @@ class ConcurrentPipeline:
             raise RuntimeError(f"Unknown resolver type: {job.target.resolver_type}")
 
         if not download_url:
-            raise RuntimeError(f"Failed to resolve download URL for {job.target.name}")
+            raise RuntimeError(f"Failed to resolve download URL for {job.display_name}")
 
         return download_url, job.target.request_headers
 

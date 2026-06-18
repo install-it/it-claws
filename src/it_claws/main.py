@@ -72,7 +72,7 @@ def resolve_selected_targets(
     interactive: bool,
     all_targets: bool = False,
     target_from: Path | None = None,
-) -> list[ScrapeTarget]:
+) -> list[tuple[ScrapeTarget, str | None]]:
     if target_from and interactive:
         names = _parse_target_file(target_from)
         answers = inquirer.prompt(
@@ -145,7 +145,8 @@ def run() -> None:
         sys.exit(1)
 
     jobs = [
-        DownloadJob(target=t, output_root=args.output, custom_folder=args.folder) for t in targets
+        DownloadJob(target=t, output_root=args.output, custom_folder=args.folder, name=name)
+        for t, name in targets
     ]
     results = ConcurrentPipeline(
         max_concurrent=args.max_concurrent,
