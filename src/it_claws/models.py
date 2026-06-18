@@ -18,6 +18,13 @@ class ScrapeTarget:
     random_ua: bool = True
 
 
+@dataclass(frozen=True)
+class TargetGroup:
+    name: str
+    path: str
+    members: list[ScrapeTarget]
+
+
 @dataclass
 class DownloadJob:
     target: ScrapeTarget

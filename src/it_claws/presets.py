@@ -1,4 +1,6 @@
-from .models import ScrapeTarget
+from dataclasses import replace
+
+from .models import ScrapeTarget, TargetGroup
 from .scrapers import (
     resolve_direct_url,
     resolve_furmark_static,
@@ -10,7 +12,7 @@ from .scrapers import (
     resolve_static_download,
 )
 
-TARGETS: list[ScrapeTarget] = [
+TARGETS: list[ScrapeTarget | TargetGroup] = [
     ScrapeTarget(
         name="AMD Software - Adrenalin Edition",
         path="display/{name}",
@@ -94,61 +96,73 @@ TARGETS: list[ScrapeTarget] = [
         include_cookies=["aws-waf-token"],
         file_type="exe",
     ),
-    ScrapeTarget(
-        name="Intel Wireless - Wi-Fi",
-        path="miscellaneous/Intel® Wireless/Wi-Fi",
-        resolver_type="static",
-        resolver=resolve_intel_static,
-        resolver_kwargs={
-            "url": "https://www.intel.com/content/www/us/en/download/19351/intel-wireless-wi-fi-drivers-for-windows-10-and-windows-11.html"
-        },
-        random_ua=False,
-        include_cookies=["aws-waf-token"],
-        file_type="exe",
-        rename_as="WiFi-Driver64-Win10-Win11",
-    ),
-    ScrapeTarget(
-        name="Intel Wireless - Bluetooth",
-        path="miscellaneous/Intel® Wireless/Bluetooth",
-        resolver_type="static",
-        resolver=resolve_intel_static,
-        resolver_kwargs={
-            "url": "https://www.intel.com/content/www/us/en/download/18649/intel-wireless-bluetooth-drivers-for-windows-10-and-windows-11.html"
-        },
-        random_ua=False,
-        include_cookies=["aws-waf-token"],
-        file_type="exe",
-        rename_as="BT-UWD-Win10-Win11",
-    ),
-    ScrapeTarget(
-        name="MediaTek MT7961_79X2 Bluetooth",
-        path="miscellaneous/MediaTek/MT7961_79X2/Bluetooth",
-        resolver_type="dynamic",
-        resolver=resolve_gigabyte_dynamic,
-        resolver_kwargs={
-            "url": "https://www.gigabyte.com/Motherboard/B850M-FORCE-WIFI6E-rev-10/support",
-            "selector": (
-                '//tr[contains(@class, "item-group")]'
-                '[.//text()[contains(., "MediaTek Wi-Fi 6E Bluetooth Driver")]][1]//a'
+    TargetGroup(
+        name="Intel Wireless",
+        path="miscellaneous/Intel® Wireless",
+        members=[
+            ScrapeTarget(
+                name="Wi-Fi",
+                path="{name}",
+                resolver_type="static",
+                resolver=resolve_intel_static,
+                resolver_kwargs={
+                    "url": "https://www.intel.com/content/www/us/en/download/19351/intel-wireless-wi-fi-drivers-for-windows-10-and-windows-11.html"
+                },
+                random_ua=False,
+                include_cookies=["aws-waf-token"],
+                file_type="exe",
+                rename_as="WiFi-Driver64-Win10-Win11",
             ),
-        },
-        file_type="zip/exe",
-        rename_as="mb_driver_4717_mtk6e",
-    ),
-    ScrapeTarget(
-        name="MediaTek MT7961_79X2 WIFI",
-        path="miscellaneous/MediaTek/MT7961_79X2/WIFI",
-        resolver_type="dynamic",
-        resolver=resolve_gigabyte_dynamic,
-        resolver_kwargs={
-            "url": "https://www.gigabyte.com/Motherboard/B850M-FORCE-WIFI6E-rev-10/support",
-            "selector": (
-                '//tr[contains(@class, "item-group")]'
-                '[.//text()[contains(., "MediaTek Wi-Fi 6E WIFI Driver")]][1]//a'
+            ScrapeTarget(
+                name="Bluetooth",
+                path="{name}",
+                resolver_type="static",
+                resolver=resolve_intel_static,
+                resolver_kwargs={
+                    "url": "https://www.intel.com/content/www/us/en/download/18649/intel-wireless-bluetooth-drivers-for-windows-10-and-windows-11.html"
+                },
+                random_ua=False,
+                include_cookies=["aws-waf-token"],
+                file_type="exe",
+                rename_as="BT-UWD-Win10-Win11",
             ),
-        },
-        file_type="zip/exe",
-        rename_as="mb_driver_4716_mtk6ewifi",
+        ],
+    ),
+    TargetGroup(
+        name="MediaTek MT7961_79X2",
+        path="miscellaneous/{name}",
+        members=[
+            ScrapeTarget(
+                name="Bluetooth",
+                path="{name}",
+                resolver_type="dynamic",
+                resolver=resolve_gigabyte_dynamic,
+                resolver_kwargs={
+                    "url": "https://www.gigabyte.com/Motherboard/B850M-FORCE-WIFI6E-rev-10/support",
+                    "selector": (
+                        '//tr[contains(@class, "item-group")]'
+                        '[.//text()[contains(., "MediaTek Wi-Fi 6E Bluetooth Driver")]][1]//a'
+                    ),
+                },
+                file_type="zip/exe",
+                rename_as="mb_driver_4717_mtk6e",
+            ),
+            ScrapeTarget(
+                name="WIFI",
+                path="{name}",
+                resolver_type="dynamic",
+                resolver=resolve_gigabyte_dynamic,
+                resolver_kwargs={
+                    "url": "https://www.gigabyte.com/Motherboard/B850M-FORCE-WIFI6E-rev-10/support",
+                    "selector": (
+                        '//tr[contains(@class, "item-group")]'
+                        '[.//text()[contains(., "MediaTek Wi-Fi 6E WIFI Driver")]][1]//a'
+                    ),
+                },
+                file_type="zip/exe",
+                rename_as="mb_driver_4716_mtk6ewifi",
+            ),
+        ],
     ),
     ScrapeTarget(
         name="Realtek HD Universal",
@@ -162,83 +176,103 @@ TARGETS: list[ScrapeTarget] = [
         },
         file_type="zip/folder",
     ),
-    ScrapeTarget(
-        name="Realtek RTL8852BE Bluetooth",
-        path="miscellaneous/Realtek RTL8852BE/Bluetooth",
-        resolver_type="static",
-        resolver=resolve_direct_url,
-        resolver_kwargs={
-            "url": "https://dlcdnets.asus.com/pub/ASUS/mb/02BT/DRV_BT_RTK_8852BE_SZ-TSD_W11_64_V1640132401503_20240924R.zip?model=PRIME%20B650M-A%20WIFI"
-        },
-        file_type="zip",
-    ),
-    ScrapeTarget(
-        name="Realtek RTL8852BE WIFI",
-        path="miscellaneous/Realtek RTL8852BE/WIFI",
-        resolver_type="static",
-        resolver=resolve_direct_url,
-        resolver_kwargs={
-            "url": "https://dlcdnets.asus.com/pub/ASUS/mb/08WIRELESS/DRV_WiFi_RTK_8852BE_SZ-TSD_W11_64_V6001151240_20220908B.zip?model=PRIME%20B650M-A%20WIFI"
-        },
-        file_type="zip",
-    ),
-    ScrapeTarget(
-        name="Realtek RTL8852CE Bluetooth",
-        path="miscellaneous/Realtek RTL8852CE/Bluetooth",
-        resolver_type="dynamic",
-        resolver=resolve_gigabyte_dynamic,
-        resolver_kwargs={
-            "url": "https://www.gigabyte.com/Motherboard/B860M-AORUS-ELITE-WIFI6E/support#support-dl-driver-wlanbt",
-            "selector": (
-                '//tr[contains(@class, "item-group")]'
-                '[.//text()[contains(., "8852 Bluetooth")]][1]//a'
+    TargetGroup(
+        name="Realtek RTL8852BE",
+        path="miscellaneous/{name}",
+        members=[
+            ScrapeTarget(
+                name="Bluetooth",
+                path="{name}",
+                resolver_type="static",
+                resolver=resolve_direct_url,
+                resolver_kwargs={
+                    "url": "https://dlcdnets.asus.com/pub/ASUS/mb/02BT/DRV_BT_RTK_8852BE_SZ-TSD_W11_64_V1640132401503_20240924R.zip?model=PRIME%20B650M-A%20WIFI"
+                },
+                file_type="zip",
             ),
-        },
-        file_type="zip/exe",
-        rename_as="mb_driver_675_realtek8852",
-    ),
-    ScrapeTarget(
-        name="Realtek RTL8852CE WIFI",
-        path="miscellaneous/Realtek RTL8852CE/WIFI",
-        resolver_type="dynamic",
-        resolver=resolve_gigabyte_dynamic,
-        resolver_kwargs={
-            "url": "https://www.gigabyte.com/Motherboard/B860M-AORUS-ELITE-WIFI6E/support#support-dl-driver-wlanbt",
-            "selector": (
-                '//tr[contains(@class, "item-group")][.//text()[contains(., "8852 WIFI")]][1]//a'
+            ScrapeTarget(
+                name="WIFI",
+                path="{name}",
+                resolver_type="static",
+                resolver=resolve_direct_url,
+                resolver_kwargs={
+                    "url": "https://dlcdnets.asus.com/pub/ASUS/mb/08WIRELESS/DRV_WiFi_RTK_8852BE_SZ-TSD_W11_64_V6001151240_20220908B.zip?model=PRIME%20B650M-A%20WIFI"
+                },
+                file_type="zip",
             ),
-        },
-        file_type="zip/exe",
-        rename_as="mb_driver_674_realtek8852wifi",
+        ],
     ),
-    ScrapeTarget(
-        name="Realtek RTL8892AE Bluetooth",
-        path="miscellaneous/Realtek RTL8892AE/Bluetooth",
-        resolver_type="dynamic",
-        resolver=resolve_gigabyte_dynamic,
-        resolver_kwargs={
-            "url": "https://www.gigabyte.com/Motherboard/X870-AORUS-ELITE-WIFI7-rev-10-11/support",
-            "selector": (
-                '//tr[contains(@class, "item-group")]'
-                '[.//text()[contains(., "Realtek Bluetooth")]][1]//a'
+    TargetGroup(
+        name="Realtek RTL8852CE",
+        path="miscellaneous/{name}",
+        members=[
+            ScrapeTarget(
+                name="Bluetooth",
+                path="{name}",
+                resolver_type="dynamic",
+                resolver=resolve_gigabyte_dynamic,
+                resolver_kwargs={
+                    "url": "https://www.gigabyte.com/Motherboard/B860M-AORUS-ELITE-WIFI6E/support#support-dl-driver-wlanbt",
+                    "selector": (
+                        '//tr[contains(@class, "item-group")]'
+                        '[.//text()[contains(., "8852 Bluetooth")]][1]//a'
+                    ),
+                },
+                file_type="zip/exe",
+                rename_as="mb_driver_675_realtek8852",
             ),
-        },
-        file_type="zip/exe",
-        rename_as="mb_driver_3702_realtek8922",
+            ScrapeTarget(
+                name="WIFI",
+                path="{name}",
+                resolver_type="dynamic",
+                resolver=resolve_gigabyte_dynamic,
+                resolver_kwargs={
+                    "url": "https://www.gigabyte.com/Motherboard/B860M-AORUS-ELITE-WIFI6E/support#support-dl-driver-wlanbt",
+                    "selector": (
+                        '//tr[contains(@class, "item-group")]'
+                        '[.//text()[contains(., "8852 WIFI")]][1]//a'
+                    ),
+                },
+                file_type="zip/exe",
+                rename_as="mb_driver_674_realtek8852wifi",
+            ),
+        ],
     ),
-    ScrapeTarget(
-        name="Realtek RTL8892AE WIFI",
-        path="miscellaneous/Realtek RTL8892AE/WIFI",
-        resolver_type="dynamic",
-        resolver=resolve_gigabyte_dynamic,
-        resolver_kwargs={
-            "url": "https://www.gigabyte.com/Motherboard/X870-AORUS-ELITE-WIFI7-rev-10-11/support",
-            "selector": (
-                '//tr[contains(@class, "item-group")][.//text()[contains(., "Realtek WIFI")]][1]//a'
+    TargetGroup(
+        name="Realtek RTL8892AE",
+        path="miscellaneous/{name}",
+        members=[
+            ScrapeTarget(
+                name="Bluetooth",
+                path="{name}",
+                resolver_type="dynamic",
+                resolver=resolve_gigabyte_dynamic,
+                resolver_kwargs={
+                    "url": "https://www.gigabyte.com/Motherboard/X870-AORUS-ELITE-WIFI7-rev-10-11/support",
+                    "selector": (
+                        '//tr[contains(@class, "item-group")]'
+                        '[.//text()[contains(., "Realtek Bluetooth")]][1]//a'
+                    ),
+                },
+                file_type="zip/exe",
+                rename_as="mb_driver_3702_realtek8922",
             ),
-        },
-        file_type="zip/exe",
-        rename_as="mb_driver_3701_realtek8922wifi",
+            ScrapeTarget(
+                name="WIFI",
+                path="{name}",
+                resolver_type="dynamic",
+                resolver=resolve_gigabyte_dynamic,
+                resolver_kwargs={
+                    "url": "https://www.gigabyte.com/Motherboard/X870-AORUS-ELITE-WIFI7-rev-10-11/support",
+                    "selector": (
+                        '//tr[contains(@class, "item-group")]'
+                        '[.//text()[contains(., "Realtek WIFI")]][1]//a'
+                    ),
+                },
+                file_type="zip/exe",
+                rename_as="mb_driver_3701_realtek8922wifi",
+            ),
+        ],
     ),
     ScrapeTarget(
         name="Intel Platform Performance Package",
@@ -448,24 +482,34 @@ TARGETS: list[ScrapeTarget] = [
 
 
 def get_target_by_name(name: str) -> ScrapeTarget | None:
-    for target in TARGETS:
-        if target.name == name:
-            return target
+    for t in TARGETS:
+        if isinstance(t, ScrapeTarget) and t.name == name:
+            return t
+        if isinstance(t, TargetGroup):
+            for m in t.members:
+                if m.name == name:
+                    return m
     return None
 
 
-def get_target_names() -> list[str]:
+def get_selection_choices() -> list[str]:
     return [t.name for t in TARGETS]
 
 
-def get_groups() -> list[str]:
-    seen: list[str] = []
-    for t in TARGETS:
-        group = t.path.split("/")[0]
-        if group not in seen:
-            seen.append(group)
-    return seen
-
-
-def get_leaves_by_group(group: str) -> list[ScrapeTarget]:
-    return [t for t in TARGETS if t.path.split("/")[0] == group]
+def expand_selection(names: list[str]) -> list[ScrapeTarget]:
+    group_map = {t.name: t for t in TARGETS if isinstance(t, TargetGroup)}
+    result: list[ScrapeTarget] = []
+    for name in names:
+        if name in group_map:
+            group = group_map[name]
+            group_path = group.path.format(name=group.name)
+            for member in group.members:
+                full_path = f"{group_path}/{member.path}"
+                result.append(replace(member, path=full_path))
+        else:
+            target = next(
+                (t for t in TARGETS if isinstance(t, ScrapeTarget) and t.name == name), None
+            )
+            if target:
+                result.append(target)
+    return result
