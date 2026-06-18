@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from .engine import ConcurrentPipeline
 from .models import DownloadJob, ScrapeTarget
-from .presets import ALL_TARGETS, get_target_names
+from .presets import expand_selection, get_selection_choices
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     tg = parser.add_argument_group("Target Options")
     mexcl = tg.add_mutually_exclusive_group()
-    mexcl.add_argument("-t", "--targets", nargs="+", choices=get_target_names())
+    mexcl.add_argument("-t", "--targets", nargs="+", choices=get_selection_choices())
     mexcl.add_argument("--all", action="store_true", help="Select all available targets")
     mexcl.add_argument(
         "--target-from",
@@ -70,23 +70,12 @@ def _parse_target_file(path: Path) -> list[str]:
     return names
 
 
-def _resolve_names(names: list[str]) -> list[ScrapeTarget]:
-    targets = []
-    for name in names:
-        target = next((t for t in ALL_TARGETS if t.name == name), None)
-        if target is None:
-            print(f"Unknown target: {name}", file=sys.stderr)
-            sys.exit(1)
-        targets.append(target)
-    return targets
-
-
 def resolve_selected_targets(
     target_names: list[str] | None,
     interactive: bool,
     all_targets: bool = False,
     target_from: Path | None = None,
-) -> list[ScrapeTarget]:
+) -> list[tuple[ScrapeTarget, str | None]]:
     if target_from and interactive:
         names = _parse_target_file(target_from)
         answers = inquirer.prompt(
@@ -101,10 +90,10 @@ def resolve_selected_targets(
         if not answers or not answers.get("targets"):
             tqdm.write("No targets selected interactively")
             return []
-        return _resolve_names(answers["targets"])
+        return expand_selection(answers["targets"])
 
     if target_from:
-        return _resolve_names(_parse_target_file(target_from))
+        return expand_selection(_parse_target_file(target_from))
 
     if all_targets and interactive:
         answers = inquirer.prompt(
@@ -112,17 +101,17 @@ def resolve_selected_targets(
                 inquirer.Checkbox(
                     "targets",
                     message="Select drivers and utilities to download",
-                    choices=[(n, n, True) for n in get_target_names()],
+                    choices=[(n, n, True) for n in get_selection_choices()],
                 ),
             ]
         )
         if not answers or not answers.get("targets"):
             tqdm.write("No targets selected interactively")
             return []
-        return [t for t in ALL_TARGETS if t.name in answers["targets"]]
+        return expand_selection(answers["targets"])
 
     if all_targets:
-        return ALL_TARGETS
+        return expand_selection(get_selection_choices())
 
     if interactive:
         answers = inquirer.prompt(
@@ -130,19 +119,19 @@ def resolve_selected_targets(
                 inquirer.Checkbox(
                     "targets",
                     message="Select drivers and utilities to download",
-                    choices=get_target_names(),
+                    choices=get_selection_choices(),
                 ),
             ]
         )
         if not answers or not answers.get("targets"):
             tqdm.write("No targets selected interactively")
             return []
-        return [t for t in ALL_TARGETS if t.name in answers["targets"]]
+        return expand_selection(answers["targets"])
 
     if target_names:
-        return _resolve_names(target_names)
+        return expand_selection(target_names)
 
-    return ALL_TARGETS
+    return expand_selection(get_selection_choices())
 
 
 def run() -> None:
@@ -158,12 +147,15 @@ def run() -> None:
         print("error: --zip-includes requires --zip", file=sys.stderr)
         sys.exit(1)
 
-    jobs = [DownloadJob(target=t, output_root=args.output) for t in targets]
+    jobs = [
+        DownloadJob(target=t, output_root=args.output, name=name)
+        for t, name in targets
+    ]
     results = ConcurrentPipeline(
         max_concurrent=args.max_concurrent,
         retries=args.retries,
         compress_level=args.compress_level,
-    ).execute(jobs, args.output, args.zip, include=args.zip_includes)
+    ).execute(jobs, args.output, args.zip, zip_includes=args.zip_includes)
 
     failed = [msg for _, success, msg in results if not success]
 

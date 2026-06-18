@@ -1,6 +1,5 @@
 import os
 import queue
-import subprocess
 import sys
 import threading
 from concurrent.futures import Future, as_completed
@@ -13,15 +12,15 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.remote.webdriver import WebDriver
 from tqdm import tqdm
 
+from .archive import zip
 from .models import DownloadJob
 from .scrapers import (
     cleanup_empty_directories,
     download_file,
-    extract_installer_from_zip,
-    extract_sfx,
+    extract_archive,
     resolve_cookies,
 )
-from .sevenz import find_7z
+
 
 
 class DaemonThreadPool:
@@ -118,7 +117,7 @@ class ConcurrentPipeline:
                     dest = self._build_dest_path(job, download_url)
                     scraped.append((job, download_url, dest, headers))
                 except Exception as exc:
-                    tqdm.write(f"Failed to resolve {job.target.name}: {exc}")
+                    tqdm.write(f"Failed to resolve {job.display_name}: {exc}")
 
             if scraped:
                 with DaemonThreadPool(max_workers=self._max_concurrent) as pool:
@@ -133,11 +132,11 @@ class ConcurrentPipeline:
                                 future.result()
                                 succeeded.append(job)
                                 self._results.append(
-                                    (job, True, f"Successfully downloaded {job.target.name}")
+                                    (job, True, f"Successfully downloaded {job.display_name}")
                                 )
-                                tqdm.write(f"Completed {job.target.name}")
+                                tqdm.write(f"Completed {job.display_name}")
                             except Exception as exc:
-                                tqdm.write(f"Failed {job.target.name}: {exc}")
+                                tqdm.write(f"Failed {job.display_name}: {exc}")
                     except KeyboardInterrupt:
                         pool.shutdown(wait=False, cancel_futures=True)
                         self._destroy_driver()
@@ -153,7 +152,7 @@ class ConcurrentPipeline:
             elif pending:
                 for job in pending:
                     self._results.append(
-                        (job, False, f"Failed {job.target.name}: retries exhausted")
+                        (job, False, f"Failed {job.display_name}: retries exhausted")
                     )
                 break
 
@@ -161,18 +160,12 @@ class ConcurrentPipeline:
         cleanup_empty_directories(output_root)
 
         if zip_path and all(s for _, s, _ in self._results):
-            args = [
-                find_7z(),
-                "a",
-                "-tzip",
-                f"-mx={self._compress_level}",
-                str(zip_path),
-                str(output_root),
-            ]
-            if zip_includes:
-                for entry in zip_includes:
-                    args.extend(entry)
-            subprocess.run(args, capture_output=True, text=True, check=True)
+            zip(
+                zip_path,
+                output_root,
+                level=self._compress_level,
+                include=zip_includes,
+            )
             tqdm.write(f"Archive created: {zip_path}")
 
         return self._results
@@ -200,7 +193,7 @@ class ConcurrentPipeline:
             raise RuntimeError(f"Unknown resolver type: {job.target.resolver_type}")
 
         if not download_url:
-            raise RuntimeError(f"Failed to resolve download URL for {job.target.name}")
+            raise RuntimeError(f"Failed to resolve download URL for {job.display_name}")
 
         return download_url, job.target.request_headers
 
@@ -245,15 +238,13 @@ class ConcurrentPipeline:
                 cookies=cookies,
             )
 
-        if job.target.file_type in ("zip", "zip/exe", "zip/folder"):
-            extract_installer_from_zip(
+        if job.target.file_type in ("zip", "zip/exe", "zip/folder", "sfx"):
+            extract_archive(
                 dest,
                 job.destination_directory,
                 job.target.file_type,
                 job.target.rename_as,
             )
-        elif job.target.file_type == "sfx":
-            extract_sfx(dest, job.destination_directory, job.target.rename_as)
 
     def _ensure_driver(self) -> WebDriver:
         if self._driver is not None:
@@ -279,7 +270,6 @@ class ConcurrentPipeline:
         options.add_experimental_option(
             "prefs",
             {
-                "download.default_directory": os.devnull,
                 "download.prompt_for_download": False,
                 "download.directory_upgrade": True,
             },
@@ -289,4 +279,6 @@ class ConcurrentPipeline:
         if self._user_agent:
             options.add_argument(f"--user-agent={self._user_agent}")
 
-        return webdriver.Chrome(options=options)
+        driver = webdriver.Chrome(options=options)
+        driver.execute_cdp_cmd("Page.setDownloadBehavior", {"behavior": "deny"})
+        return driver
