@@ -212,6 +212,18 @@ def extract_archive(
                 str(installer),
                 str(target_dir / (f"{rename_as}.exe" if rename_as else installer.name)),
             )
+        elif file_type == "zip/folder":
+            top_items = list(tmp_path.iterdir())
+            if len(top_items) != 1 or not top_items[0].is_dir():
+                raise RuntimeError(
+                    f"Expected single top-level folder in archive {archive_path}, "
+                    f"found {len(top_items)} item(s)"
+                )
+            for item in top_items[0].iterdir():
+                dest = target_dir / item.name
+                if dest.exists():
+                    shutil.rmtree(dest) if dest.is_dir() else dest.unlink()
+                shutil.move(str(item), str(dest))
         else:
             for item in tmp_path.iterdir():
                 dest = target_dir / item.name
