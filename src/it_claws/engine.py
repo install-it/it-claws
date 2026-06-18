@@ -1,6 +1,5 @@
 import os
 import queue
-import subprocess
 import sys
 import threading
 from concurrent.futures import Future, as_completed
@@ -13,13 +12,12 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.remote.webdriver import WebDriver
 from tqdm import tqdm
 
+from .archive import zip
 from .models import DownloadJob
-from .sevenz import find_7z
 from .scrapers import (
     cleanup_empty_directories,
     download_file,
-    extract_installer_from_zip,
-    extract_sfx,
+    extract_archive,
     resolve_cookies,
 )
 
@@ -161,13 +159,12 @@ class ConcurrentPipeline:
         cleanup_empty_directories(output_root)
 
         if archive_path and all(s for _, s, _ in self._results):
-            args = [
-                find_7z(), "a", "-tzip", f"-mx={self._compress_level}",
-                str(archive_path), str(output_root),
-            ]
-            if archive_include:
-                args.extend(archive_include)
-            subprocess.run(args, capture_output=True, text=True, check=True)
+            zip(
+                archive_path,
+                output_root,
+                level=self._compress_level,
+                include=archive_include,
+            )
             tqdm.write(f"Archive created: {archive_path}")
 
         return self._results
@@ -240,15 +237,13 @@ class ConcurrentPipeline:
                 cookies=cookies,
             )
 
-        if job.target.file_type in ("zip", "zip/exe", "zip/folder"):
-            extract_installer_from_zip(
+        if job.target.file_type in ("zip", "zip/exe", "zip/folder", "sfx"):
+            extract_archive(
                 dest,
                 job.destination_directory,
                 job.target.file_type,
                 job.target.rename_as,
             )
-        elif job.target.file_type == "sfx":
-            extract_sfx(dest, job.destination_directory, job.target.rename_as)
 
     def _ensure_driver(self) -> WebDriver:
         if self._driver is not None:

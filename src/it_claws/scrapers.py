@@ -1,9 +1,7 @@
 import shutil
-import subprocess
 import sys
 import tempfile
 import time
-import zipfile
 from pathlib import Path
 from typing import Any
 from urllib.parse import urljoin
@@ -15,6 +13,8 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from tqdm import tqdm
+
+from .archive import unzip
 
 
 def resolve_direct_url(_client: Any, url: str, **_: Any) -> str:
@@ -192,8 +192,8 @@ def download_file(
     return destination
 
 
-def extract_installer_from_zip(
-    zip_path: Path,
+def extract_archive(
+    archive_path: Path,
     target_dir: Path,
     file_type: str,
     rename_as: str | None = None,
@@ -201,52 +201,24 @@ def extract_installer_from_zip(
     target_dir.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
-        with zipfile.ZipFile(zip_path, "r") as zf:
-            zf.extractall(tmp_path)
+        unzip(archive_path, tmp_path)
 
-        if file_type in ("zip/exe", "zip/folder"):
+        if file_type == "zip/exe":
             exe_files = list(tmp_path.rglob("*.exe"))
             if not exe_files:
-                raise RuntimeError(f"No execution binary discovered inside zip archive {zip_path}")
+                raise RuntimeError(f"No executable found in archive {archive_path}")
             installer = exe_files[0]
             shutil.move(
                 str(installer),
                 str(target_dir / (f"{rename_as}.exe" if rename_as else installer.name)),
             )
         else:
-            target_dir.mkdir(parents=True, exist_ok=True)
             for item in tmp_path.iterdir():
                 dest = target_dir / item.name
                 if dest.exists():
                     shutil.rmtree(dest) if dest.is_dir() else dest.unlink()
                 shutil.move(str(item), str(dest))
-    zip_path.unlink(missing_ok=True)
-    return target_dir
-
-
-def extract_sfx(
-    sfx_path: Path,
-    target_dir: Path,
-    rename_as: str | None = None,
-) -> Path:
-    target_dir.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory() as tmp:
-        tmp_path = Path(tmp)
-        subprocess.run(
-            ["7z", "x", str(sfx_path), f"-o{tmp_path}", "-y"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        exe_files = list(tmp_path.rglob("*.exe"))
-        if not exe_files:
-            raise RuntimeError(f"No executable found in SFX archive {sfx_path}")
-        installer = exe_files[0]
-        shutil.move(
-            str(installer),
-            str(target_dir / (f"{rename_as}.exe" if rename_as else installer.name)),
-        )
-    sfx_path.unlink(missing_ok=True)
+    archive_path.unlink(missing_ok=True)
     return target_dir
 
 

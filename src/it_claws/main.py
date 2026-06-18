@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from .engine import ConcurrentPipeline
 from .models import DownloadJob, ScrapeTarget
-from .presets import ALL_TARGETS, get_target_names
+from .presets import TARGETS, get_target_names
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -70,7 +70,7 @@ def _parse_target_file(path: Path) -> list[str]:
 def _resolve_names(names: list[str]) -> list[ScrapeTarget]:
     targets = []
     for name in names:
-        target = next((t for t in ALL_TARGETS if t.name == name), None)
+        target = next((t for t in TARGETS if t.name == name), None)
         if target is None:
             print(f"Unknown target: {name}", file=sys.stderr)
             sys.exit(1)
@@ -116,10 +116,10 @@ def resolve_selected_targets(
         if not answers or not answers.get("targets"):
             tqdm.write("No targets selected interactively")
             return []
-        return [t for t in ALL_TARGETS if t.name in answers["targets"]]
+        return [t for t in TARGETS if t.name in answers["targets"]]
 
     if all_targets:
-        return ALL_TARGETS
+        return TARGETS
 
     if interactive:
         answers = inquirer.prompt(
@@ -134,12 +134,12 @@ def resolve_selected_targets(
         if not answers or not answers.get("targets"):
             tqdm.write("No targets selected interactively")
             return []
-        return [t for t in ALL_TARGETS if t.name in answers["targets"]]
+        return [t for t in TARGETS if t.name in answers["targets"]]
 
     if target_names:
         return _resolve_names(target_names)
 
-    return ALL_TARGETS
+    return TARGETS
 
 
 def run() -> None:
