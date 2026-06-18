@@ -164,6 +164,42 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
             ),
         ],
     ),
+    TargetGroup(
+        name="MediaTek MT7952_7927",
+        path="miscellaneous/{name}",
+        members=[
+            ScrapeTarget(
+                name="Bluetooth",
+                path="{name}",
+                resolver_type="dynamic",
+                resolver=resolve_gigabyte_dynamic,
+                resolver_kwargs={
+                    "url": "https://www.gigabyte.com/PC-Accessory/GC-WIFI7-rev-11/support",
+                    "selector": (
+                        '//tr[contains(@class, "item-group")]'
+                        '[.//text()[contains(., "MediaTek Wi-Fi 7 Bluetooth Driver")]][1]//a'
+                    ),
+                },
+                file_type="zip/exe",
+                rename_as="mb_driver_2683_mtk",
+            ),
+            ScrapeTarget(
+                name="WIFI",
+                path="{name}",
+                resolver_type="dynamic",
+                resolver=resolve_gigabyte_dynamic,
+                resolver_kwargs={
+                    "url": "https://www.gigabyte.com/PC-Accessory/GC-WIFI7-rev-11/support",
+                    "selector": (
+                        '//tr[contains(@class, "item-group")]'
+                        '[.//text()[contains(., "MediaTek Wi-Fi 7 WIFI Driver")]][1]//a'
+                    ),
+                },
+                file_type="zip/exe",
+                rename_as="mb_driver_2682_mtk",
+            ),
+        ],
+    ),
     ScrapeTarget(
         name="Realtek HD Universal",
         path="miscellaneous/{name}",
