@@ -51,8 +51,8 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="sfx",
     ),
     ScrapeTarget(
-        name="Intel Arc & Iris Xe Graphics",
-        path="display/Intel® Arc™ & Iris® Xe Graphics",
+        name="Intel Arc™ Graphics",
+        path="display/Intel® Arc™ Graphics",
         resolver_type="static",
         resolver=resolve_intel_static,
         resolver_kwargs={
