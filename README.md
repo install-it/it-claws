@@ -113,7 +113,7 @@ it-claws --max-concurrent 10 --retries 2
 ### Archiving options
 
 ```sh
-it-claws -o ./downloads -z ./driver-pack.zip --zip-includes ./install-it/conf --compress-level 9
+it-claws -o ./downloads -z ./driver-pack.zip --zip-includes install-it/conf --compress-level 9
 ```
 
 - `-z` / `--zip PATH`: destination for the output ZIP archive
@@ -132,14 +132,16 @@ it-claws -z out.zip --zip-includes ./install-it/conf
 it-claws -z out.zip --zip-includes install-it/conf
 # → zip contains: install-it/conf/ (full path preserved)
 
-it-claws -z out.zip --zip-includes ./install-it/conf/ install-it/conf/
-# → both normalized to: install-it/conf/ (trailing slash stripped)
+it-claws -z out.zip --zip-includes install-it/conf/
+# → zip contains: install-it/conf/ (trailing slash stripped, full path preserved)
+
+it-claws -z out.zip --zip-includes ./install-it/conf/
+# → zip contains: conf/ (./ drops all components except last)
 ```
 
 Key path behaviors:
 - **`./` drops all components except the last.** `./a/b/c` → `c`, `./a/b` → `b`, `./a` → `a`.
-- **`..` alone stores the CWD name.** `..` from `parent\child` → stores as `child`, not `parent`.
-- **`..\subdir` works only if `subdir` exists inside the resolved parent directory.**
+- **`..` resolves to parent directory.** `../other` stores relative to resolved parent, not the CWD.
 - **No prefix preserves the full relative path.** `install-it/conf` stores as `install-it/conf`.
 - **Trailing `/` is normalized away.** Both `conf/` and `conf` store identically.
 - **Paths are relative to your shell's current directory**, not the location of the zip output.

@@ -9,11 +9,11 @@
 | Input | Zip Entry | Notes |
 |-------|-----------|-------|
 | `install-it/conf` | `install-it\conf`, `...\settings.ini` | Full relative path stored |
-| `./install-it/conf` | `conf`, `...\settings.ini` | **All components except last dropped (`install-it` removed)** |
-| `./install-it/conf/` | `conf`, `...\settings.ini` | Same as above, trailing `/` stripped |
-| `install-it/conf/` | `install-it\conf`, `...\settings.ini` | Trailing `/` stripped, full path kept |
-| `../outside_cwd/other` | `other`, `...\outside.txt` | **`..` drops all resolved components except last; stores `other` (parent name dropped)** |
-| `../../outside_cwd/other` | _(empty zip)_ | Path resolution failed — no common base |
+| `./install-it/conf` | `conf\settings.ini` | **`./` prefix: all components except last dropped** |
+| `./install-it/conf/` | `conf\settings.ini` | Same as above, trailing `/` stripped |
+| `install-it/conf/` | `install-it\conf\settings.ini` | Trailing `/` stripped, full path kept |
+| `../outside_cwd/other` | `other\outside.txt` | Resolves to parent dir, stores relative to resolved path |
+| `../../outside_cwd/other` | `...\outside.txt` | Resolves to grandparent dir, stores relative to resolved path |
 | `subdir/child` | `subdir\child`, `...\file.txt` | Forward slash works |
 | `subdir\child` | `subdir\child`, `...\file.txt` | Backslash works |
 
@@ -23,8 +23,8 @@
 
 | Input | Zip Entry | Notes |
 |-------|-----------|-------|
-| `C:\...\project\downloads` (abs inside CWD tree) | `downloads`, `...\amd.cat` | Common base stripped |
-| `C:\...\outside_cwd\other` (abs outside CWD tree) | `other`, `...\outside.txt` | First component of relative portion dropped |
+| `C:\...\project\downloads` (abs path) | `downloads\...\amd.cat` | Drive letter stripped, first component dropped |
+| `C:\...\outside_cwd\other` (abs path) | `other\...\outside.txt` | Same rule — drive letter stripped, first component dropped |
 | `\\server\share\path` (UNC) | `other`, `...\outside.txt` | Same behavior as absolute path |
 | `/usr/local/bin` (unix-style absolute) | _(empty zip)_ | Not recognized on Windows |
 
@@ -72,11 +72,11 @@ Same absolute path from different CWDs produces identical zip entries:
 ## Key Behaviors
 
 1. **`./` prefix drops all components except the last.** `./a/b/c` stores as `c`, `./a/b` stores as `b`, `./a` stores as `a`.
-2. **`../` prefix drops all components except the last.** `../outside_cwd/other` stores as `other`. But `..` alone stores the CWD name (not the resolved parent).
+2. **`..` resolves to parent directory.** `../other` resolves to parent dir, stores relative to that. `..` alone stores entire parent tree.
 3. **Trailing `/` is normalized away.** No effect on stored path.
 4. **Wildcard `*` does NOT recurse.** `*.ini` only matches files directly in CWD.
-5. **Common base from CWD is always stripped.** Even absolute paths become relative to invocation directory.
-6. **When target is outside CWD tree** — first component of the relative portion may also be dropped (7z quirk).
+5. **Absolute paths: strip drive letter + drop first component.** `C:\a\b\c` → `b\c`.
+6. **Relative paths: full path from CWD preserved.** `a/b` from CWD `X` → `a\b`.
 7. **Nonexistent paths** — warning + non-zero exit + empty zip still created.
 8. **Duplicate paths specified twice** — ERROR, non-zero exit, no zip created.
 9. **Hidden files** — included normally.
@@ -94,8 +94,11 @@ it-claws -z out.zip --zip-includes ./install-it/conf
 it-claws -z out.zip --zip-includes install-it/conf
 # → zip contains: install-it/conf/ (full path preserved)
 
-it-claws -z out.zip --zip-includes ../sibling-dir
-# → zip contains: sibling-dir/ (first .. component dropped)
+it-claws -z out.zip --zip-includes install-it/conf/
+# → zip contains: install-it/conf/ (trailing slash stripped, full path preserved)
+
+it-claws -z out.zip --zip-includes ./install-it/conf/
+# → zip contains: conf/ (./ drops all components except last)
 
 # Multiple --zip-includes accumulate (each flag can have multiple values):
 it-claws -z out.zip --zip-includes ./install-it/conf *.ini
@@ -136,18 +139,13 @@ it-claws -o ./downloads -z ./driver-pack.zip --zip-includes "*.txt" install-it/c
 | D8 | `./a/b` | `b`, `b.txt`, `b\c`, `b\c\c.txt` | Same — drops `a`, keeps `b` |
 | D9 | `./a` | `a`, `a.txt`, `a\b`, `a\b\b.txt` | Only `.` stripped (one component total) |
 | D10 | `a/b/c` (no prefix, for comparison) | `a\b\c`, `c.txt` | Full relative path preserved |
-| D16 | `..` from `child` dir (parent is sibling) | `child` | **`..` drops first component of resolved path** |
-| D17 | `..` from `grandchild` dir | `grandchild`, `gc.txt` | Same behavior |
-| D21 | `../../../../..` (5 levels up from deep dir) | Scanned entire `C:\Users\User\AppData\Local\Temp` | **Too far up = scans entire parent tree** |
+| D16 | `..` from `child` dir (parent is sibling) | Full parent tree | **`..` resolves to parent, stores entire parent tree** |
+| D17 | `..` from `grandchild` dir | Full grandparent tree | Same — resolves to grandparent |
 | D22 | `./a/b/c` vs `a/b/c` | `c` vs `a\b\c` | Confirms `./` drops exactly one component |
 
 ### Key deep-nesting behaviors
 
 1. **Any depth works** — 7z handles 1 to 6+ levels identically, recursion is automatic.
 2. **`./` drops all components except the last** — `./a/b/c` → `c`, `./a/b` → `b`, `./a` → `a`.
-3. **`..` behavior is more complex:**
-   - `..` alone stores the CWD name (regardless of where it points in filesystem)
-   - `..\subdir` only works if `subdir` exists inside the resolved target of `..`
-   - Each `..` drops one component of the full resolved path
-4. **`..` can reach too far** — going 5+ levels up from a deep structure can scan entire parent tree (warning: slow, large zip).
-5. **No limit on depth** — tested up to 6 levels, confirmed working.
+3. **`..` resolves to parent directory** — stores files relative to the resolved parent, not the CWD.
+4. **No limit on depth** — tested up to 6 levels, confirmed working.
