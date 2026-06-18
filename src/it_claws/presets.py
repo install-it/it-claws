@@ -205,8 +205,7 @@ TARGETS: list[ScrapeTarget] = [
         resolver_kwargs={
             "url": "https://www.gigabyte.com/Motherboard/B860M-AORUS-ELITE-WIFI6E/support#support-dl-driver-wlanbt",
             "selector": (
-                '//tr[contains(@class, "item-group")]'
-                '[.//text()[contains(., "8852 WIFI")]][1]//a'
+                '//tr[contains(@class, "item-group")][.//text()[contains(., "8852 WIFI")]][1]//a'
             ),
         },
         file_type="zip/exe",
@@ -235,16 +234,15 @@ TARGETS: list[ScrapeTarget] = [
         resolver_kwargs={
             "url": "https://www.gigabyte.com/Motherboard/X870-AORUS-ELITE-WIFI7-rev-10-11/support",
             "selector": (
-                '//tr[contains(@class, "item-group")]'
-                '[.//text()[contains(., "Realtek WIFI")]][1]//a'
+                '//tr[contains(@class, "item-group")][.//text()[contains(., "Realtek WIFI")]][1]//a'
             ),
         },
         file_type="zip/exe",
         rename_as="mb_driver_3701_realtek8922wifi",
     ),
     ScrapeTarget(
-        name="Intel® PPM",
-        path="miscellaneous/{name}",
+        name="Intel Platform Performance Package",
+        path="miscellaneous/Intel® Platform Performance Package",
         resolver_type="static",
         resolver=resolve_intel_static,
         resolver_kwargs={
@@ -253,7 +251,6 @@ TARGETS: list[ScrapeTarget] = [
         random_ua=False,
         include_cookies=["aws-waf-token"],
         file_type="exe",
-        rename_as="mb_driver_3713_ppm",
     ),
     ScrapeTarget(
         name="Intel Ethernet Adapter Complete Driver Pack",
