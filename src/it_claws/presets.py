@@ -183,6 +183,66 @@ TARGETS: list[ScrapeTarget] = [
         file_type="zip",
     ),
     ScrapeTarget(
+        name="Realtek RTL8852CE Bluetooth",
+        path="miscellaneous/Realtek RTL8852CE/Bluetooth",
+        resolver_type="dynamic",
+        resolver=resolve_gigabyte_dynamic,
+        resolver_kwargs={
+            "url": "https://www.gigabyte.com/Motherboard/B860M-AORUS-ELITE-WIFI6E/support#support-dl-driver-wlanbt",
+            "selector": (
+                '//tr[contains(@class, "item-group")]'
+                '[.//text()[contains(., "8852 Bluetooth")]][1]//a'
+            ),
+        },
+        file_type="zip/exe",
+        rename_as="mb_driver_675_realtek8852",
+    ),
+    ScrapeTarget(
+        name="Realtek RTL8852CE WIFI",
+        path="miscellaneous/Realtek RTL8852CE/WIFI",
+        resolver_type="dynamic",
+        resolver=resolve_gigabyte_dynamic,
+        resolver_kwargs={
+            "url": "https://www.gigabyte.com/Motherboard/B860M-AORUS-ELITE-WIFI6E/support#support-dl-driver-wlanbt",
+            "selector": (
+                '//tr[contains(@class, "item-group")]'
+                '[.//text()[contains(., "8852 WIFI")]][1]//a'
+            ),
+        },
+        file_type="zip/exe",
+        rename_as="mb_driver_674_realtek8852wifi",
+    ),
+    ScrapeTarget(
+        name="Realtek RTL8892AE Bluetooth",
+        path="miscellaneous/Realtek RTL8892AE/Bluetooth",
+        resolver_type="dynamic",
+        resolver=resolve_gigabyte_dynamic,
+        resolver_kwargs={
+            "url": "https://www.gigabyte.com/Motherboard/X870-AORUS-ELITE-WIFI7-rev-10-11/support",
+            "selector": (
+                '//tr[contains(@class, "item-group")]'
+                '[.//text()[contains(., "Realtek Bluetooth")]][1]//a'
+            ),
+        },
+        file_type="zip/exe",
+        rename_as="mb_driver_3702_realtek8922",
+    ),
+    ScrapeTarget(
+        name="Realtek RTL8892AE WIFI",
+        path="miscellaneous/Realtek RTL8892AE/WIFI",
+        resolver_type="dynamic",
+        resolver=resolve_gigabyte_dynamic,
+        resolver_kwargs={
+            "url": "https://www.gigabyte.com/Motherboard/X870-AORUS-ELITE-WIFI7-rev-10-11/support",
+            "selector": (
+                '//tr[contains(@class, "item-group")]'
+                '[.//text()[contains(., "Realtek WIFI")]][1]//a'
+            ),
+        },
+        file_type="zip/exe",
+        rename_as="mb_driver_3701_realtek8922wifi",
+    ),
+    ScrapeTarget(
         name="Intel Ethernet Adapter Complete Driver Pack",
         path="network/Intel® Ethernet Adapter Complete Driver Pack",
         resolver_type="static",
