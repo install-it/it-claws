@@ -243,6 +243,19 @@ TARGETS: list[ScrapeTarget] = [
         rename_as="mb_driver_3701_realtek8922wifi",
     ),
     ScrapeTarget(
+        name="Intel® PPM",
+        path="miscellaneous/{name}",
+        resolver_type="static",
+        resolver=resolve_intel_static,
+        resolver_kwargs={
+            "url": "https://www.intel.com/content/www/us/en/download/869519/intel-platform-performance-package.html"
+        },
+        random_ua=False,
+        include_cookies=["aws-waf-token"],
+        file_type="exe",
+        rename_as="mb_driver_3713_ppm",
+    ),
+    ScrapeTarget(
         name="Intel Ethernet Adapter Complete Driver Pack",
         path="network/Intel® Ethernet Adapter Complete Driver Pack",
         resolver_type="static",
