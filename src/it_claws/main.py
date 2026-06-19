@@ -42,10 +42,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     ar = parser.add_argument_group("Archiving Options")
-    ar.add_argument("-z", "--zip", type=Path, default=None, metavar="PATH",
-                    help="Zip archive output path")
-    ar.add_argument("-l", "--compress-level", type=int, choices=range(10), default=5,
-                    help="Compression level (0-9)")
+    ar.add_argument(
+        "-z", "--zip", type=Path, default=None, metavar="PATH", help="Zip archive output path"
+    )
+    ar.add_argument(
+        "-l",
+        "--compress-level",
+        type=int,
+        choices=range(10),
+        default=5,
+        help="Compression level (0-9)",
+    )
     ar.add_argument(
         "--zip-includes",
         action="append",
@@ -147,19 +154,18 @@ def run() -> None:
         print("error: --zip-includes requires --zip", file=sys.stderr)
         sys.exit(1)
 
-    jobs = [
-        DownloadJob(target=t, output_root=args.output, name=name)
-        for t, name in targets
-    ]
     results = ConcurrentPipeline(
         max_concurrent=args.max_concurrent,
         retries=args.retries,
         compress_level=args.compress_level,
-    ).execute(jobs, args.output, args.zip, zip_includes=args.zip_includes)
+    ).execute(
+        [DownloadJob(target=t, output_root=args.output, name=name) for t, name in targets],
+        args.output,
+        args.zip,
+        zip_includes=[item for g in (args.zip_includes or []) for item in g] or None,
+    )
 
-    failed = [msg for _, success, msg in results if not success]
-
-    if failed:
+    if failed := [msg for _, success, msg in results if not success]:
         for msg in failed:
             print(f"  FAILED: {msg}", file=sys.stderr)
         sys.exit(1)
