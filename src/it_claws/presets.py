@@ -14,7 +14,7 @@ from .scrapers import (
 
 TARGETS: list[ScrapeTarget | TargetGroup] = [
     ScrapeTarget(
-        name="AMD Software - Adrenalin Edition",
+        name="amd-adrenalin",
         path="display/{name}",
         resolver_type="static",
         resolver=resolve_static_download,
@@ -27,8 +27,8 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         rename_as="whql-amd-software-adrenalin-edition-win11-b",
     ),
     ScrapeTarget(
-        name="Intel 7th-10th Gen Processor Graphics",
-        path="display/Intel® 7th-10th Gen Processor Graphics",
+        name="intel-gfx-7-10gen",
+        path="display/{name}",
         resolver_type="static",
         resolver=resolve_intel_static,
         resolver_kwargs={
@@ -39,8 +39,8 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="sfx",
     ),
     ScrapeTarget(
-        name="Intel 11th-14th Gen Processor Graphics",
-        path="display/Intel® 11th-14th Gen Processor Graphics",
+        name="intel-gfx-11-14gen",
+        path="display/{name}",
         resolver_type="static",
         resolver=resolve_intel_static,
         resolver_kwargs={
@@ -51,8 +51,8 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="sfx",
     ),
     ScrapeTarget(
-        name="Intel Arc™ Graphics",
-        path="display/Intel® Arc™ Graphics",
+        name="intel-gfx-arc",
+        path="display/{name}",
         resolver_type="static",
         resolver=resolve_intel_static,
         resolver_kwargs={
@@ -63,7 +63,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="sfx",
     ),
     ScrapeTarget(
-        name="GeForce Game Ready Driver",
+        name="nvidia-geforce-grd",
         path="display/{name}",
         resolver_type="dynamic",
         resolver=resolve_nvidia_grd,
@@ -72,7 +72,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         rename_as="desktop-win10-win11-64bit-international-dch-whql",
     ),
     ScrapeTarget(
-        name="AMD Chipset Drivers",
+        name="amd-chipset",
         path="miscellaneous/{name}",
         resolver_type="static",
         resolver=resolve_static_download,
@@ -85,7 +85,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         request_headers={"referer": "https://www.amd.com"},
     ),
     ScrapeTarget(
-        name="Intel Chipset INF Utility",
+        name="intel-chipset-inf",
         path="miscellaneous/{name}",
         resolver_type="static",
         resolver=resolve_intel_static,
@@ -97,11 +97,11 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="exe",
     ),
     TargetGroup(
-        name="Intel Wireless",
-        path="miscellaneous/Intel® Wireless",
+        name="intel-wireless",
+        path="miscellaneous/{name}",
         members=[
             ScrapeTarget(
-                name="Wi-Fi",
+                name="wifi",
                 path="",
                 resolver_type="static",
                 resolver=resolve_intel_static,
@@ -114,7 +114,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
                 rename_as="WiFi-Driver64-Win10-Win11",
             ),
             ScrapeTarget(
-                name="Bluetooth",
+                name="bluetooth",
                 path="",
                 resolver_type="static",
                 resolver=resolve_intel_static,
@@ -129,11 +129,11 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         ],
     ),
     TargetGroup(
-        name="MediaTek MT7961_79X2",
+        name="mediatek-mt7961",
         path="miscellaneous/{name}",
         members=[
             ScrapeTarget(
-                name="Bluetooth",
+                name="bluetooth",
                 path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
@@ -148,7 +148,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
                 rename_as="mb_driver_4717_mtk6e",
             ),
             ScrapeTarget(
-                name="WIFI",
+                name="wifi",
                 path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
@@ -165,11 +165,11 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         ],
     ),
     TargetGroup(
-        name="MediaTek MT7952_7927",
+        name="mediatek-mt7952",
         path="miscellaneous/{name}",
         members=[
             ScrapeTarget(
-                name="Bluetooth",
+                name="bluetooth",
                 path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
@@ -184,7 +184,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
                 rename_as="mb_driver_2683_mtk",
             ),
             ScrapeTarget(
-                name="WIFI",
+                name="wifi",
                 path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
@@ -201,7 +201,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         ],
     ),
     ScrapeTarget(
-        name="Realtek HD Universal",
+        name="realtek-hd-audio",
         path="miscellaneous/{name}",
         resolver_type="dynamic",
         resolver=resolve_msi_dynamic,
@@ -213,11 +213,11 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="zip/folder",
     ),
     TargetGroup(
-        name="Realtek RTL8852BE",
+        name="realtek-rtl8852be",
         path="miscellaneous/{name}",
         members=[
             ScrapeTarget(
-                name="Bluetooth",
+                name="bluetooth",
                 path="{name}",
                 resolver_type="static",
                 resolver=resolve_direct_url,
@@ -227,7 +227,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
                 file_type="zip",
             ),
             ScrapeTarget(
-                name="WIFI",
+                name="wifi",
                 path="{name}",
                 resolver_type="static",
                 resolver=resolve_direct_url,
@@ -239,11 +239,11 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         ],
     ),
     TargetGroup(
-        name="Realtek RTL8852CE",
+        name="realtek-rtl8852ce",
         path="miscellaneous/{name}",
         members=[
             ScrapeTarget(
-                name="Bluetooth",
+                name="bluetooth",
                 path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
@@ -258,7 +258,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
                 rename_as="mb_driver_675_realtek8852",
             ),
             ScrapeTarget(
-                name="WIFI",
+                name="wifi",
                 path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
@@ -275,11 +275,11 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         ],
     ),
     TargetGroup(
-        name="Realtek RTL8892AE",
+        name="realtek-rtl8892ae",
         path="miscellaneous/{name}",
         members=[
             ScrapeTarget(
-                name="Bluetooth",
+                name="bluetooth",
                 path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
@@ -294,7 +294,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
                 rename_as="mb_driver_3702_realtek8922",
             ),
             ScrapeTarget(
-                name="WIFI",
+                name="wifi",
                 path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
@@ -311,11 +311,11 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         ],
     ),
     TargetGroup(
-        name="Qualcomm NCM865",
+        name="qualcomm-ncm865",
         path="miscellaneous/{name}",
         members=[
             ScrapeTarget(
-                name="Bluetooth",
+                name="bluetooth",
                 path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
@@ -330,7 +330,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
                 rename_as="mb_driver_2687_qualcomm",
             ),
             ScrapeTarget(
-                name="WIFI",
+                name="wifi",
                 path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
@@ -347,8 +347,8 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         ],
     ),
     ScrapeTarget(
-        name="Intel Platform Performance Package",
-        path="miscellaneous/Intel® Platform Performance Package",
+        name="intel-ppp",
+        path="miscellaneous/{name}",
         resolver_type="static",
         resolver=resolve_intel_static,
         resolver_kwargs={
@@ -359,8 +359,8 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="exe",
     ),
     ScrapeTarget(
-        name="Intel Ethernet Adapter Complete Driver Pack",
-        path="network/Intel® Ethernet Adapter Complete Driver Pack",
+        name="intel-ethernet",
+        path="network/{name}",
         resolver_type="static",
         resolver=resolve_intel_static,
         resolver_kwargs={
@@ -371,7 +371,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="zip",
     ),
     ScrapeTarget(
-        name="Realtek PCI-E Ethernet Drivers",
+        name="realtek-ethernet",
         path="network/{name}",
         resolver_type="dynamic",
         resolver=resolve_msi_dynamic,
@@ -383,7 +383,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="zip/folder",
     ),
     ScrapeTarget(
-        name="CrystalDiskInfo",
+        name="crystaldiskinfo",
         path="tool/{name}",
         resolver_type="static",
         resolver=resolve_sourceforge_static,
@@ -392,7 +392,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         random_ua=False,
     ),
     ScrapeTarget(
-        name="CrystalDiskMark",
+        name="crystaldiskmark",
         path="tool/{name}",
         resolver_type="static",
         resolver=resolve_sourceforge_static,
@@ -401,7 +401,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         random_ua=False,
     ),
     ScrapeTarget(
-        name="FurMark",
+        name="furmark",
         path="tool/{name}",
         resolver_type="static",
         resolver=resolve_furmark_static,
@@ -412,7 +412,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="zip/folder",
     ),
     ScrapeTarget(
-        name="HWInfo",
+        name="hwinfo",
         path="tool/{name}",
         resolver_type="static",
         resolver=resolve_sourceforge_static,
@@ -421,7 +421,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         random_ua=False,
     ),
     ScrapeTarget(
-        name="OCCT",
+        name="occt",
         path="tool/{name}",
         resolver_type="static",
         resolver=resolve_direct_url,
@@ -442,7 +442,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="zip/folder",
     ),
     ScrapeTarget(
-        name="Steam",
+        name="steam",
         path="software/{name}",
         resolver_type="static",
         resolver=resolve_direct_url,
@@ -452,7 +452,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="exe",
     ),
     ScrapeTarget(
-        name="Firefox",
+        name="firefox",
         path="software/{name}",
         resolver_type="static",
         resolver=resolve_direct_url,
@@ -463,7 +463,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         rename_as="Firefox_Setup",
     ),
     ScrapeTarget(
-        name="Discord",
+        name="discord",
         path="software/{name}",
         resolver_type="static",
         resolver=resolve_direct_url,
@@ -473,7 +473,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="exe",
     ),
     ScrapeTarget(
-        name="VLC Player",
+        name="vlc",
         path="software/{name}",
         resolver_type="static",
         resolver=resolve_static_download,
@@ -485,7 +485,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         rename_as="vlc-win64",
     ),
     ScrapeTarget(
-        name="Surfshark",
+        name="surfshark",
         path="software/{name}",
         resolver_type="static",
         resolver=resolve_direct_url,
@@ -505,7 +505,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         random_ua=False,
     ),
     ScrapeTarget(
-        name="iTunes",
+        name="itunes",
         path="software/{name}",
         resolver_type="static",
         resolver=resolve_direct_url,
@@ -513,7 +513,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="exe",
     ),
     ScrapeTarget(
-        name="Zoom Workplace",
+        name="zoom",
         path="software/{name}",
         resolver_type="static",
         resolver=resolve_direct_url,
@@ -521,7 +521,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="exe",
     ),
     ScrapeTarget(
-        name="Github Desktop",
+        name="github-desktop",
         path="software/{name}",
         resolver_type="static",
         resolver=resolve_direct_url,
@@ -531,7 +531,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="exe",
     ),
     ScrapeTarget(
-        name="Miniconda",
+        name="miniconda",
         path="software/{name}",
         resolver_type="static",
         resolver=resolve_direct_url,
@@ -541,7 +541,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         file_type="exe",
     ),
     ScrapeTarget(
-        name="Visual Studio Code",
+        name="vscode",
         path="software/{name}",
         resolver_type="static",
         resolver=resolve_direct_url,
