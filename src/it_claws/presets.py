@@ -310,6 +310,42 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
             ),
         ],
     ),
+    TargetGroup(
+        name="Qualcomm NCM865",
+        path="miscellaneous/{name}",
+        members=[
+            ScrapeTarget(
+                name="Bluetooth",
+                path="",
+                resolver_type="dynamic",
+                resolver=resolve_gigabyte_dynamic,
+                resolver_kwargs={
+                    "url": "https://www.gigabyte.com/PC-Accessory/GC-WIFI7-rev-10/support",
+                    "selector": (
+                        '//tr[contains(@class, "item-group")]'
+                        '[.//text()[contains(., "Qualcomm Wi-Fi 7 Bluetooth Driver")]][1]//a'
+                    ),
+                },
+                file_type="zip/exe",
+                rename_as="mb_driver_2687_qualcomm",
+            ),
+            ScrapeTarget(
+                name="WIFI",
+                path="",
+                resolver_type="dynamic",
+                resolver=resolve_gigabyte_dynamic,
+                resolver_kwargs={
+                    "url": "https://www.gigabyte.com/PC-Accessory/GC-WIFI7-rev-10/support",
+                    "selector": (
+                        '//tr[contains(@class, "item-group")]'
+                        '[.//text()[contains(., "Qualcomm Wi-Fi 7 WIFI Driver")]][1]//a'
+                    ),
+                },
+                file_type="zip/exe",
+                rename_as="mb_driver_2686_qualcomm",
+            ),
+        ],
+    ),
     ScrapeTarget(
         name="Intel Platform Performance Package",
         path="miscellaneous/Intel® Platform Performance Package",
