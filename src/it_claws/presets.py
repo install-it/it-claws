@@ -426,6 +426,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         resolver_type="static",
         resolver=resolve_direct_url,
         resolver_kwargs={"url": "https://www.ocbase.com/download/edition:Personal/os:Windows"},
+        rename_as="OCCT",
         file_type="exe",
     ),
     ScrapeTarget(
