@@ -338,7 +338,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
                     "url": "https://www.gigabyte.com/PC-Accessory/GC-WIFI7-rev-10/support",
                     "selector": (
                         '//tr[contains(@class, "item-group")]'
-                        '[.//text()[contains(., "Qualcomm Wi-Fi 7 WIFI Driver")]][1]//a'
+                        '[.//text()[contains(., "Qualcomm Wi-Fi 7 WIFI driver")]][1]//a'
                     ),
                 },
                 file_type="zip/exe",
