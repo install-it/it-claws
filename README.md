@@ -98,18 +98,64 @@ it-claws --target-from presets/default.txt -i
 ### Output options
 
 ```sh
-it-claws -o ./my-drivers -f my-custom-folder --max-concurrent 10
+it-claws -o ./my-drivers --max-concurrent 10
 ```
 
-### Resilience & archiving
+### Resilience options
 
 ```sh
-it-claws -o ./downloads -a ./driver-pack.zip --retries 2 -l 9
+it-claws --max-concurrent 10 --retries 2
 ```
 
+- `--max-concurrent`: parallel downloads (default: `3`, `1` = sequential)
 - `--retries`: retry attempts per failed download (default: `1`)
-- `-a` / `--archive-path`: destination for the output ZIP archive
+
+### Archiving options
+
+```sh
+it-claws -o ./downloads -z ./driver-pack.zip --zip-includes install-it/conf --compress-level 9
+```
+
+- `-z` / `--zip PATH`: destination for the output ZIP archive
+- `--zip-includes PATHS [PATHS ...]`: additional files or directories to include in the archive (can be specified multiple times)
 - `-l` / `--compress-level`: 7z compression level `0`–`9` (default: `5`)
+
+### How zip entries are determined
+
+7z resolves all paths relative to the current working directory (CWD) at the time of execution. The path you pass to `--zip` and `--zip-includes` determines what gets stored inside the archive:
+
+```sh
+# From C:\project, these produce different zip contents:
+it-claws -z out.zip --zip-includes ./install-it/conf
+# → zip contains: conf/ (all components except last dropped)
+
+it-claws -z out.zip --zip-includes install-it/conf
+# → zip contains: install-it/conf/ (full path preserved)
+
+it-claws -z out.zip --zip-includes install-it/conf/
+# → zip contains: install-it/conf/ (trailing slash stripped, full path preserved)
+
+it-claws -z out.zip --zip-includes ./install-it/conf/
+# → zip contains: conf/ (./ drops all components except last)
+```
+
+Key path behaviors:
+- **`./` drops all components except the last.** `./a/b/c` → `c`, `./a/b` → `b`, `./a` → `a`.
+- **`..` resolves to parent directory.** `../other` stores relative to resolved parent, not the CWD.
+- **No prefix preserves the full relative path.** `install-it/conf` stores as `install-it/conf`.
+- **Trailing `/` is normalized away.** Both `conf/` and `conf` store identically.
+- **Paths are relative to your shell's current directory**, not the location of the zip output.
+- **Wildcards do not recurse.** `*.ini` only matches files directly in CWD.
+- **Duplicate paths cause errors** and non-zero exit — no zip created.
+- **Nonexistent paths** cause warnings and non-zero exit — zip is still created but path is skipped.
+
+To include a config directory alongside your downloads in the same archive:
+
+```sh
+it-claws -o ./downloads -z ./driver-pack.zip --zip-includes install-it/conf
+```
+
+This produces a zip containing both `downloads/` and `install-it/conf/` as top-level entries.
 
 ### Extract RAR files on Linux
 

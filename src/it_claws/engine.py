@@ -22,6 +22,7 @@ from .scrapers import (
 )
 
 
+
 class DaemonThreadPool:
     def __init__(self, max_workers: int) -> None:
         self._work_queue: queue.Queue = queue.Queue()
@@ -96,8 +97,8 @@ class ConcurrentPipeline:
         self,
         jobs: list[DownloadJob],
         output_root: Path,
-        archive_path: Path | None = None,
-        archive_include: list[str] | None = None,
+        zip_path: Path | None = None,
+        zip_includes: list[str] | None = None,
     ) -> list[tuple[DownloadJob, bool, str]]:
         output_root.mkdir(parents=True, exist_ok=True)
         self._user_agent = UserAgent().chrome
@@ -158,14 +159,14 @@ class ConcurrentPipeline:
         self._destroy_driver()
         cleanup_empty_directories(output_root)
 
-        if archive_path and all(s for _, s, _ in self._results):
+        if zip_path and all(s for _, s, _ in self._results):
             zip(
-                archive_path,
+                zip_path,
                 output_root,
                 level=self._compress_level,
-                include=archive_include,
+                include=zip_includes,
             )
-            tqdm.write(f"Archive created: {archive_path}")
+            tqdm.write(f"Archive created: {zip_path}")
 
         return self._results
 

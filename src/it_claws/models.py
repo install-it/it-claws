@@ -29,7 +29,6 @@ class TargetGroup:
 class DownloadJob:
     target: ScrapeTarget
     output_root: Path
-    custom_folder: str | None = None
     name: str | None = None
 
     @property
@@ -38,7 +37,5 @@ class DownloadJob:
 
     @property
     def destination_directory(self) -> Path:
-        if self.custom_folder:
-            return self.output_root / self.custom_folder
         resolved = self.target.path.format(name=self.target.name)
         return self.output_root / resolved

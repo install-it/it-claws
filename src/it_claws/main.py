@@ -14,7 +14,6 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="it-claws")
     dl = parser.add_argument_group("Download Options")
     dl.add_argument("-o", "--output", type=Path, default=Path.cwd() / "downloads")
-    dl.add_argument("-f", "--folder", type=str, default=None)
 
     tg = parser.add_argument_group("Target Options")
     mexcl = tg.add_mutually_exclusive_group()
@@ -28,28 +27,39 @@ def build_parser() -> argparse.ArgumentParser:
     )
     tg.add_argument("-i", "--interactive", action="store_true")
 
-    ra = parser.add_argument_group("Resilience & Archiving Options")
-    ra.add_argument(
+    rs = parser.add_argument_group("Resilience Options")
+    rs.add_argument(
         "--max-concurrent",
         type=int,
         default=3,
         help="Max parallel downloads (default: 3, 1 = sequential)",
     )
-    ra.add_argument(
+    rs.add_argument(
         "--retries",
         type=int,
         default=1,
         help="Full re-scrape passes for failed entries (0 = run once, no retry)",
     )
-    ra.add_argument("-a", "--archive-path", type=Path, default=None)
-    ra.add_argument("-l", "--compress-level", type=int, choices=range(10), default=5)
-    ra.add_argument(
-        "-I",
-        "--archive-include",
+
+    ar = parser.add_argument_group("Archiving Options")
+    ar.add_argument(
+        "-z", "--zip", type=Path, default=None, metavar="PATH", help="Zip archive output path"
+    )
+    ar.add_argument(
+        "-l",
+        "--compress-level",
+        type=int,
+        choices=range(10),
+        default=5,
+        help="Compression level (0-9)",
+    )
+    ar.add_argument(
+        "--zip-includes",
+        action="append",
         nargs="+",
         type=str,
         default=None,
-        metavar="FILE",
+        metavar="PATHS",
         help="Additional files or directories to include in the archive",
     )
 
@@ -140,23 +150,22 @@ def run() -> None:
         print("No valid targets to process", file=sys.stderr)
         sys.exit(1)
 
-    if args.archive_include and not args.archive_path:
-        print("error: --archive-include requires --archive-path", file=sys.stderr)
+    if args.zip_includes and not args.zip:
+        print("error: --zip-includes requires --zip", file=sys.stderr)
         sys.exit(1)
 
-    jobs = [
-        DownloadJob(target=t, output_root=args.output, custom_folder=args.folder, name=name)
-        for t, name in targets
-    ]
     results = ConcurrentPipeline(
         max_concurrent=args.max_concurrent,
         retries=args.retries,
         compress_level=args.compress_level,
-    ).execute(jobs, args.output, args.archive_path, archive_include=args.archive_include)
+    ).execute(
+        [DownloadJob(target=t, output_root=args.output, name=name) for t, name in targets],
+        args.output,
+        args.zip,
+        zip_includes=[item for g in (args.zip_includes or []) for item in g] or None,
+    )
 
-    failed = [msg for _, success, msg in results if not success]
-
-    if failed:
+    if failed := [msg for _, success, msg in results if not success]:
         for msg in failed:
             print(f"  FAILED: {msg}", file=sys.stderr)
         sys.exit(1)
