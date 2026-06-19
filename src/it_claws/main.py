@@ -161,7 +161,7 @@ def run() -> None:
 
     targets = resolve_selected_targets(args.targets, args.interactive, args.all, args.target_from)
     if not targets:
-        print("No valid targets to process", file=sys.stderr)
+        tqdm.write("No valid targets to process")
         sys.exit(1)
 
     if args.zip_include and not args.zip:
@@ -183,7 +183,7 @@ def run() -> None:
 
     if failed := [msg for _, success, msg in results if not success]:
         for msg in failed:
-            print(f"  FAILED: {msg}", file=sys.stderr)
+            tqdm.write(f"  FAILED: {msg}")
         sys.exit(1)
 
 
