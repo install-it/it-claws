@@ -102,7 +102,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         members=[
             ScrapeTarget(
                 name="Wi-Fi",
-                path="{name}",
+                path="",
                 resolver_type="static",
                 resolver=resolve_intel_static,
                 resolver_kwargs={
@@ -115,7 +115,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
             ),
             ScrapeTarget(
                 name="Bluetooth",
-                path="{name}",
+                path="",
                 resolver_type="static",
                 resolver=resolve_intel_static,
                 resolver_kwargs={
@@ -134,7 +134,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         members=[
             ScrapeTarget(
                 name="Bluetooth",
-                path="{name}",
+                path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
                 resolver_kwargs={
@@ -149,7 +149,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
             ),
             ScrapeTarget(
                 name="WIFI",
-                path="{name}",
+                path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
                 resolver_kwargs={
@@ -170,7 +170,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         members=[
             ScrapeTarget(
                 name="Bluetooth",
-                path="{name}",
+                path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
                 resolver_kwargs={
@@ -185,7 +185,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
             ),
             ScrapeTarget(
                 name="WIFI",
-                path="{name}",
+                path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
                 resolver_kwargs={
@@ -244,7 +244,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         members=[
             ScrapeTarget(
                 name="Bluetooth",
-                path="{name}",
+                path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
                 resolver_kwargs={
@@ -259,7 +259,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
             ),
             ScrapeTarget(
                 name="WIFI",
-                path="{name}",
+                path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
                 resolver_kwargs={
@@ -280,7 +280,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         members=[
             ScrapeTarget(
                 name="Bluetooth",
-                path="{name}",
+                path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
                 resolver_kwargs={
@@ -295,7 +295,7 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
             ),
             ScrapeTarget(
                 name="WIFI",
-                path="{name}",
+                path="",
                 resolver_type="dynamic",
                 resolver=resolve_gigabyte_dynamic,
                 resolver_kwargs={
@@ -541,9 +541,7 @@ def expand_selection(names: list[str]) -> list[tuple[ScrapeTarget, str | None]]:
             group_path = group.path.format(name=group.name)
             for member in group.members:
                 full_path = f"{group_path}/{member.path}"
-                result.append(
-                    (replace(member, path=full_path), f"{group.name} {member.name}")
-                )
+                result.append((replace(member, path=full_path), f"{group.name} {member.name}"))
         else:
             target = next(
                 (t for t in TARGETS if isinstance(t, ScrapeTarget) and t.name == name), None
