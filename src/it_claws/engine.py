@@ -1,8 +1,10 @@
+import json
 import os
 import queue
 import sys
 import threading
 from concurrent.futures import Future, as_completed
+from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
@@ -99,6 +101,7 @@ class ConcurrentPipeline:
         output_root: Path,
         zip_path: Path | None = None,
         zip_includes: list[str] | None = None,
+        manifest: bool = False,
     ) -> list[tuple[DownloadJob, bool, str]]:
         output_root.mkdir(parents=True, exist_ok=True)
         self._user_agent = UserAgent().chrome
@@ -160,6 +163,15 @@ class ConcurrentPipeline:
         cleanup_empty_directories(output_root)
 
         if zip_path and all(s for _, s, _ in self._results):
+            if manifest:
+                manifest_path = output_root / "manifest.json"
+                manifest_path.write_text(
+                    json.dumps(
+                        {"format_version": 1, "exported_at": datetime.now(timezone.utc).isoformat()},
+                        indent=2,
+                    )
+                    + "\n"
+                )
             zip(
                 zip_path,
                 output_root,

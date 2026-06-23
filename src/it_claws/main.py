@@ -62,6 +62,11 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="PATHS",
         help="Additional files or directories to include in the archive",
     )
+    ar.add_argument(
+        "--manifest",
+        action="store_true",
+        help="Generate manifest.json inside the archive (required by install-it)",
+    )
 
     parser.add_argument("-v", "--verbose", action="store_true")
     return parser
@@ -163,6 +168,7 @@ def run() -> None:
         args.output,
         args.zip,
         zip_includes=[item for g in (args.zip_includes or []) for item in g] or None,
+        manifest=args.manifest,
     )
 
     if failed := [msg for _, success, msg in results if not success]:
