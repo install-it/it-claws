@@ -38,7 +38,7 @@
 
 it-claws is a Python-based tool that automatically downloads the latest PC hardware drivers, diagnostic tools, and common software from official vendor websites. Using Selenium for browser automation and httpx for static requests, it navigates vendor sites to retrieve up-to-date installation packages — suitable for staging driver packs for enterprise deployment.
 
-Unlike simple download utilities, it-claws runs concurrently with configurable retry logic, supports dynamic and static page scraping, and can pack everything into a compressed ZIP archive via 7z.
+Unlike simple download utilities, it-claws runs concurrently with configurable retry logic, supports dynamic and static page scraping, and can pack everything into a compressed ZIP archive via `libarchive`.
 
 The tool serves as a companion to [install-it](https://github.com/install-it/install-it/). See the [Usage](#usage) section for more information.
 
@@ -48,10 +48,8 @@ it-claws also supports **Docker** deployment with tmpfs RAM disk and automated c
 
 ### Built With
 
-[<img src="https://img.shields.io/badge/7zip-000?style=for-the-badge&logo=7zip&logoColor=white">](https://www.7-zip.org/)
 [<img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white">](https://www.python.org/)
 [<img src="https://img.shields.io/badge/Selenium-01a71c?style=for-the-badge&logo=selenium&logoColor=white">](https://www.selenium.dev/)
-[<img src="https://img.shields.io/badge/httpx-FF6600?style=for-the-badge&logo=python&logoColor=white">](https://www.python-httpx.org/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -113,53 +111,51 @@ it-claws --max-concurrent 10 --retries 2
 ### Archiving options
 
 ```sh
-it-claws -o ./downloads -z ./driver-pack.zip --zip-includes install-it/conf --compress-level 9
+it-claws -o ./downloads -z ./driver-pack.zip --zip-include install-it/conf --compress-level 9
 ```
 
 - `-z` / `--zip PATH`: destination for the output ZIP archive
-- `--zip-includes PATHS [PATHS ...]`: additional files or directories to include in the archive (can be specified multiple times)
-- `-l` / `--compress-level`: 7z compression level `0`–`9` (default: `5`)
+- `--zip-include SOURCE[=LAYOUT]`: additional files or directories to include in the archive (can be specified multiple times). The `<source>[=<layout>]` syntax lets you map a source path to a custom entry name inside the ZIP. For example, `install-it/conf=settings` adds the contents of `install-it/conf` under a `settings/` prefix inside the archive.
+- `--zip-prefix PREFIX`: control how the output directory is represented in the ZIP. By default, the output directory name is stripped from archive paths. Specify a name to prefix all entries (e.g. `--zip-prefix pkg` places entries under `pkg/`).
+- `-l` / `--compress-level`: compression level `0`–`9` (default: `5`)
+- `--manifest`: generate a `manifest.json` file at the root of the ZIP archive
 
 ### How zip entries are determined
 
-7z resolves all paths relative to the current working directory (CWD) at the time of execution. The path you pass to `--zip` and `--zip-includes` determines what gets stored inside the archive:
+By default, the output directory name is stripped from archive paths. Entries are placed directly under the archive root:
 
 ```sh
-# From C:\project, these produce different zip contents:
-it-claws -z out.zip --zip-includes ./install-it/conf
-# → zip contains: conf/ (all components except last dropped)
-
-it-claws -z out.zip --zip-includes install-it/conf
-# → zip contains: install-it/conf/ (full path preserved)
-
-it-claws -z out.zip --zip-includes install-it/conf/
-# → zip contains: install-it/conf/ (trailing slash stripped, full path preserved)
-
-it-claws -z out.zip --zip-includes ./install-it/conf/
-# → zip contains: conf/ (./ drops all components except last)
+it-claws -o ./downloads -z ./driver-pack.zip
+# → zip contains: network/..., display/...  (downloads/ prefix stripped)
 ```
 
-Key path behaviors:
-- **`./` drops all components except the last.** `./a/b/c` → `c`, `./a/b` → `b`, `./a` → `a`.
-- **`..` resolves to parent directory.** `../other` stores relative to resolved parent, not the CWD.
-- **No prefix preserves the full relative path.** `install-it/conf` stores as `install-it/conf`.
-- **Trailing `/` is normalized away.** Both `conf/` and `conf` store identically.
-- **Paths are relative to your shell's current directory**, not the location of the zip output.
-- **Wildcards do not recurse.** `*.ini` only matches files directly in CWD.
-- **Duplicate paths cause errors** and non-zero exit — no zip created.
-- **Nonexistent paths** cause warnings and non-zero exit — zip is still created but path is skipped.
-
-To include a config directory alongside your downloads in the same archive:
+Use `--zip-prefix` to add a custom prefix to all entries:
 
 ```sh
-it-claws -o ./downloads -z ./driver-pack.zip --zip-includes install-it/conf
+it-claws -o ./downloads -z ./driver-pack.zip --zip-prefix drivers
+# → zip contains: drivers/network/..., drivers/display/...
 ```
 
-This produces a zip containing both `downloads/` and `install-it/conf/` as top-level entries.
+Additional files or directories can be included with `--zip-include`. Each flag accepts a single source path, optionally followed by `=<layout>` to remap the entry name inside the archive:
 
-### Extract RAR files on Linux
+```sh
+it-claws -o ./downloads -z ./driver-pack.zip --zip-include install-it/conf
+# → zip contains: network/..., display/... + install-it/conf/...
 
-The `7z` package may not support RAR format. Install `p7zip-full p7zip-rar` as an alternative.
+it-claws -o ./downloads -z ./driver-pack.zip --zip-include install-it/conf=settings
+# → zip contains: network/..., display/... + settings/...  (remapped from install-it/conf)
+```
+
+You can specify `--zip-include` multiple times to include several paths:
+
+```sh
+it-claws -o ./downloads -z ./driver-pack.zip \
+  --zip-include install-it/conf \
+  --zip-include scripts/startup
+# → zip contains: network/..., display/... + install-it/conf/... + scripts/startup/...
+```
+
+When the same directory is included via both `-o` and `--zip-include`, or when two `--zip-include` paths overlap, the entries are merged without duplication.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -196,7 +192,7 @@ docker run --name=it-claws \
 ### Prerequisites
 
 - [uv](https://docs.astral.sh/uv/)
-- [7zip](https://www.7-zip.org/download.html)
+- [libarchive](https://www.libarchive.org/) — on Windows, download the DLL from the libarchive website or use a package manager like vcpkg or chocolatey
 - A supported web browser (Chrome, Edge, or Firefox)
 
 ### Install dependencies

@@ -11,7 +11,7 @@ RUN echo "**** updating packages ****" && \
   apt upgrade -y
 
 RUN echo "**** installing runtime packages ****" && \
-  apt install -y bash rclone p7zip-full p7zip-rar wget
+  apt install -y bash rclone libarchive13 wget
 
 RUN echo "**** installing chromium and chromedriver ****" && \
   apt install -y --no-install-recommends chromium chromium-driver && \

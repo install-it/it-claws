@@ -48,24 +48,36 @@ jobs:
         with:
           install-only: true
 
-      - name: Build the executable
+      - name: Create Custom Mixed-Linkage Triplet
         run: |
-          pyinstaller .\src\it_claws\main.py -cDF -n ${{ github.event.repository.name }} `
-            --collect-all selenium --collect-all inquirer --copy-metadata readchar
+          $arch = if ("${{ matrix.architecture }}" -eq "i386") { "x86" } else { "x64" }
+          New-Item -ItemType Directory -Force -Path custom-triplets
+          
+          $tripletContent = @"
+          set(VCPKG_TARGET_ARCHITECTURE $arch)
+          set(VCPKG_CRT_LINKAGE dynamic)
+          set(VCPKG_LIBRARY_LINKAGE static)
+          if(PORT STREQUAL "libarchive")
+              set(VCPKG_LIBRARY_LINKAGE dynamic)
+          endif()
+          "@
+          
+          $tripletContent | Out-File -FilePath "custom-triplets\mixed-windows.cmake" -Encoding ascii
 
-      - name: Download and extract 7zip binaries
+      - name: Install Self-Contained libarchive via vcpkg
         run: |
-          curl -o 7z2501-extra.7z https://www.7-zip.org/a/7z2501-extra.7z
-          if ("${{ matrix.architecture }}" -eq "x86") {
-            7z e 7z2501-extra.7z -odist/bin/7zip 7z*.*
-          } else {
-            7z e 7z2501-extra.7z -odist/bin/7zip x64/7z*.*
-          }
+          vcpkg install libarchive:mixed-windows --overlay-triplets=custom-triplets
+
+      - name: Build the executable (Onedir mode)
+        run: |
+          pyinstaller .\src\it_claws\main.py -cD -n ${{ github.event.repository.name }} `
+            --collect-all selenium --collect-all inquirer --copy-metadata readchar `
+            --add-binary "C:/vcpkg/installed/mixed-windows/bin/libarchive.dll;bin/libarchive"
 
       - name: Package into zip
         run: |
           cd .\dist\
-          7z a ${{ github.event.repository.name }}.${{ matrix.build-name }}.zip * -mx9
+          7z a "${{ github.event.repository.name }}.${{ matrix.build-name }}.zip" ./${{ github.event.repository.name }} -mx9
 
       - name: Upload updater artifact
         uses: actions/upload-artifact@v7

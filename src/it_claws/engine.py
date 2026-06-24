@@ -4,7 +4,7 @@ import queue
 import sys
 import threading
 from concurrent.futures import Future, as_completed
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
@@ -22,7 +22,6 @@ from .scrapers import (
     extract_archive,
     resolve_cookies,
 )
-
 
 
 class DaemonThreadPool:
@@ -100,6 +99,7 @@ class ConcurrentPipeline:
         jobs: list[DownloadJob],
         output_root: Path,
         zip_path: Path | None = None,
+        zip_prefix: str | None = None,
         zip_includes: list[str] | None = None,
         manifest: bool = False,
     ) -> list[tuple[DownloadJob, bool, str]]:
@@ -163,11 +163,11 @@ class ConcurrentPipeline:
         cleanup_empty_directories(output_root)
 
         if zip_path and all(s for _, s, _ in self._results):
+            manifest_path = output_root / "manifest.json"
             if manifest:
-                manifest_path = output_root / "manifest.json"
                 manifest_path.write_text(
                     json.dumps(
-                        {"format_version": 1, "exported_at": datetime.now(timezone.utc).isoformat()},
+                        {"format_version": 1, "exported_at": datetime.now(UTC).isoformat()},
                         indent=2,
                     )
                     + "\n"
@@ -176,7 +176,9 @@ class ConcurrentPipeline:
                 zip_path,
                 output_root,
                 level=self._compress_level,
-                include=zip_includes,
+                zip_prefix=zip_prefix,
+                zip_includes=zip_includes,
+                manifest_path=manifest_path if manifest else None,
             )
             tqdm.write(f"Archive created: {zip_path}")
 

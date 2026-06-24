@@ -54,13 +54,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="Compression level (0-9)",
     )
     ar.add_argument(
-        "--zip-includes",
-        action="append",
-        nargs="+",
+        "--zip-prefix",
         type=str,
         default=None,
-        metavar="PATHS",
-        help="Additional files or directories to include in the archive",
+        metavar="PREFIX",
+        help="Control how the output directory is represented in the ZIP. "
+             "Default: strip the output directory name. "
+             "Specify a name to prefix all entries (e.g. --zip-prefix pkg).",
+    )
+    ar.add_argument(
+        "--zip-include",
+        action="append",
+        type=str,
+        default=None,
+        metavar="SOURCE[=LAYOUT]",
+        help="Additional files or directories to include in the archive. "
+             "Format: <source>[=<layout>]. Can be specified multiple times.",
     )
     ar.add_argument(
         "--manifest",
@@ -155,8 +164,8 @@ def run() -> None:
         print("No valid targets to process", file=sys.stderr)
         sys.exit(1)
 
-    if args.zip_includes and not args.zip:
-        print("error: --zip-includes requires --zip", file=sys.stderr)
+    if args.zip_include and not args.zip:
+        print("error: --zip-include requires --zip", file=sys.stderr)
         sys.exit(1)
 
     results = ConcurrentPipeline(
@@ -167,7 +176,8 @@ def run() -> None:
         [DownloadJob(target=t, output_root=args.output, name=name) for t, name in targets],
         args.output,
         args.zip,
-        zip_includes=[item for g in (args.zip_includes or []) for item in g] or None,
+        zip_prefix=args.zip_prefix,
+        zip_includes=args.zip_include,
         manifest=args.manifest,
     )
 
