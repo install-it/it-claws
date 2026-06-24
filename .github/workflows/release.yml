@@ -72,7 +72,7 @@ jobs:
         run: |
           pyinstaller .\src\it_claws\main.py -cD -n ${{ github.event.repository.name }} `
             --collect-all selenium --collect-all inquirer --copy-metadata readchar `
-            --add-binary "C:/vcpkg/installed/mixed-windows/bin/libarchive.dll;bin/libarchive"
+            --add-binary "$env:VCPKG_INSTALLATION_ROOT\installed\mixed-windows\bin\libarchive.dll;bin/libarchive"
 
       - name: Package into zip
         run: |
