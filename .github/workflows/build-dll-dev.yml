@@ -1,0 +1,69 @@
+name: Build libarchive DLL for Local Dev (x64)
+
+on:
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  build-dll:
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Create Custom Mixed-Linkage Triplet (x64)
+        run: |
+          New-Item -ItemType Directory -Force -Path custom-triplets
+          
+          $tripletContent = @"
+          set(VCPKG_TARGET_ARCHITECTURE x64)
+          set(VCPKG_CRT_LINKAGE dynamic)
+          set(VCPKG_LIBRARY_LINKAGE dynamic)
+          if(DEFINED PORT AND NOT PORT STREQUAL "libarchive")
+              set(VCPKG_LIBRARY_LINKAGE static)
+          endif()
+          "@
+          
+          $tripletContent | Out-File -FilePath "custom-triplets\mixed-windows.cmake" -Encoding ascii
+
+      - name: Install Self-Contained libarchive via vcpkg
+        run: |
+          vcpkg install libarchive:mixed-windows --overlay-triplets=custom-triplets
+
+      - name: Locate, Rename, and Stage DLL
+        run: |
+          Write-Host "=================== DEBUG INFO ==================="
+          Write-Host "Current working directory: $(Get-Location)"
+          Write-Host "VCPKG Installation Root:  $env:VCPKG_INSTALLATION_ROOT"
+          Write-Host "=================================================="
+          
+          Write-Host "Scanning vcpkg trees for compiled library..."
+          $dll = Get-ChildItem -Path "$env:VCPKG_INSTALLATION_ROOT\installed" -Recurse -Filter "archive.dll" | Select-Object -First 1
+          if (-not $dll) {
+              Write-Host "archive.dll not found. Scanning for libarchive.dll alternative..."
+              $dll = Get-ChildItem -Path "$env:VCPKG_INSTALLATION_ROOT\installed" -Recurse -Filter "libarchive.dll" | Select-Object -First 1
+          }
+          
+          if ($dll) {
+              Write-Host "SUCCESS: Found library at: $($dll.FullName)"
+              Write-Host "Staging and renaming binary to local workspace root..."
+              Copy-Item -Path $dll.FullName -Destination ".\libarchive.dll" -Force
+              
+              if (Test-Path ".\libarchive.dll") {
+                  $size = (Get-Item ".\libarchive.dll").Length
+                  Write-Host "VERIFIED: .\libarchive.dll is locked and loaded! ($size bytes)"
+              } else {
+                  Write-Error "ERROR: Copy operation executed but file is missing from destination workspace."
+                  exit 1
+              }
+          } else {
+              Write-Error "CRITICAL FAILURE: No compiled binary was found anywhere inside vcpkg trees!"
+              exit 1
+          }
+
+      - name: Upload Native DLL to Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: libarchive-dll-x64
+          path: libarchive.dll
