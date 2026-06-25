@@ -113,6 +113,7 @@ class ConcurrentPipeline:
 
         while pending:
             scraped: list = []
+            tqdm.write("Resolving download URLs...")
             for job in pending:
                 job.destination_directory.mkdir(parents=True, exist_ok=True)
                 try:
@@ -123,6 +124,7 @@ class ConcurrentPipeline:
                     tqdm.write(f"Failed to resolve {job.display_name}: {exc}")
 
             if scraped:
+                tqdm.write("Downloading...")
                 with DaemonThreadPool(max_workers=self._max_concurrent) as pool:
                     futures: dict[Future, DownloadJob] = {
                         pool.submit(self._download_job, *entry): entry[0] for entry in scraped
@@ -172,6 +174,7 @@ class ConcurrentPipeline:
                     )
                     + "\n"
                 )
+            tqdm.write("Archiving...")
             zip(
                 zip_path,
                 output_root,
