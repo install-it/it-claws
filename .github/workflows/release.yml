@@ -48,42 +48,39 @@ jobs:
         with:
           install-only: true
 
-      - name: Create Custom Mixed-Linkage Triplet
+      - name: Download 7zip binaries
         run: |
-          $arch = if ("${{ matrix.architecture }}" -eq "i386") { "x86" } else { "x64" }
-          New-Item -ItemType Directory -Force -Path custom-triplets
-          
-          $tripletContent = @"
-          set(VCPKG_TARGET_ARCHITECTURE $arch)
-          set(VCPKG_CRT_LINKAGE dynamic)
-          set(VCPKG_LIBRARY_LINKAGE static)
-          if(PORT STREQUAL "libarchive")
-              set(VCPKG_LIBRARY_LINKAGE dynamic)
-          endif()
-          "@
-          
-          $tripletContent | Out-File -FilePath "custom-triplets\mixed-windows.cmake" -Encoding ascii
-
-      - name: Install Self-Contained libarchive via vcpkg
-        run: |
-          vcpkg install libarchive:mixed-windows --overlay-triplets=custom-triplets
+          curl -sL -o 7z2501-extra.7z https://www.7-zip.org/a/7z2501-extra.7z
+          if ("${{ matrix.architecture }}" -eq "i386") {
+            7z e 7z2501-extra.7z -odist/bin/7zip 7z*.*
+          } else {
+            7z e 7z2501-extra.7z -odist/bin/7zip x64/7z*.*
+          }
+          Remove-Item 7z2501-extra.7z
 
       - name: Build the executable (Onedir mode)
         run: |
           pyinstaller .\src\it_claws\main.py -cD -n ${{ github.event.repository.name }} `
-            --collect-all selenium --collect-all inquirer --copy-metadata readchar `
-            --add-binary "$env:VCPKG_INSTALLATION_ROOT\installed\mixed-windows\bin\libarchive.dll;bin/libarchive"
+            --collect-all selenium --collect-all inquirer --copy-metadata readchar
 
       - name: Package into zip
         run: |
           cd .\dist\
           7z a "${{ github.event.repository.name }}.${{ matrix.build-name }}.zip" ./${{ github.event.repository.name }} -mx9
 
-      - name: Upload updater artifact
+      - name: Package bundle zip
+        run: |
+          cd .\dist\
+          7z a "${{ github.event.repository.name }}.${{ matrix.build-name }}-bundle.zip" .\${{ github.event.repository.name }}\bin\7zip\7za.exe
+          7z a "${{ github.event.repository.name }}.${{ matrix.build-name }}-bundle.zip" .\${{ github.event.repository.name }} -mx9
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.repository.name }}.${{ matrix.architecture }}
-          path: dist/${{ github.event.repository.name }}.${{ matrix.build-name }}.zip
+          path: |
+            dist/${{ github.event.repository.name }}.${{ matrix.build-name }}.zip
+            dist/${{ github.event.repository.name }}.${{ matrix.build-name }}-bundle.zip
 
   create-release:
     needs: [build]
