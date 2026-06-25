@@ -201,7 +201,8 @@ def extract_archive(
     target_dir.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
-        unzip(archive_path, tmp_path)
+        if rtc := unzip(archive_path, tmp_path) != 0:
+            raise RuntimeError(f"Failed to extract {archive_path} (exit code {rtc})")
 
         if file_type == "zip/exe":
             exe_files = list(tmp_path.rglob("*.exe"))
