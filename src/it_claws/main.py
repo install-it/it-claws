@@ -14,6 +14,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="it-claws")
     dl = parser.add_argument_group("Download Options")
     dl.add_argument("-o", "--output", type=Path, default=Path.cwd() / "downloads")
+    dl.add_argument(
+        "-c",
+        "--clear-output",
+        action="store_true",
+        help="Remove output directory before starting",
+    )
 
     tg = parser.add_argument_group("Target Options")
     mexcl = tg.add_mutually_exclusive_group()
@@ -158,13 +164,25 @@ def run() -> None:
     parser = build_parser()
     args = parser.parse_args()
 
+    if args.output.exists() and not args.clear_output:
+        tqdm.write(
+            f"Output directory {args.output} already exists. "
+            "Use -c, --clear-output to clear it, or remove it manually.",
+        )
+        sys.exit(1)
+
+    if args.clear_output and args.output.exists():
+        import shutil
+
+        shutil.rmtree(args.output)
+
     targets = resolve_selected_targets(args.targets, args.interactive, args.all, args.target_from)
     if not targets:
         tqdm.write("No valid targets to process")
         sys.exit(1)
 
     if args.zip_include and not args.zip:
-        print("error: --zip-include requires --zip", file=sys.stderr)
+        tqdm.write("error: --zip-include requires --zip")
         sys.exit(1)
 
     results = ConcurrentPipeline(
