@@ -187,8 +187,7 @@ class ConcurrentPipeline:
 
             entries: list[tuple[Path, str]] = []
 
-            root_prefix = zip_prefix if zip_prefix else output_root.name
-            entries.extend(archive.walk(output_root, output_root.parent, root_prefix))
+            entries.extend(archive.walk(output_root, output_root, zip_prefix))
 
             if zip_includes:
                 for entry in zip_includes:
