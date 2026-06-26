@@ -45,6 +45,8 @@ def resolve_static_download(
 
 
 def resolve_gigabyte_dynamic(driver: WebDriver, url: str, selector: str, **_: Any) -> str | None:
+    if driver.current_url == url:
+        driver.get("about:blank")
     driver.get(url)
     try:
         el = WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.XPATH, selector)))
