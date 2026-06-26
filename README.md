@@ -38,7 +38,7 @@
 
 it-claws is a Python-based tool that automatically downloads the latest PC hardware drivers, diagnostic tools, and common software from official vendor websites. Using Selenium for browser automation and httpx for static requests, it navigates vendor sites to retrieve up-to-date installation packages — suitable for staging driver packs for enterprise deployment.
 
-Unlike simple download utilities, it-claws runs concurrently with configurable retry logic, supports dynamic and static page scraping, and can pack everything into a compressed ZIP archive via `libarchive`.
+Unlike simple download utilities, it-claws runs concurrently with configurable retry logic, supports dynamic and static page scraping, and can pack everything into a compressed ZIP archive.
 
 The tool serves as a companion to [install-it](https://github.com/install-it/install-it/). See the [Usage](#usage) section for more information.
 
@@ -115,7 +115,7 @@ it-claws -o ./downloads -z ./driver-pack.zip --zip-include install-it/conf --com
 ```
 
 - `-z` / `--zip PATH`: destination for the output ZIP archive
-- `--zip-include SOURCE[=LAYOUT]`: additional files or directories to include in the archive (can be specified multiple times). The `<source>[=<layout>]` syntax lets you map a source path to a custom entry name inside the ZIP. For example, `install-it/conf=settings` adds the contents of `install-it/conf` under a `settings/` prefix inside the archive.
+- `--zip-include SOURCE[=LAYOUT]`: additional files or directories to include in the archive. The `<source>[=<layout>]` syntax lets you map a source path to a custom entry name inside the ZIP. For example, `install-it/conf=settings` adds the contents of `install-it/conf` under a `settings/` prefix inside the archive. Can be specified multiple times.
 - `--zip-prefix PREFIX`: control how the output directory is represented in the ZIP. By default, the output directory name is stripped from archive paths. Specify a name to prefix all entries (e.g. `--zip-prefix pkg` places entries under `pkg/`).
 - `-l` / `--compress-level`: compression level `0`–`9` (default: `5`)
 - `--manifest`: generate a `manifest.json` file at the root of the ZIP archive
@@ -192,7 +192,6 @@ docker run --name=it-claws \
 ### Prerequisites
 
 - [uv](https://docs.astral.sh/uv/)
-- [libarchive](https://www.libarchive.org/) — on Windows, download the DLL from the libarchive website or use a package manager like vcpkg or chocolatey
 - A supported web browser (Chrome, Edge, or Firefox)
 
 ### Install dependencies

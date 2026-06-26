@@ -1,6 +1,7 @@
 import json
 import os
 import queue
+import re
 import sys
 import threading
 from concurrent.futures import Future, as_completed
@@ -14,7 +15,7 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.remote.webdriver import WebDriver
 from tqdm import tqdm
 
-from .archive import zip
+from . import archive
 from .models import DownloadJob
 from .scrapers import (
     cleanup_empty_directories,
@@ -22,6 +23,15 @@ from .scrapers import (
     extract_archive,
     resolve_cookies,
 )
+
+
+def _normalise_source_path(source: str) -> str:
+    p = source.replace("\\", "/")
+    p = re.sub(r"^[A-Za-z]:", "", p)
+    p = p.lstrip("/")
+    if p.startswith("./"):
+        p = p[2:]
+    return p
 
 
 class DaemonThreadPool:
@@ -113,7 +123,6 @@ class ConcurrentPipeline:
 
         while pending:
             scraped: list = []
-            tqdm.write("Resolving download URLs...")
             for job in pending:
                 job.destination_directory.mkdir(parents=True, exist_ok=True)
                 try:
@@ -124,7 +133,6 @@ class ConcurrentPipeline:
                     tqdm.write(f"Failed to resolve {job.display_name}: {exc}")
 
             if scraped:
-                tqdm.write("Downloading...")
                 with DaemonThreadPool(max_workers=self._max_concurrent) as pool:
                     futures: dict[Future, DownloadJob] = {
                         pool.submit(self._download_job, *entry): entry[0] for entry in scraped
@@ -174,15 +182,43 @@ class ConcurrentPipeline:
                     )
                     + "\n"
                 )
-            tqdm.write("Archiving...")
-            zip(
-                zip_path,
-                output_root,
-                level=self._compress_level,
-                zip_prefix=zip_prefix,
-                zip_includes=zip_includes,
-                manifest_path=manifest_path if manifest else None,
-            )
+
+            entries: list[tuple[Path, str]] = []
+
+            root_prefix = zip_prefix if zip_prefix else output_root.name
+            entries.extend(archive.walk(output_root, output_root.parent, root_prefix))
+
+            if zip_includes:
+                for entry in zip_includes:
+                    raw_source, layout = entry.rsplit("=", 1) if "=" in entry else (entry, None)
+
+                    if ".." in raw_source and layout is None:
+                        raise ValueError(
+                            f"Path traversal ('..') in zip-include source {raw_source!r} "
+                            f"without explicit layout is not allowed"
+                        )
+
+                    resolved = Path(raw_source).resolve()
+
+                    if resolved.is_dir():
+                        prefix = layout if layout else _normalise_source_path(raw_source)
+                        if layout is None and zip_prefix:
+                            prefix = f"{zip_prefix}/{prefix}"
+                        entries.extend(archive.walk(resolved, resolved, prefix))
+                    elif resolved.is_file():
+                        if layout is not None:
+                            arcname = f"{layout}{resolved.name}" if layout.endswith("/") else layout
+                        else:
+                            arcname = _normalise_source_path(raw_source)
+                            if zip_prefix:
+                                arcname = f"{zip_prefix}/{arcname}"
+                        entries.append((resolved, arcname))
+
+            if manifest and manifest_path.exists():
+                entries = [(fp, an) for fp, an in entries if an != "manifest.json"]
+                entries.append((manifest_path, "manifest.json"))
+
+            archive.zip(zip_path, entries, level=self._compress_level)
             tqdm.write(f"Archive created: {zip_path}")
 
         return self._results

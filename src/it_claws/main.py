@@ -59,8 +59,8 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         metavar="PREFIX",
         help="Control how the output directory is represented in the ZIP. "
-             "Default: strip the output directory name. "
-             "Specify a name to prefix all entries (e.g. --zip-prefix pkg).",
+        "Default: strip the output directory name. "
+        "Specify a name to prefix all entries (e.g. --zip-prefix pkg).",
     )
     ar.add_argument(
         "--zip-include",
@@ -69,14 +69,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         metavar="SOURCE[=LAYOUT]",
         help="Additional files or directories to include in the archive. "
-             "Format: <source>[=<layout>]. Can be specified multiple times.",
+        "Format: <source>[=<layout>]. Can be specified multiple times.",
     )
     ar.add_argument(
         "--manifest",
         action="store_true",
         help="Generate manifest.json inside the archive (required by install-it)",
     )
-
     parser.add_argument("-v", "--verbose", action="store_true")
     return parser
 
