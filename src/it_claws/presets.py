@@ -2,6 +2,7 @@ from dataclasses import replace
 
 from .models import ScrapeTarget, TargetGroup
 from .scrapers import (
+    resolve_asus_static,
     resolve_direct_url,
     resolve_furmark_static,
     resolve_gigabyte_dynamic,
@@ -280,33 +281,25 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
         members=[
             ScrapeTarget(
                 name="bluetooth",
-                path="",
-                resolver_type="dynamic",
-                resolver=resolve_gigabyte_dynamic,
+                path="{name}",
+                resolver_type="static",
+                resolver=resolve_asus_static,
                 resolver_kwargs={
-                    "url": "https://www.gigabyte.com/Motherboard/X870-AORUS-ELITE-WIFI7-rev-10-11/support",
-                    "selector": (
-                        '//tr[contains(@class, "item-group")]'
-                        '[.//text()[contains(., "Realtek Bluetooth")]][1]//a'
-                    ),
+                    "model": "TUF-GAMING-B860M-PLUS-WIFI",
+                    "category": "Bluetooth",
                 },
-                file_type="zip/exe",
-                rename_as="mb_driver_3702_realtek8922",
+                file_type="zip",
             ),
             ScrapeTarget(
                 name="wifi",
-                path="",
-                resolver_type="dynamic",
-                resolver=resolve_gigabyte_dynamic,
+                path="{name}",
+                resolver_type="static",
+                resolver=resolve_asus_static,
                 resolver_kwargs={
-                    "url": "https://www.gigabyte.com/Motherboard/X870-AORUS-ELITE-WIFI7-rev-10-11/support",
-                    "selector": (
-                        '//tr[contains(@class, "item-group")]'
-                        '[.//text()[contains(., "Realtek WIFI")]][1]//a'
-                    ),
+                    "model": "TUF-GAMING-B860M-PLUS-WIFI",
+                    "category": "Wireless",
                 },
-                file_type="zip/exe",
-                rename_as="mb_driver_3701_realtek8922wifi",
+                file_type="zip",
             ),
         ],
     ),

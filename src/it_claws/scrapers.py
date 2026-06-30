@@ -127,6 +127,44 @@ def resolve_sourceforge_static(
     return f"https://download.sourceforge.net/{project_name}{version}"
 
 
+def resolve_asus_static(
+    client: httpx.Client,
+    model: str,
+    category: str,
+    osid: int = 52,
+    website: str = "global",
+    **_: Any,
+) -> str | None:
+    """Resolve the latest driver download URL from the ASUS ROG support API.
+
+    Args:
+        model: ASUS model name (e.g. "TUF-GAMING-B860M-PLUS-WIFI").
+        category: Driver category to select (e.g. "Wireless", "Bluetooth").
+        osid: OS identifier (52 = Windows 11 64-bit, 45 = Windows 10 64-bit).
+        website: Regional website code (default "global").
+    """
+    api_url = "https://rog.asus.com/support/webapi/product/GetPDDrivers"
+    response = client.get(api_url, params={
+        "website": website,
+        "model": model,
+        "osid": osid,
+    })
+    response.raise_for_status()
+    data = response.json()
+
+    for group in data.get("Result", {}).get("Obj", []):
+        if group.get("Name") != category:
+            continue
+        files = group.get("Files", [])
+        if not files:
+            return None
+        url = files[0].get("DownloadUrl", {}).get("Global")
+        if url:
+            return url
+
+    return None
+
+
 def resolve_furmark_static(client: httpx.Client, url: str, variant: str = "win64") -> str | None:
     response = client.get(url)
     response.raise_for_status()
