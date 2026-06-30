@@ -221,9 +221,10 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
                 name="bluetooth",
                 path="{name}",
                 resolver_type="static",
-                resolver=resolve_direct_url,
+                resolver=resolve_asus_static,
                 resolver_kwargs={
-                    "url": "https://dlcdnets.asus.com/pub/ASUS/mb/02BT/DRV_BT_RTK_8852BE_SZ-TSD_W11_64_V1640132401503_20240924R.zip?model=PRIME%20B650M-A%20WIFI"
+                    "model": "PRIME-B650M-A-WIFI",
+                    "category": "Bluetooth",
                 },
                 file_type="zip",
             ),
@@ -231,9 +232,10 @@ TARGETS: list[ScrapeTarget | TargetGroup] = [
                 name="wifi",
                 path="{name}",
                 resolver_type="static",
-                resolver=resolve_direct_url,
+                resolver=resolve_asus_static,
                 resolver_kwargs={
-                    "url": "https://dlcdnets.asus.com/pub/ASUS/mb/08WIRELESS/DRV_WiFi_RTK_8852BE_SZ-TSD_W11_64_V6001151240_20220908B.zip?model=PRIME%20B650M-A%20WIFI"
+                    "model": "PRIME-B650M-A-WIFI",
+                    "category": "Wireless",
                 },
                 file_type="zip",
             ),
